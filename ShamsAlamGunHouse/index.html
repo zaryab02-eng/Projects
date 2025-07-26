@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- CHANGE: Update title, description, and keywords for your business -->
+    <title>Heritage Gunsmithing - Licensed Gunsmithing & Repairs Since 1952</title>
+    <meta name="description" content="Professional licensed gunsmithing services including handgun repair, shotgun services, custom engraving, and vintage restoration.">
+    <meta name="keywords" content="gunsmith, firearm repair, gun restoration, custom engraving, handgun repair, shotgun services">
+    <meta name="author" content="Heritage Gunsmithing">
+    
+    <!-- Open Graph Meta Tags for Social Media -->
+    <meta property="og:title" content="Heritage Gunsmithing - Licensed Gun Repair Services">
+    <meta property="og:description" content="Professional licensed gunsmithing services since 1952">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yourwebsite.com">
+    <!-- CHANGE: Add your actual website URL above -->
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
+    <!-- CHANGE: Add your favicon file -->
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- CSS Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="loading-spinner">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="navbar__container">
+            <!-- CHANGE: Update logo text and link -->
+            <a href="#home" class="navbar__logo">
+                <i class="fas fa-crosshairs"></i>
+                Heritage Gunsmithing
+            </a>
+            
+            <!-- Desktop Menu -->
+            <ul class="navbar__menu" id="navbar-menu">
+                <li><a href="#home" class="navbar__link">Home</a></li>
+                <li><a href="#about" class="navbar__link">About Us</a></li>
+                <li class="navbar__dropdown">
+                    <a href="#services" class="navbar__link">
+                        Services <i class="fas fa-chevron-down"></i>
+                    </a>
+                    <ul class="dropdown__menu">
+                        <li><a href="#services" class="dropdown__link">All Services</a></li>
+                        <li><a href="#services" class="dropdown__link">Handgun Repair</a></li>
+                        <li><a href="#services" class="dropdown__link">Shotgun Services</a></li>
+                        <li><a href="#services" class="dropdown__link">Custom Engraving</a></li>
+                        <li><a href="#services" class="dropdown__link">Vintage Restoration</a></li>
+                    </ul>
+                </li>
+                <li><a href="#gallery" class="navbar__link">Gallery</a></li>
+                <li><a href="#faq" class="navbar__link">FAQs</a></li>
+                <li><a href="#testimonials" class="navbar__link">Testimonials</a></li>
+                <li><a href="#contact" class="navbar__link">Contact</a></li>
+            </ul>
+            
+            <!-- Mobile Menu Toggle -->
+            <div class="navbar__toggle" id="mobile-menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <!-- CHANGE: Replace with your workshop background image -->
+        <div class="hero__background">
+            <img src="assets/images/workshop-background.jpg" alt="Gunsmith Workshop" class="hero__bg-image">
+            <div class="hero__overlay"></div>
+        </div>
+        
+        <div class="hero__content">
+            <!-- CHANGE: Update business name, tagline, and establishment year -->
+            <h1 class="hero__title">Heritage Gunsmithing</h1>
+            <p class="hero__subtitle">Licensed Gunsmithing & Repairs Since 1952</p>
+            <p class="hero__description">Three generations of precision craftsmanship and trusted service</p>
+            <div class="hero__cta-buttons">
+                <a href="#contact" class="btn btn--primary hero__cta">Get Your Free Quote</a>
+                <a href="#services" class="btn btn--secondary">View Services</a>
+            </div>
+        </div>
+        
+        <!-- Scroll Down Arrow -->
+        <div class="hero__scroll">
+            <a href="#about" class="scroll-arrow">
+                <i class="fas fa-chevron-down"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="section">
+        <div class="container">
+            <h2 class="section__title">About Our Master Gunsmith</h2>
+            <div class="about__content">
+                <div class="about__image-container">
+                    <!-- CHANGE: Replace with actual photo of your gunsmith -->
+                    <img src="assets/images/master-gunsmith.jpg" alt="Master Gunsmith Portrait" class="about__image">
+                    <div class="about__badge">
+                        <i class="fas fa-certificate"></i>
+                        <span>Licensed Professional</span>
+                    </div>
+                </div>
+                
+                <div class="about__text">
+                    <!-- CHANGE: Update with your actual story and credentials -->
+                    <h3>Three Generations of Excellence</h3>
+                    <p>Founded by my grandfather in 1952, Heritage Gunsmithing has been serving the community with professional firearm services for over 70 years. I'm a third-generation licensed gunsmith, carrying on the family tradition of precision craftsmanship and honest service.</p>
+                    
+                    <p>With decades of experience in firearm restoration, repair, and customization, I take pride in treating each weapon with the respect and attention it deserves. Whether it's a family heirloom or a modern sporting rifle, every piece that comes through our doors receives the same meticulous care.</p>
+                    
+                    <div class="credentials">
+                        <h4><i class="fas fa-award"></i> Professional Credentials</h4>
+                        <!-- CHANGE: Update with your actual license numbers and certifications -->
+                        <div class="credentials__grid">
+                            <div class="credential-item">
+                                <strong>Federal Firearms License:</strong>
+                                <span>#XX-XXXXX-XX-XX-XXXXX</span>
+                            </div>
+                            <div class="credential-item">
+                                <strong>Certified Gunsmith:</strong>
+                                <span>American Gunsmithing Institute</span>
+                            </div>
+                            <div class="credential-item">
+                                <strong>Years of Experience:</strong>
+                                <span>35+ Years</span>
+                            </div>
+                            <div class="credential-item">
+                                <strong>Specializations:</strong>
+                                <span>Vintage Restoration, Custom Engraving</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="about__stats">
+                        <div class="stat-item">
+                            <div class="stat-number" data-target="1000">0</div>
+                            <div class="stat-label">Firearms Serviced</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" data-target="35">0</div>
+                            <div class="stat-label">Years Experience</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" data-target="100">0</div>
+                            <div class="stat-label">Satisfied Customers</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="section services">
+        <div class="container">
+            <h2 class="section__title">Our Expert Services</h2>
+            <p class="section__subtitle">Professional gunsmithing services with attention to detail and craftsmanship</p>
+            
+            <div class="services__grid">
+                <!-- Service Card 1 -->
+                <div class="service-card" data-service="handgun">
+                    <div class="service-card__icon">
+                        <i class="fas fa-crosshairs"></i>
+                    </div>
+                    <h3 class="service-card__title">Handgun Repair</h3>
+                    <p class="service-card__description">Complete repair and maintenance services for all handgun types including revolvers and semi-automatics.</p>
+                    <ul class="service-card__features">
+                        <li><i class="fas fa-check"></i> Trigger work and adjustment</li>
+                        <li><i class="fas fa-check"></i> Sight installation and alignment</li>
+                        <li><i class="fas fa-check"></i> Barrel replacement and threading</li>
+                    </ul>
+                    <button class="service-card__toggle btn btn--outline">Learn More</button>
+                    <div class="service-card__details">
+                        <p>We service all major brands including Smith & Wesson, Colt, Glock, Sig Sauer, Ruger, and more. Our services include precision trigger work, custom sight installation, barrel replacement, complete overhauls, and performance modifications.</p>
+                        <div class="service-pricing">
+                            <h5>Starting Prices:</h5>
+                            <p>Basic cleaning & inspection: $35</p>
+                            <p>Trigger work: $85</p>
+                            <p>Complete overhaul: $150</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service Card 2 -->
+                <div class="service-card" data-service="shotgun">
+                    <div class="service-card__icon">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <h3 class="service-card__title">Shotgun Services</h3>
+                    <p class="service-card__description">Specialized shotgun repair, modification, and restoration services for hunting and sporting shotguns.</p>
+                    <ul class="service-card__features">
+                        <li><i class="fas fa-check"></i> Choke tube installation</li>
+                        <li><i class="fas fa-check"></i> Barrel threading and porting</li>
+                        <li><i class="fas fa-check"></i> Stock refinishing and fitting</li>
+                    </ul>
+                    <button class="service-card__toggle btn btn--outline">Learn More</button>
+                    <div class="service-card__details">
+                        <p>Professional shotgun services including choke tube installation, barrel threading, stock refinishing, action tuning, and complete restorations. We work on all gauge shotguns from antique side-by-sides to modern semi-automatics.</p>
+                        <div class="service-pricing">
+                            <h5>Starting Prices:</h5>
+                            <p>Choke tube installation: $45</p>
+                            <p>Stock refinishing: $120</p>
+                            <p>Action tuning: $95</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service Card 3 -->
+                <div class="service-card" data-service="engraving">
+                    <div class="service-card__icon">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                    <h3 class="service-card__title">Custom Engraving</h3>
+                    <p class="service-card__description">Artistic custom engraving services to personalize your firearms with beautiful, lasting designs.</p>
+                    <ul class="service-card__features">
+                        <li><i class="fas fa-check"></i> Hand engraving and scrollwork</li>
+                        <li><i class="fas fa-check"></i> Laser engraving services</li>
+                        <li><i class="fas fa-check"></i> Custom design consultation</li>
+                    </ul>
+                    <button class="service-card__toggle btn btn--outline">Learn More</button>
+                    <div class="service-card__details">
+                        <p>Beautiful hand engraving, precision laser engraving, and custom scrollwork. Perfect for commemorative pieces, gifts, or adding personal touches to your favorite firearms. We work with traditional and modern engraving techniques.</p>
+                        <div class="service-pricing">
+                            <h5>Starting Prices:</h5>
+                            <p>Simple laser engraving: $25</p>
+                            <p>Custom scrollwork: $150</p>
+                            <p>Full hand engraving: $300</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service Card 4 -->
+                <div class="service-card" data-service="restoration">
+                    <div class="service-card__icon">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <h3 class="service-card__title">Vintage Restoration</h3>
+                    <p class="service-card__description">Expert restoration of antique and vintage firearms to their original glory while maintaining authenticity.</p>
+                    <ul class="service-card__features">
+                        <li><i class="fas fa-check"></i> Period-correct restoration</li>
+                        <li><i class="fas fa-check"></i> Metal refinishing and bluing</li>
+                        <li><i class="fas fa-check"></i> Wood restoration and repair</li>
+                    </ul>
+                    <button class="service-card__toggle btn btn--outline">Learn More</button>
+                    <div class="service-card__details">
+                        <p>Authentic restoration techniques using period-correct methods, metal refinishing, wood restoration, and parts fabrication. We specialize in Civil War era through WWII firearms, maintaining historical accuracy and value.</p>
+                        <div class="service-pricing">
+                            <h5>Consultation Required</h5>
+                            <p>Each restoration is unique and priced individually based on condition, rarity, and required work.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section id="gallery" class="section">
+        <div class="container">
+            <h2 class="section__title">Our Craftsmanship</h2>
+            <p class="section__subtitle">Before and after photos showcasing our precision work</p>
+            
+            <!-- Gallery Filter Buttons -->
+            <div class="gallery__filters">
+                <button class="filter-btn active" data-filter="all">All Work</button>
+                <button class="filter-btn" data-filter="restoration">Restorations</button>
+                <button class="filter-btn" data-filter="engraving">Engravings</button>
+                <button class="filter-btn" data-filter="repair">Repairs</button>
+                <button class="filter-btn" data-filter="custom">Custom Work</button>
+            </div>
+            
+            <!-- Gallery Grid -->
+            <div class="gallery__grid" id="gallery-grid">
+                <!-- CHANGE: Replace with your actual before/after photos -->
+                <div class="gallery__item" data-category="restoration" data-title="1911 Colt Restoration" data-description="Complete restoration of a WWII-era Colt 1911">
+                    <img src="assets/images/gallery/restoration-1.jpg" alt="1911 Colt Restoration" loading="lazy">
+                    <div class="gallery__overlay">
+                        <h4>1911 Colt Restoration</h4>
+                        <p>WWII-era Complete Restoration</p>
+                        <i class="fas fa-search-plus"></i>
+                    </div>
+                </div>
+                
+                <div class="gallery__item" data-category="engraving" data-title="Custom Scroll Engraving" data-description="Hand-engraved scrollwork on shotgun receiver">
+                    <img src="assets/images/gallery/engraving-1.jpg" alt="Custom Scroll Engraving" loading="lazy">
+                    <div class="gallery__overlay">
+                        <h4>Custom Scroll Engraving</h4>
+                        <p>Hand-engraved Scrollwork</p>
+                        <i class="fas fa-search-plus"></i>
+                    </div>
+                </div>
+                
+                <div class="gallery__item" data-category="repair" data-title="Trigger Mechanism Repair" data-description="Precision trigger work and timing adjustment">
+                    <img src="assets/images/gallery/repair-1.jpg" alt="Trigger Mechanism Repair" loading="lazy">
+                    <div class="gallery__overlay">
+                        <h4>Trigger Mechanism Repair</h4>
+                        <p>Precision Trigger Work</p>
+                        <i class="fas fa-search-plus"></i>
+                    </div>
+                </div>
+                
+                <div class="gallery__item" data-category="custom" data-title="Custom Sight Installation" data-description="Night sight installation and zeroing">
+                    <img src="assets/images/gallery/custom-1.jpg" alt="Custom Sight Installation" loading="lazy">
+                    <div class="gallery__overlay">
+                        <h4>Custom Sight Installation</h4>
+                        <p>Night Sight Installation</p>
+                        <i class="fas fa-search-plus"></i>
+                    </div>
+                </div>
+                
+                <div class="gallery__item" data-category="restoration" data-title="Vintage Shotgun Restoration" data-description="Side-by-side shotgun complete restoration">
+                    <img src="assets/images/gallery/restoration-2.jpg" alt="Vintage Shotgun Restoration" loading="lazy">
+                    <div class="gallery__overlay">
+                        <h4>Vintage Shotgun Restoration</h4>
+                        <p>Side-by-side Complete Restoration</p>
+                        <i class="fas fa-search-plus"></i>
+                    </div>
+                </div>
+                
+                <div class="gallery__item" data-category="engraving" data-title="Memorial Engraving" data-description="Custom memorial engraving on pistol slide">
+                    <img src="assets/images/gallery/engraving-2.jpg" alt="Memorial Engraving" loading="lazy">
+                    <div class="gallery__overlay">
+                        <h4>Memorial Engraving</h4>
+                        <p>Custom Memorial Work</p>
+                        <i class="fas fa-search-plus"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="section faq">
+        <div class="container">
+            <h2 class="section__title">Frequently Asked Questions</h2>
+            <p class="section__subtitle">Common questions about our gunsmithing services</p>
+            
+            <div class="faq__container">
+                <!-- FAQ Item 1 -->
+                <div class="faq__item">
+                    <button class="faq__question" data-faq="1">
+                        <span>What types of firearms do you service?</span>
+                        <i class="fas fa-plus faq__icon"></i>
+                    </button>
+                    <div class="faq__answer" data-faq="1">
+                        <div class="faq__answer-content">
+                            <p>We service all types of firearms including handguns (revolvers and semi-automatics), shotguns, rifles, and antique/vintage firearms. We work on all major brands and can handle everything from basic cleaning to complete restorations.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- FAQ Item 2 -->
+                <div class="faq__item">
+                    <button class="faq__question" data-faq="2">
+                        <span>How long do repairs typically take?</span>
+                        <i class="fas fa-plus faq__icon"></i>
+                    </button>
+                    <div class="faq__answer" data-faq="2">
+                        <div class="faq__answer-content">
+                            <p>Simple repairs and cleaning typically take 3-5 business days. More complex work like restorations or custom engraving can take 2-4 weeks depending on the scope of work. We'll provide you with an estimated timeline when we evaluate your firearm.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- FAQ Item 3 -->
+                <div class="faq__item">
+                    <button class="faq__question" data-faq="3">
+                        <span>Do you provide free estimates?</span>
+                        <i class="fas fa-plus faq__icon"></i>
+                    </button>
+                    <div class="faq__answer" data-faq="3">
+                        <div class="faq__answer-content">
+                            <p>Yes, we provide free estimates for all work. Bring your firearm in for evaluation and we'll give you a detailed estimate of the work needed and associated costs. There's no obligation to proceed with the work.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- FAQ Item 4 -->
+                <div class="faq__item">
+                    <button class="faq__question" data-faq="4">
+                        <span>What should I bring when dropping off my firearm?</span>
+                        <i class="fas fa-plus faq__icon"></i>
+                    </button>
+                    <div class="faq__answer" data-faq="4">
+                        <div class="faq__answer-content">
+                            <p>Please bring a valid photo ID and ensure the firearm is unloaded. If you have any documentation about previous work or the firearm's history, that can be helpful. We'll handle all the paperwork and provide you with a detailed receipt.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- FAQ Item 5 -->
+                <div class="faq__item">
+                    <button class="faq__question" data-faq="5">
+                        <span>Do you offer warranty on your work?</span>
+                        <i class="fas fa-plus faq__icon"></i>
+                    </button>
+                    <div class="faq__answer" data-faq="5">
+                        <div class="faq__answer-content">
+                            <p>Yes, we stand behind our work with a 1-year warranty on all repairs and services. If you experience any issues related to our work within one year, we'll fix it at no charge. This doesn't cover normal wear and tear or damage from misuse.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- FAQ Item 6 -->
+                <div class="faq__item">
+                    <button class="faq__question" data-faq="6">
+                        <span>Can you work on antique or collectible firearms?</span>
+                        <i class="fas fa-plus faq__icon"></i>
+                    </button>
+                    <div class="faq__answer" data-faq="6">
+                        <div class="faq__answer-content">
+                            <p>Absolutely! We specialize in antique and collectible firearm restoration. We use period-correct techniques and materials to maintain the historical authenticity and value of your collectible pieces. We understand the importance of preserving originality.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="section testimonials">
+        <div class="container">
+            <h2 class="section__title">What Our Customers Say</h2>
+            <p class="section__subtitle">Trusted by gun owners for over 70 years</p>
+            
+            <div class="testimonial-carousel" id="testimonial-carousel">
+                <!-- Testimonial 1 -->
+                <div class="testimonial active">
+                    <div class="testimonial__content">
+                        <div class="testimonial__stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="testimonial__quote">"Outstanding work on my grandfather's 1911. The restoration was flawless and brought it back to like-new condition while maintaining its historical authenticity. Highly recommend Heritage Gunsmithing!"</p>
+                        <div class="testimonial__author">
+                            <div class="testimonial__avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="testimonial__info">
+                                <h4>Robert M.</h4>
+                                <p>Collector & Enthusiast</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Testimonial 2 -->
+                <div class="testimonial">
+                    <div class="testimonial__content">
+                        <div class="testimonial__stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="testimonial__quote">"Professional service and fair pricing. Had my shotgun's trigger work done and it shoots like a dream now. The attention to detail and craftsmanship is second to none."</p>
+                        <div class="testimonial__author">
+                            <div class="testimonial__avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="testimonial__info">
+                                <h4>Sarah T.</h4>
+                                <p>Competitive Shooter</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Testimonial 3 -->
+                <div class="testimonial">
+                    <div class="testimonial__content">
+                        <div class="testimonial__stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="testimonial__quote">"The custom engraving work exceeded my expectations. Beautiful detail and craftsmanship that will be treasured for generations. Thank you for the exceptional work!"</p>
+                        <div class="testimonial__author">
+                            <div class="testimonial__avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="testimonial__info">
+                                <h4>Michael K.</h4>
+                                <p>Hunter & Outdoorsman</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Testimonial 4 -->
+                <div class="testimonial">
+                    <div class="testimonial__content">
+                        <div class="testimonial__stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="testimonial__quote">"Three generations of excellence really shows. My family has been coming here for decades and the quality and service has never wavered. Truly a master craftsman."</p>
+                        <div class="testimonial__author">
+                            <div class="testimonial__avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="testimonial__info">
+                                <h4>James W.</h4>
+                                <p>Long-time Customer</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Testimonial Navigation -->
+            <div class="testimonial__nav">
+                <button class="testimonial__dot active" data-slide="0"></button>
+                <button class="testimonial__dot" data-slide="1"></button>
+                <button class="testimonial__dot" data-slide="2"></button>
+                <button class="testimonial__dot" data-slide="3"></button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="section contact">
+        <div class="container">
+            <h2 class="section__title">Get In Touch</h2>
+            <p class="section__subtitle">Ready to get started? Contact us for your free estimate</p>
+            
+            <div class="contact__content">
+                <!-- Contact Form -->
+                <div class="contact__form-container">
+                    <form class="contact__form" id="contact-form">
+                        <div class="success-message" id="success-message">
+                            <i class="fas fa-check-circle"></i>
+                            <p>Thank you! Your message has been sent successfully. We'll get back to you within 24 hours.</p>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="name">Full Name *</label>
+                                <input type="text" id="name" name="name" required>
+                                <span class="form-error" id="name-error"></span>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="email">Email Address *</label>
+                                <input type="email" id="email" name="email" required>
+                                <span class="form-error" id="email-error"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="phone">Phone Number</label>
+                                <input type="tel" id="phone" name="phone">
+                                <span class="form-error" id="phone-error"></span>
+                            </div>
+
+                                 <div class="form-group">
+                                <label for="service">Service Needed</label>
+                                <select id="service" name="service">
+                                    <option value="">Select a service...</option>
+                                    <option value="handgun-repair">Handgun Repair</option>
+                                    <option value="shotgun-services">Shotgun Services</option>
+                                    <option value="custom-engraving">Custom Engraving</option>
+                                    <option value="vintage-restoration">Vintage Restoration</option>
+                                    <option value="cleaning-maintenance">Cleaning & Maintenance</option>
+                                    <option value="consultation">Consultation</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="message">Message *</label>
+                            <textarea id="message" name="message" rows="6" placeholder="Please describe your firearm and the service you need..." required></textarea>
+                            <span class="form-error" id="message-error"></span>
+                        </div>
+                        
+                        <button type="submit" class="btn btn--primary form-submit" id="form-submit">
+                            <span class="btn-text">Send Message</span>
+                            <span class="btn-loading">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                Sending...
+                            </span>
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Contact Information -->
+                <div class="contact__info">
+                    <div class="contact__card">
+                        <!-- CHANGE: Update with your actual business information -->
+                        <h3><i class="fas fa-map-marker-alt"></i> Visit Our Shop</h3>
+                        <p>123 Main Street<br>
+                        Anytown, ST 12345<br>
+                        United States</p>
+                    </div>
+                    
+                    <div class="contact__card">
+                        <!-- CHANGE: Update with your actual phone number -->
+                        <h3><i class="fas fa-phone"></i> Call Us</h3>
+                        <p><a href="tel:+1234567890">(123) 456-7890</a></p>
+                        <p class="contact__note">Click to call on mobile devices</p>
+                    </div>
+                    
+                    <div class="contact__card">
+                        <!-- CHANGE: Update with your actual email -->
+                        <h3><i class="fas fa-envelope"></i> Email Us</h3>
+                        <p><a href="mailto:info@heritagegunsmithing.com">info@heritagegunsmithing.com</a></p>
+                    </div>
+                    
+                    <!-- Business Hours -->
+                    <div class="hours">
+                        <h4><i class="fas fa-clock"></i> Business Hours</h4>
+                        <!-- CHANGE: Update with your actual business hours -->
+                        <ul class="hours-list">
+                            <li>
+                                <span>Monday - Friday</span>
+                                <span>9:00 AM - 6:00 PM</span>
+                            </li>
+                            <li>
+                                <span>Saturday</span>
+                                <span>9:00 AM - 4:00 PM</span>
+                            </li>
+                            <li>
+                                <span>Sunday</span>
+                                <span>Closed</span>
+                            </li>
+                        </ul>
+                        <p class="hours-note">
+                            <i class="fas fa-info-circle"></i>
+                            By appointment available outside regular hours
+                        </p>
+                    </div>
+                    
+                    <!-- Emergency Contact -->
+                    <div class="emergency-contact">
+                        <h4><i class="fas fa-exclamation-triangle"></i> Emergency Services</h4>
+                        <p>For urgent repairs needed for law enforcement or military personnel, please call our emergency line:</p>
+                        <!-- CHANGE: Update with emergency contact if applicable -->
+                        <p><a href="tel:+1234567899" class="emergency-phone">(123) 456-7899</a></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Google Maps -->
+            <div class="contact__map">
+                <h3>Find Our Location</h3>
+                <!-- CHANGE: Replace with your actual Google Maps embed URL -->
+                <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3048.398596953891!2d-76.5018807!3d39.2903848!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMznCsDE3JzI1LjQiTiA3NsKwMzAnMDYuOCJX!5e0!3m2!1sen!2sus!4v1645564756865!5m2!1sen!2sus"
+                    width="100%" 
+                    height="400" 
+                    style="border:0;" 
+                    allowfullscreen="" 
+                    loading="lazy" 
+                    referrerpolicy="no-referrer-when-downgrade"
+                    title="Heritage Gunsmithing Location Map">
+                </iframe>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer__content">
+                <!-- Company Info -->
+                <div class="footer__section">
+                    <!-- CHANGE: Update company name and description -->
+                    <h4>Heritage Gunsmithing</h4>
+                    <p>Three generations of professional gunsmithing services. Licensed, insured, and committed to excellence in firearm repair, restoration, and customization.</p>
+                    
+                    <!-- Social Media Links -->
+                    <div class="social-links">
+                        <!-- CHANGE: Update with your actual social media URLs -->
+                        <a href="https://facebook.com/heritagegunsmithing" target="_blank" rel="noopener" aria-label="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="https://instagram.com/heritagegunsmithing" target="_blank" rel="noopener" aria-label="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="https://youtube.com/heritagegunsmithing" target="_blank" rel="noopener" aria-label="YouTube">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Quick Links -->
+                <div class="footer__section">
+                    <h4>Quick Links</h4>
+                    <ul class="footer__links">
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#about">About Us</a></li>
+                        <li><a href="#services">Services</a></li>
+                        <li><a href="#gallery">Gallery</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Services -->
+                <div class="footer__section">
+                    <h4>Our Services</h4>
+                    <ul class="footer__links">
+                        <li><a href="#services">Handgun Repair</a></li>
+                        <li><a href="#services">Shotgun Services</a></li>
+                        <li><a href="#services">Custom Engraving</a></li>
+                        <li><a href="#services">Vintage Restoration</a></li>
+                        <li><a href="#services">Cleaning & Maintenance</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Contact Info -->
+                <div class="footer__section">
+                    <h4>Contact Information</h4>
+                    <!-- CHANGE: Update with your actual contact information -->
+                    <div class="footer__contact">
+                        <p><i class="fas fa-map-marker-alt"></i> 123 Main Street, Anytown, ST 12345</p>
+                        <p><i class="fas fa-phone"></i> <a href="tel:+1234567890">(123) 456-7890</a></p>
+                        <p><i class="fas fa-envelope"></i> <a href="mailto:info@heritagegunsmithing.com">info@heritagegunsmithing.com</a></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer Bottom -->
+            <div class="footer__bottom">
+                <div class="footer__legal">
+                    <!-- CHANGE: Update copyright year and business name -->
+                    <p>&copy; 2024 Heritage Gunsmithing. All rights reserved.</p>
+                    <div class="legal-links">
+                        <a href="#privacy">Privacy Policy</a>
+                        <span>|</span>
+                        <a href="#terms">Terms of Service</a>
+                    </div>
+                </div>
+                
+                <!-- Legal Disclaimer -->
+                <div class="footer__disclaimer">
+                    <!-- CHANGE: Update with your actual FFL license number -->
+                    <p><i class="fas fa-certificate"></i> <strong>FFL License:</strong> #XX-XXXXX-XX-XX-XXXXX</p>
+                    <p class="disclaimer-text">All firearm services performed in accordance with federal, state, and local laws. Valid ID required for all transactions.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Lightbox Modal -->
+    <div class="lightbox" id="lightbox">
+        <div class="lightbox__content">
+            <button class="lightbox__close" id="lightbox-close">
+                <i class="fas fa-times"></i>
+            </button>
+            <img src="" alt="" id="lightbox-image">
+            <div class="lightbox__info">
+                <h3 id="lightbox-title"></h3>
+                <p id="lightbox-description"></p>
+            </div>
+            <div class="lightbox__nav">
+                <button class="lightbox__prev" id="lightbox-prev">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="lightbox__next" id="lightbox-next">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to Top Button -->
+    <button class="back-to-top" id="back-to-top" aria-label="Back to top">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <!-- JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
+                            
