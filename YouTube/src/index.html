@@ -17,6 +17,13 @@
     />
   </head>
   <style>
+    @media (min-width: 1024px) {
+      body {
+        margin-left: 20px;
+        margin-top: 4px;
+      }
+    }
+
     /* Custom class to hide scrollbar */
     .no-scrollbar::-webkit-scrollbar {
       display: none;
@@ -28,7 +35,12 @@
     }
   </style>
   <body>
-    <nav class="h-12 w-full flex">
+    <nav class="h-12 w-full flex justify-center items-center">
+      <div
+        class="lg:bg-amber-500 lg:h-10 lg:w-10 lg:flex lg:justify-center lg:items-center hidden"
+      >
+        <img src="assets/menu.png" alt="menu" />
+      </div>
       <button
         class="w-[7.3125rem] h-12 text-xs font-roboto flex justify-center items-center p-3"
       >
@@ -42,7 +54,7 @@
     </nav>
     <nav class="h-12 w-dvw flex justify-center items-center overflow-x-hidden">
       <div
-        class="h-12 w-full flex items-center justify-around overflow-x-scroll no-scrollbar gap-3 border-t-[0.5px] border-b-[0.5px] border-black/10"
+        class="h-12 w-full flex items-center justify-around overflow-x-scroll no-scrollbar gap-3 lg:border-none border-t-[0.5px] border-b-[0.5px] border-black/10"
       >
         <div
           class="h-8 w-[2.75rem] flex justify-center items-center bg-[#F2F2F2] border-0 shrink-0 p-2 ml-[0.950rem]"
@@ -53,7 +65,7 @@
         </div>
         <div class="flex gap-2.5 ml-3 mr-3">
           <div
-            class="h-8 w-max bg-[#606060] text-white flex shrink-0 items-center border-0 rounded-lg pl-4 pr-4 pt-3 pb-3.5 font-roboto text-sm font-semibold"
+            class="h-8 w-max bg-[#0F0F0F] text-white flex shrink-0 items-center border-0 rounded-lg pl-4 pr-4 pt-3 pb-3.5 font-roboto text-sm font-semibold"
           >
             All
           </div>
@@ -151,7 +163,7 @@
       </div>
     </nav>
     <main></main>
-    <footer class="h-[3.5625rem] fixed bottom-0 w-full flex">
+    <footer class="h-[3.5625rem] fixed bottom-0 w-full flex lg:hidden">
       <div class="h-14 flex-1 flex flex-col justify-center items-center">
         <div class="h-[1.5rem] w-[1.5rem] relative top-0.5">
           <img src="assets/home-icon.png" alt="home-icon" />
