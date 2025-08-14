@@ -15,15 +15,15 @@
       href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
       rel="stylesheet"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
+      integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
   </head>
   <style>
-    @media (min-width: 1024px) {
-      body {
-        margin-left: 20px;
-        margin-top: 4px;
-      }
-    }
-
     /* Custom class to hide scrollbar */
     .no-scrollbar::-webkit-scrollbar {
       display: none;
@@ -35,23 +35,49 @@
     }
   </style>
   <body>
-    <nav class="h-12 w-full flex justify-center items-center">
+    <nav
+      class="h-14 w-dvw flex justify-center items-center bg-yellow-300 lg:flex lg:justify-around lg:items-center"
+    >
+      <!-- Menu Button -->
       <div
-        class="lg:bg-amber-500 lg:h-10 lg:w-10 lg:flex lg:justify-center lg:items-center hidden"
+        class="lg:bg-amber-500 lg:h-10 lg:w-10 lg:flex lg:justify-center lg:items-center hidden lg:relative lg:right-2.5"
       >
-        <img src="assets/menu.png" alt="menu" />
+        <i class="fa-solid fa-bars"></i>
       </div>
+
+      <!-- YouTube Logo -->
       <button
-        class="w-[7.3125rem] h-12 text-xs font-roboto flex justify-center items-center p-3"
+        class="w-[7.3125rem] h-12 text-xs font-roboto flex justify-center items-center p-3 lg:relative lg:right-13"
       >
         <img src="assets/youtube-svgrepo-com.svg" alt="Youtube" class="h-min" />
       </button>
-      <div class="h-12 flex-1 flex justify-end">
-        <button class="h-12 w-12 flex justify-center items-center">
-          <img src="assets/search-big.png" alt="Search button" />
-        </button>
+
+      <!-- Search Bar -->
+      <div
+        class="hidden lg:h-10 lg:w-[25.35rem] lg:flex lg:justify-center lg:items-center lg:pl-3.5 lg:bg-amber-50 lg:border lg:border-[#ccc] lg:rounded-bl-[24px] lg:rounded-tl-[24px] lg:ml-[6.5rem]"
+      >
+        <input
+          type="text"
+          placeholder="Search"
+          class="lg:h-6 lg:w-[23.81rem]"
+        />
       </div>
+
+      <!-- Search Button -->
+      <button
+        class="hidden lg:flex lg:justify-center lg:items-center bg-white lg:h-10 lg:w-16 lg:border lg:border-[#ccc] lg:rounded-br-[24px] lg:rounded-tr-[24px]"
+      >
+        <img src="assets/search-big.png" alt="Search button" />
+      </button>
+
+      <!-- Mic Button -->
+      <button
+        class="hidden lg:flex lg:justify-center lg:items-center bg-[#f8f8f8] lg:ml-3 lg:h-10 lg:w-10 lg:rounded-full"
+      >
+        <img src="assets/mic.png" alt="Mic" class="h-5" />
+      </button>
     </nav>
+
     <nav class="h-12 w-dvw flex justify-center items-center overflow-x-hidden">
       <div
         class="h-12 w-full flex items-center justify-around overflow-x-scroll no-scrollbar gap-3 lg:border-none border-t-[0.5px] border-b-[0.5px] border-black/10"
