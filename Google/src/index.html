@@ -18,6 +18,58 @@
       href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
       rel="stylesheet"
     />
+    <script>
+      // Optional: Extend Tailwind to use Roboto shorthand
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              roboto: ["Roboto", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
   </head>
-  <body></body>
+  <body>
+    <header class="h-[3.13rem] flex justify-between">
+      <div class="flex">
+        <div
+          class="h-[3.13rem] w-10 flex justify-center items-center pl-[2px] pb-[2.5px]"
+        >
+          <img src="gallery/flask.png" alt="flask" />
+        </div>
+        <div
+          class="h-[3.13rem] w-[8.42rem] gap-3 pb-[2px] flex items-center justify-center"
+        >
+          <a
+            href="#"
+            class="text-[#0B57D0] font-semibold font-[roboto] text-[0.75rem] mt-0 mr-2 mb-0 ml-0 pt-0 pr-2"
+            >ALL</a
+          >
+          <a
+            href="#"
+            class="font-[roboto] font-semibold text-[0.75rem] mt-0 mr-2 mb-0 ml-0 pt-0 pr-2 text-[#636363]"
+            >IMAGES</a
+          >
+        </div>
+      </div>
+      <div class="w-[6.25rem] h-[3.13rem] flex">
+        <div class="h-12 w-12 flex justify-center items-center">
+          <img
+            src="gallery/show-apps-button.png"
+            alt="app-button"
+            class="w-4 h-4"
+          />
+        </div>
+        <div class="h-12 w-12 flex justify-center items-center">
+          <div
+            class="bg-[#876B61] text-white font-[roboto] text-[17.4px] pr-[0.5px] pt-[0.5px] border-0 rounded-full w-8 h-8 flex justify-center items-center"
+          >
+            M
+          </div>
+        </div>
+      </div>
+    </header>
+  </body>
 </html>

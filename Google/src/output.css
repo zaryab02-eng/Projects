@@ -7,12 +7,18 @@
       "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
       "Courier New", monospace;
-    --color-gray-400: oklch(70.7% 0.022 261.325);
+    --color-red-300: oklch(80.8% 0.114 19.571);
+    --color-amber-300: oklch(87.9% 0.169 91.605);
+    --color-green-400: oklch(79.2% 0.209 151.711);
+    --color-green-600: oklch(62.7% 0.194 149.214);
+    --color-blue-500: oklch(62.3% 0.214 259.815);
+    --color-blue-700: oklch(48.8% 0.243 264.376);
     --color-black: #000;
+    --color-white: #fff;
     --spacing: 0.25rem;
     --text-2xl: 1.5rem;
     --text-2xl--line-height: calc(2 / 1.5);
-    --font-weight-bold: 700;
+    --font-weight-semibold: 600;
     --default-font-family: var(--font-sans);
     --default-mono-font-family: var(--font-mono);
   }
@@ -178,41 +184,50 @@
   .ml-0 {
     margin-left: calc(var(--spacing) * 0);
   }
-  .ml-2 {
-    margin-left: calc(var(--spacing) * 2);
-  }
   .flex {
     display: flex;
   }
   .table {
     display: table;
   }
+  .h-4 {
+    height: calc(var(--spacing) * 4);
+  }
+  .h-5 {
+    height: calc(var(--spacing) * 5);
+  }
+  .h-6 {
+    height: calc(var(--spacing) * 6);
+  }
   .h-8 {
     height: calc(var(--spacing) * 8);
   }
-  .h-\[2\.19rem\] {
-    height: 2.19rem;
+  .h-12 {
+    height: calc(var(--spacing) * 12);
   }
   .h-\[3\.13rem\] {
     height: 3.13rem;
   }
-  .h-\[3\.125rem\] {
-    height: 3.125rem;
+  .w-4 {
+    width: calc(var(--spacing) * 4);
   }
-  .h-\[50px\] {
-    height: 50px;
+  .w-5 {
+    width: calc(var(--spacing) * 5);
+  }
+  .w-6 {
+    width: calc(var(--spacing) * 6);
   }
   .w-8 {
     width: calc(var(--spacing) * 8);
+  }
+  .w-10 {
+    width: calc(var(--spacing) * 10);
   }
   .w-12 {
     width: calc(var(--spacing) * 12);
   }
   .w-\[2\.46rem\] {
     width: 2.46rem;
-  }
-  .w-\[3\.58rem\] {
-    width: 3.58rem;
   }
   .w-\[3\.96rem\] {
     width: 3.96rem;
@@ -222,6 +237,9 @@
   }
   .w-\[8\.42rem\] {
     width: 8.42rem;
+  }
+  .w-max {
+    width: max-content;
   }
   .border-collapse {
     border-collapse: collapse;
@@ -238,42 +256,152 @@
   .justify-center {
     justify-content: center;
   }
+  .gap-1 {
+    gap: calc(var(--spacing) * 1);
+  }
+  .gap-2 {
+    gap: calc(var(--spacing) * 2);
+  }
+  .gap-2\.5 {
+    gap: calc(var(--spacing) * 2.5);
+  }
+  .gap-3 {
+    gap: calc(var(--spacing) * 3);
+  }
+  .rounded-full {
+    border-radius: calc(infinity * 1px);
+  }
   .border {
     border-style: var(--tw-border-style);
     border-width: 1px;
   }
+  .border-0 {
+    border-style: var(--tw-border-style);
+    border-width: 0px;
+  }
+  .border-b {
+    border-bottom-style: var(--tw-border-style);
+    border-bottom-width: 1px;
+  }
   .border-black {
     border-color: var(--color-black);
   }
-  .bg-gray-400 {
-    background-color: var(--color-gray-400);
+  .border-blue-500 {
+    border-color: var(--color-blue-500);
+  }
+  .border-blue-700 {
+    border-color: var(--color-blue-700);
+  }
+  .border-red-300 {
+    border-color: var(--color-red-300);
+  }
+  .bg-\[\#876B61\] {
+    background-color: #876B61;
+  }
+  .bg-amber-300 {
+    background-color: var(--color-amber-300);
+  }
+  .bg-green-400 {
+    background-color: var(--color-green-400);
+  }
+  .bg-green-600 {
+    background-color: var(--color-green-600);
+  }
+  .p-2 {
+    padding: calc(var(--spacing) * 2);
   }
   .pt-0 {
     padding-top: calc(var(--spacing) * 0);
   }
+  .pt-2 {
+    padding-top: calc(var(--spacing) * 2);
+  }
+  .pt-\[0\.5\] {
+    padding-top: 0.5;
+  }
+  .pt-\[0\.5px\] {
+    padding-top: 0.5px;
+  }
+  .pt-\[05px\] {
+    padding-top: 05px;
+  }
   .pr-0 {
     padding-right: calc(var(--spacing) * 0);
+  }
+  .pr-0\.5 {
+    padding-right: calc(var(--spacing) * 0.5);
+  }
+  .pr-2 {
+    padding-right: calc(var(--spacing) * 2);
+  }
+  .pr-\[-12px\] {
+    padding-right: -12px;
+  }
+  .pr-\[0\.5px\] {
+    padding-right: 0.5px;
   }
   .pb-0 {
     padding-bottom: calc(var(--spacing) * 0);
   }
+  .pb-1 {
+    padding-bottom: calc(var(--spacing) * 1);
+  }
+  .pb-1\.5 {
+    padding-bottom: calc(var(--spacing) * 1.5);
+  }
+  .pb-2 {
+    padding-bottom: calc(var(--spacing) * 2);
+  }
+  .pb-\[1px\] {
+    padding-bottom: 1px;
+  }
+  .pb-\[2\.5px\] {
+    padding-bottom: 2.5px;
+  }
+  .pb-\[2px\] {
+    padding-bottom: 2px;
+  }
+  .pb-\[4\.5px\] {
+    padding-bottom: 4.5px;
+  }
+  .pb-\[4\.8px\] {
+    padding-bottom: 4.8px;
+  }
+  .pb-\[4px\] {
+    padding-bottom: 4px;
+  }
+  .pb-\[5px\] {
+    padding-bottom: 5px;
+  }
   .pl-2 {
     padding-left: calc(var(--spacing) * 2);
   }
-  .pl-4 {
-    padding-left: calc(var(--spacing) * 4);
+  .pl-\[0\.5px\] {
+    padding-left: 0.5px;
   }
-  .text-center {
-    text-align: center;
+  .pl-\[0\.8px\] {
+    padding-left: 0.8px;
+  }
+  .pl-\[1\.5px\] {
+    padding-left: 1.5px;
+  }
+  .pl-\[1px\] {
+    padding-left: 1px;
+  }
+  .pl-\[2px\] {
+    padding-left: 2px;
   }
   .font-\[Roboto\,sans-serif\] {
     font-family: Roboto,sans-serif;
   }
-  .font-\[Roboto\] {
-    font-family: Roboto;
+  .font-\[roboto\,sans-serif\] {
+    font-family: roboto,sans-serif;
   }
   .font-\[roboto\] {
     font-family: roboto;
+  }
+  .font-sans {
+    font-family: var(--font-sans);
   }
   .text-2xl {
     font-size: var(--text-2xl);
@@ -282,18 +410,39 @@
   .text-\[0\.75rem\] {
     font-size: 0.75rem;
   }
-  .text-\[1\.13rem\] {
-    font-size: 1.13rem;
+  .text-\[15px\] {
+    font-size: 15px;
   }
-  .text-\[12px\] {
-    font-size: 12px;
+  .text-\[17\.3px\] {
+    font-size: 17.3px;
   }
-  .font-bold {
-    --tw-font-weight: var(--font-weight-bold);
-    font-weight: var(--font-weight-bold);
+  .text-\[17\.4px\] {
+    font-size: 17.4px;
+  }
+  .text-\[17\.5px\] {
+    font-size: 17.5px;
+  }
+  .text-\[17px\] {
+    font-size: 17px;
+  }
+  .text-\[20px\] {
+    font-size: 20px;
+  }
+  .font-semibold {
+    --tw-font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-semibold);
+  }
+  .text-\[\#0B57D0\] {
+    color: #0B57D0;
   }
   .text-\[\#636363\] {
     color: #636363;
+  }
+  .text-blue-500 {
+    color: var(--color-blue-500);
+  }
+  .text-white {
+    color: var(--color-white);
   }
   .underline {
     text-decoration-line: underline;
