@@ -6,7 +6,31 @@
     <title>Money Tracker</title>
     <link rel="stylesheet" href="output.css" />
   </head>
-  <body>
+  <body class="bg-[#36558F] flex flex-col items-center">
+    <div class="text-white relative top-3 flex flex-col items-center leading-3">
+      <h1 class="font-serif font-extrabold text-2xl">💰 MoneyTracker Pro</h1>
+      <p class="font-serif text-[0.8rem]">Your Personal Expense Manager</p>
+    </div>
+    <form
+      id="form"
+      class="h-60 w-64 bg-[#FFFFFF] rounded-2xl flex flex-col items-start p-3.5 mt-11"
+    >
+      <div class="font-bold">Form:-</div>
+      <div class="bg-[#74776B] h-max w-56 p-1.5 flex gap-1 rounded">
+        <label
+          for="amount"
+          class="text-white font-serif text-[14px] font-semibold flex items-center"
+          >Amount:</label
+        >
+        <input
+          type="number"
+          id="amount"
+          placeholder="Enter Your Amount"
+          class="bg-white text-black placeholder:text-black w-36 placeholder:text-[13px] pl-2 border rounded"
+        />
+      </div>
+    </form>
+    <button class="p-2.5 bg-amber-800 text-white">Add Expense</button>
     <script src="app.js"></script>
   </body>
 </html>
