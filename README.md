@@ -1,2 +1,2 @@
-# Main Projects
+# Main Projects / Mini Projects / Clones
 #
