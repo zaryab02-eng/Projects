@@ -26,11 +26,27 @@
           type="number"
           id="amount"
           placeholder="Enter Your Amount"
-          class="bg-white text-black placeholder:text-black w-36 placeholder:text-[13px] pl-2 border rounded"
+          class="bg-white text-black placeholder:text-black w-[9.5rem] placeholder:text-[13px] pl-2 border rounded"
         />
       </div>
     </form>
-    <button class="p-2.5 bg-amber-800 text-white">Add Expense</button>
+    <button
+      id="addButton"
+      class="pt-1 pb-1 pr-2 pl-2 border border-white rounded text-[13px] mt-3 bg-yellow-500 text-black hover:bg-yellow-300"
+    >
+      Add Expense
+    </button>
+    <div
+      class="h-max w-64 bg-white border border-black mt-4 flex flex-col items-start"
+    >
+      <div class="flex justify-center w-64">
+        <p class="font-semibold">Display</p>
+      </div>
+      <ul
+        id="display"
+        class="pl-2 pb-2 leading-1 font-semibold text-[0.8rem]"
+      ></ul>
+    </div>
     <script src="app.js"></script>
   </body>
 </html>
