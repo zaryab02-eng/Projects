@@ -1,8 +1,10 @@
 const amountInput = document.getElementById("amount");
 const addButton = document.getElementById("addButton");
 const display = document.getElementById("display");
+const inputDescription = document.getElementById("description");
 
 const expenses = [];
+let nextId = 1;
 
 amountInput.addEventListener("keydown", (e) => {
   if (e.key === "-" || e.key === "e") {
@@ -25,6 +27,7 @@ amountInput.addEventListener("keydown", (e) => {
 
 addButton.addEventListener("click", () => {
   const inputAmount = amountInput.value.trim();
+  const description = inputDescription.value.trim();
   if (inputAmount === "") {
     amountInput.placeholder = "Please enter an amount";
     amountInput.classList.add(
@@ -62,7 +65,13 @@ addButton.addEventListener("click", () => {
     return;
   }
 
-  expenses.push(amount);
+  const expense = {
+    id: nextId++,
+    amount: amount,
+    description: description || "No Description",
+  };
+
+  expenses.push(expense);
   const li = document.createElement("li");
   li.classList.add(
     "flex",
@@ -74,7 +83,8 @@ addButton.addEventListener("click", () => {
     "py-1",
     "mt-1"
   );
-  li.innerText = inputAmount;
+  li.innerText = `$${expense.amount.toFixed(2)}-${expense.description}`;
   display.appendChild(li);
   amountInput.value = "";
+  inputDescription.value = "";
 });

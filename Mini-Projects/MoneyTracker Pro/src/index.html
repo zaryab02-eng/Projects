@@ -13,10 +13,12 @@
     </div>
     <form
       id="form"
-      class="h-60 w-64 bg-[#FFFFFF] rounded-2xl flex flex-col items-start p-3.5 mt-11"
+      class="h-60 w-64 bg-[#FFFFFF] rounded-2xl flex flex-col items-start p-3.5 mt-11 gap-1"
     >
       <div class="font-bold">Form:-</div>
-      <div class="bg-[#74776B] h-max w-56 p-1.5 flex gap-1 rounded">
+      <div
+        class="bg-[#74776B] h-max w-56 p-1.5 flex flex-col gap-1 rounded leading-2"
+      >
         <label
           for="amount"
           class="text-white font-serif text-[14px] font-semibold flex items-center"
@@ -29,6 +31,22 @@
           placeholder="Enter Your Amount"
           class="bg-white text-black placeholder:text-black font-serif text-[14px] w-[9.8rem] placeholder:text-[13px] pl-2 border rounded"
         />
+      </div>
+      <div
+        class="bg-[#74776B] h-max w-56 p-1.5 flex flex-col gap-1 rounded leading-2"
+      >
+        <label
+          for="description"
+          class="text-white font-serif text-[14px] font-semibold"
+        >
+          Description:
+        </label>
+        <textarea
+          id="description"
+          rows="3"
+          placeholder="Enter description..."
+          class="bg-white text-black placeholder:text-black font-serif text-[14px] w-[9.8rem] placeholder:text-[13px] p-2 border rounded resize-none"
+        ></textarea>
       </div>
     </form>
     <button
