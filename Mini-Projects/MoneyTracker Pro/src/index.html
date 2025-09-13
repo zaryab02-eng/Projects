@@ -17,7 +17,7 @@
     >
       <div class="font-bold">Form:-</div>
       <div
-        class="bg-[#74776B] h-max w-56 p-1.5 flex flex-col gap-1 rounded leading-2"
+        class="bg-[#74776B] h-max w-56 p-1.5 flex justify-start items-center gap-1 rounded leading-2"
       >
         <label
           for="amount"
@@ -29,7 +29,7 @@
           id="amount"
           min="1"
           placeholder="Enter Your Amount"
-          class="bg-white text-black placeholder:text-black font-serif text-[14px] w-[9.8rem] placeholder:text-[13px] pl-2 border rounded"
+          class="bg-white text-black py-0.5 placeholder:text-black font-serif text-[14px] w-[9.8rem] placeholder:text-[13px] pl-2 border rounded"
         />
       </div>
       <div
@@ -47,6 +47,27 @@
           placeholder="Enter description..."
           class="bg-white text-black placeholder:text-black font-serif text-[14px] w-[9.8rem] placeholder:text-[13px] p-2 border rounded resize-none"
         ></textarea>
+      </div>
+      <div
+        class="bg-[#74776B] h-max w-56 p-1.5 flex justify-start items-center gap-1 rounded leading-2"
+      >
+        <label
+          for="Category"
+          class="text-white font-serif text-[14px] font-semibold"
+        >
+          Category:
+        </label>
+        <select
+          name="Category"
+          id="Category"
+          class="bg-white text-[0.8rem] w-[8rem] p-0.5 border rounded focus:border-blue-500"
+        >
+          <option value="🍔Food">🍔Food</option>
+          <option value="🚗Transport">🚗Transport</option>
+          <option value="🎬Entertainment">🎬Entertainment</option>
+          <option value="💡Bills">💡Bills</option>
+          <option value="🛍️Other">🛍️Other</option>
+        </select>
       </div>
     </form>
     <button
