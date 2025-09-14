@@ -209,56 +209,17 @@
   .h-max {
     height: max-content;
   }
-  .w-10 {
-    width: calc(var(--spacing) * 10);
-  }
-  .w-20 {
-    width: calc(var(--spacing) * 20);
-  }
-  .w-24 {
-    width: calc(var(--spacing) * 24);
-  }
-  .w-32 {
-    width: calc(var(--spacing) * 32);
-  }
   .w-56 {
     width: calc(var(--spacing) * 56);
   }
   .w-64 {
     width: calc(var(--spacing) * 64);
   }
-  .w-\[6\.5rem\] {
-    width: 6.5rem;
-  }
-  .w-\[6\.8rem\] {
-    width: 6.8rem;
-  }
-  .w-\[7\.2rem\] {
-    width: 7.2rem;
-  }
-  .w-\[7\.5rem\] {
-    width: 7.5rem;
-  }
-  .w-\[7\.6rem\] {
-    width: 7.6rem;
-  }
-  .w-\[7\.8rem\] {
-    width: 7.8rem;
-  }
-  .w-\[7\.9rem\] {
-    width: 7.9rem;
-  }
-  .w-\[7rem\] {
-    width: 7rem;
-  }
   .w-\[8rem\] {
     width: 8rem;
   }
   .w-\[9\.8rem\] {
     width: 9.8rem;
-  }
-  .w-max {
-    width: max-content;
   }
   .border-collapse {
     border-collapse: collapse;
@@ -350,15 +311,6 @@
   }
   .p-3\.5 {
     padding: calc(var(--spacing) * 3.5);
-  }
-  .px-0 {
-    padding-inline: calc(var(--spacing) * 0);
-  }
-  .px-0\.5 {
-    padding-inline: calc(var(--spacing) * 0.5);
-  }
-  .px-1 {
-    padding-inline: calc(var(--spacing) * 1);
   }
   .px-2 {
     padding-inline: calc(var(--spacing) * 2);
