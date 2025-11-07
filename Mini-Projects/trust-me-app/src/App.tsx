@@ -42,7 +42,7 @@ export default function TrustMeVideo() {
           >
             <div className="absolute inset-0 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 rounded-full blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
             <div className="relative bg-black rounded-full px-12 py-4 border-2 border-purple-500 group-hover:border-pink-500 transition-colors">
-              Trust Me
+              Trust Zaryab
             </div>
           </button>
         </div>
