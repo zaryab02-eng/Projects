@@ -37,7 +37,7 @@ export default function TrustMeVideo() {
         <div className="absolute inset-0 flex items-center justify-center bg-black transition-opacity duration-1000">
           <button
             onClick={handleTrustClick}
-            className="px-4 py-2 bg-pink-500 text-black font-bold text-[1.2rem] rounded-[0.7rem] hover:bg-purple-700 transition-colors duration-200"
+            className="px-4 py-2 bg-blue-500 text-white font-bold text-[1.2rem] rounded-[0.7rem] hover:bg-purple-700 transition-colors duration-200"
           >
             Trust Zaryab
           </button>
