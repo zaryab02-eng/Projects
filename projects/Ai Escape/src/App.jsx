@@ -83,36 +83,6 @@ function HomePage() {
           </Link>
         </div>
 
-        {/* Features - Hidden on Mobile */}
-        <div className="hidden md:block mt-12 card">
-          <h3 className="text-2xl font-bold text-white mb-4 text-center">
-            KEY FEATURES
-          </h3>
-          <div className="grid md:grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="text-4xl mb-2">🤖</div>
-              <p className="text-cyber-accent font-bold">AI-Powered</p>
-              <p className="text-white text-opacity-60 text-sm">
-                Dynamic questions via Gemini
-              </p>
-            </div>
-            <div>
-              <div className="text-4xl mb-2">⚡</div>
-              <p className="text-cyber-accent font-bold">Real-Time</p>
-              <p className="text-white text-opacity-60 text-sm">
-                Live sync & leaderboard
-              </p>
-            </div>
-            <div>
-              <div className="text-4xl mb-2">🎬</div>
-              <p className="text-cyber-accent font-bold">Cinematic</p>
-              <p className="text-white text-opacity-60 text-sm">
-                Epic level completions
-              </p>
-            </div>
-          </div>
-        </div>
-
         {/* Footer */}
         <div className="hidden md:block mt-8 text-center text-white text-opacity-50 text-sm">
           <p>PWA Enabled • Install on your device for best experience</p>
