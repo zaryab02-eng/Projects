@@ -90,6 +90,13 @@ body {
   }
 }
 
+/* Desktop: For pages using flex layout, prevent page scrolling */
+@media (min-width: 769px) {
+  .viewport-container.flex {
+    overflow-y: hidden;
+  }
+}
+
 /* Glow effect */
 .glow-text {
   text-shadow:

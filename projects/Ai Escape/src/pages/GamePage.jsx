@@ -232,29 +232,35 @@ export default function GamePage() {
     const leaderboard = getLeaderboard(roomData);
 
     return (
-      <div className="viewport-container cyber-grid overflow-y-auto">
-        <div className="max-w-6xl mx-auto px-4 py-4 md:py-8">
-          <div className="text-center mb-4 md:mb-8">
-            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-cyber-accent glow-text mb-3 md:mb-4">
+      <div className="viewport-container cyber-grid flex flex-col">
+        <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-4 py-4 md:py-6">
+          {/* Header - Fixed height */}
+          <div className="text-center mb-3 md:mb-4 flex-shrink-0">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-cyber-accent glow-text mb-2 md:mb-3">
               GAME COMPLETE
             </h1>
-            <p className="text-base md:text-xl text-white mb-2">Room: {roomCode}</p>
-            <p className="text-sm md:text-base text-white text-opacity-70">Thank you for playing!</p>
+            <p className="text-sm md:text-base text-white mb-1">Room: {roomCode}</p>
+            <p className="text-xs md:text-sm text-white text-opacity-70">Thank you for playing!</p>
           </div>
 
-          <Leaderboard
-            leaderboard={leaderboard}
-            isAdmin={isAdmin}
-            isGameFinished={true}
-          />
+          {/* Leaderboard - Scrollable if needed, takes remaining space */}
+          <div className="flex-1 min-h-0 overflow-y-auto mb-3 md:mb-4">
+            <Leaderboard
+              leaderboard={leaderboard}
+              isAdmin={isAdmin}
+              isGameFinished={true}
+            />
+          </div>
 
+          {/* Admin Panel - Fixed height */}
           {isAdmin && (
-            <div className="mt-4 md:mt-8 text-center">
+            <div className="flex-shrink-0 mb-3 md:mb-4">
               <AdminPanel roomData={roomData} />
             </div>
           )}
 
-          <div className="mt-4 md:mt-8 text-center">
+          {/* Action Button - Fixed height */}
+          <div className="flex-shrink-0 text-center">
             <button
               onClick={() => {
                 sessionStorage.clear();

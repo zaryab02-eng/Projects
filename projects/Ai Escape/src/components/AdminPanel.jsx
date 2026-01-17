@@ -190,58 +190,63 @@ export default function AdminPanel({ roomData }) {
       )}
 
       {/* Game Controls */}
-      <div className="card">
-        <h3 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4">GAME CONTROLS</h3>
+      {roomData.status !== "finished" && (
+        <div className="card">
+          <h3 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4">GAME CONTROLS</h3>
 
-        <div className="space-y-2 md:space-y-3">
-          {roomData.status === "waiting" && (
-            <button
-              onClick={handleStartGame}
-              disabled={!canStartGame || loading}
-              className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50 
-                       disabled:cursor-not-allowed text-sm md:text-base"
-            >
-              <Play size={18} />
-              START GAME
-            </button>
+          <div className="space-y-2 md:space-y-3">
+            {roomData.status === "waiting" && (
+              <button
+                onClick={handleStartGame}
+                disabled={!canStartGame || loading}
+                className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50 
+                         disabled:cursor-not-allowed text-sm md:text-base"
+              >
+                <Play size={18} />
+                START GAME
+              </button>
+            )}
+
+            {roomData.status === "playing" && (
+              <button
+                onClick={handleEndGame}
+                disabled={loading}
+                className="btn-danger w-full flex items-center justify-center gap-2 text-sm md:text-base"
+              >
+                <StopCircle size={18} />
+                END GAME NOW
+              </button>
+            )}
+          </div>
+
+          {!canStartGame && roomData.status === "waiting" && (
+            <p className="text-cyber-warning text-center mt-3 md:mt-4 text-xs md:text-sm">
+              {!isConfigSet
+                ? "⚠️ Set game configuration first"
+                : "⚠️ At least one player must join to start"}
+            </p>
           )}
-
-          {roomData.status === "playing" && (
-            <button
-              onClick={handleEndGame}
-              disabled={loading}
-              className="btn-danger w-full flex items-center justify-center gap-2 text-sm md:text-base"
-            >
-              <StopCircle size={18} />
-              END GAME NOW
-            </button>
-          )}
-
-          {roomData.status === "finished" && (
-            <button
-              onClick={handleExportResults}
-              className="btn-primary w-full flex items-center justify-center gap-2 text-sm md:text-base"
-            >
-              <Download size={18} />
-              EXPORT RESULTS (CSV)
-            </button>
+          
+          {canStartGame && roomData.status === "waiting" && (
+            <p className="text-cyber-accent text-center mt-3 md:mt-4 text-xs md:text-sm">
+              ✓ Ready to start! Game can begin with {players.length} player{players.length !== 1 ? 's' : ''} (up to 5 max)
+            </p>
           )}
         </div>
+      )}
 
-        {!canStartGame && roomData.status === "waiting" && (
-          <p className="text-cyber-warning text-center mt-3 md:mt-4 text-xs md:text-sm">
-            {!isConfigSet
-              ? "⚠️ Set game configuration first"
-              : "⚠️ At least one player must join to start"}
-          </p>
-        )}
-        
-        {canStartGame && roomData.status === "waiting" && (
-          <p className="text-cyber-accent text-center mt-3 md:mt-4 text-xs md:text-sm">
-            ✓ Ready to start! Game can begin with {players.length} player{players.length !== 1 ? 's' : ''} (up to 5 max)
-          </p>
-        )}
-      </div>
+      {/* Export Results - Only shown on finished page */}
+      {roomData.status === "finished" && (
+        <div className="card">
+          <button
+            onClick={handleExportResults}
+            className="btn-primary w-full flex items-center justify-center gap-2 text-sm md:text-base"
+          >
+            <Download size={18} />
+            EXPORT RESULTS (CSV)
+          </button>
+        </div>
+      )}
 
       {/* Player Management */}
       {players.length > 0 && (

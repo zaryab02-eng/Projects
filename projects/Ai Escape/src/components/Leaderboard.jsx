@@ -37,17 +37,19 @@ export default function Leaderboard({ leaderboard, isAdmin, isGameFinished }) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="text-center mb-4 md:mb-8">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-cyber-accent glow-text mb-2">
-          {isGameFinished ? "FINAL RESULTS" : "LIVE LEADERBOARD"}
-        </h2>
-        <p className="text-sm md:text-base text-white text-opacity-70">
-          {isGameFinished ? "Game Complete!" : "Real-time Rankings"}
-        </p>
-      </div>
+    <div className="max-w-4xl mx-auto w-full">
+      {!isGameFinished && (
+        <div className="text-center mb-3 md:mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-cyber-accent glow-text mb-2">
+            LIVE LEADERBOARD
+          </h2>
+          <p className="text-sm md:text-base text-white text-opacity-70">
+            Real-time Rankings
+          </p>
+        </div>
+      )}
 
-      <div className="space-y-3 md:space-y-4">
+      <div className="space-y-2 md:space-y-3">
         {leaderboard.map((player, index) => {
           const rank = index + 1;
           const isTopThree = rank <= 3;
@@ -98,8 +100,8 @@ export default function Leaderboard({ leaderboard, isAdmin, isGameFinished }) {
 
               {/* Winner Badge */}
               {rank === 1 && isGameFinished && (
-                <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-yellow-400">
-                  <p className="text-center text-lg md:text-2xl font-bold text-yellow-400 glow-text">
+                <div className="mt-2 md:mt-3 pt-2 md:pt-3 border-t border-yellow-400">
+                  <p className="text-center text-base md:text-xl font-bold text-yellow-400 glow-text">
                     🏆 WINNER 🏆
                   </p>
                 </div>
@@ -109,19 +111,11 @@ export default function Leaderboard({ leaderboard, isAdmin, isGameFinished }) {
         })}
 
         {leaderboard.length === 0 && (
-          <div className="card text-center py-8 md:py-12">
+          <div className="card text-center py-6 md:py-8">
             <p className="text-white text-opacity-50 text-base md:text-xl">No players yet</p>
           </div>
         )}
       </div>
-
-      {isAdmin && isGameFinished && (
-        <div className="mt-4 md:mt-8 text-center">
-          <p className="text-white text-opacity-70 mb-4 text-sm md:text-base">
-            Results have been finalized
-          </p>
-        </div>
-      )}
     </div>
   );
 }
