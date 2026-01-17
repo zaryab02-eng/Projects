@@ -52,42 +52,40 @@ export default function Question({
 
   return (
     <div className="max-w-4xl mx-auto w-full overflow-x-hidden relative">
-      {/* 🎬 OPTIONAL: Background Video - Delete this section if you don't want it */}
-      {/* To use: Add background.mp4 to /public/videos/ folder */}
+      {/* 🎬 Background Video */}
       <video
         autoPlay
         loop
         muted
         playsInline
-        className="fixed inset-0 w-full h-full object-cover opacity-5 -z-10 pointer-events-none"
+        className="fixed inset-0 w-full h-full object-cover opacity-100 -z-10 pointer-events-none"
       >
         <source src="/videos/background.mp4" type="video/mp4" />
       </video>
-      {/* End background video */}
 
-      <div className="card fade-in p-4 md:p-5 relative z-10">
+      <div className="fade-in p-4 md:p-5 relative z-10 bg-black bg-opacity-30 backdrop-blur-sm border border-cyber-border border-opacity-50 rounded-lg shadow-xl">
         {/* Level Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3 md:mb-4">
           <div className="flex items-center gap-2">
             <Lock className="text-cyber-accent" size={20} />
-            <h2 className="text-lg md:text-2xl font-bold text-cyber-accent">
+            <h2 className="text-lg md:text-2xl font-bold text-cyber-accent glow-text">
               LEVEL {levelNumber}
             </h2>
           </div>
 
           <button
             onClick={() => setShowHint(!showHint)}
-            className="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 bg-cyber-bg border border-cyber-border 
+            className="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 bg-black bg-opacity-40 backdrop-blur-sm border border-cyber-border border-opacity-50 
                      rounded-lg hover:border-cyber-warning transition-all duration-300 text-xs md:text-sm"
           >
             <Lightbulb size={16} className="text-cyber-warning" />
-            <span className="text-cyber-warning">Hint</span>
+            <span className="text-cyber-warning font-bold">Hint</span>
           </button>
         </div>
 
         {/* Question */}
-        <div className="bg-cyber-bg p-3 md:p-4 rounded-lg mb-3 md:mb-4 border-l-4 border-cyber-accent">
-          <p className="text-sm md:text-base text-white leading-relaxed whitespace-pre-wrap break-words">
+        <div className="bg-black bg-opacity-20 backdrop-blur-sm p-3 md:p-4 rounded-lg mb-3 md:mb-4 border-l-4 border-cyber-accent">
+          <p className="text-sm md:text-base text-white font-semibold leading-relaxed whitespace-pre-wrap break-words drop-shadow-lg">
             {question.question}
           </p>
         </div>
@@ -95,10 +93,10 @@ export default function Question({
         {/* Hint (if shown) */}
         {showHint && (
           <div
-            className="bg-cyber-warning bg-opacity-10 p-2.5 md:p-3 rounded-lg mb-3 md:mb-4 border border-cyber-warning 
+            className="bg-black bg-opacity-40 backdrop-blur-sm p-2.5 md:p-3 rounded-lg mb-3 md:mb-4 border border-cyber-warning 
                         animate-pulse"
           >
-            <p className="text-cyber-warning text-xs md:text-sm break-words">
+            <p className="text-cyber-warning font-bold text-xs md:text-sm break-words drop-shadow-lg">
               💡 {question.hint}
             </p>
           </div>
@@ -107,7 +105,7 @@ export default function Question({
         {/* Answer Form */}
         <form onSubmit={handleSubmit} className="space-y-2.5 md:space-y-3">
           <div>
-            <label className="block text-cyber-accent mb-1 font-bold text-xs md:text-sm">
+            <label className="block text-cyber-accent mb-1 font-bold text-xs md:text-sm glow-text">
               YOUR ANSWER
             </label>
             <input
@@ -115,15 +113,15 @@ export default function Question({
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
               placeholder="Enter your answer..."
-              className="input text-sm md:text-base"
+              className="input text-sm md:text-base bg-black bg-opacity-40 backdrop-blur-sm border-cyber-accent border-opacity-50 text-white placeholder-white placeholder-opacity-50"
               disabled={submitting}
               autoFocus
             />
           </div>
 
           {error && (
-            <div className="bg-cyber-danger bg-opacity-20 p-2 md:p-3 rounded-lg border border-cyber-danger">
-              <p className="text-cyber-danger text-xs md:text-sm">{error}</p>
+            <div className="bg-black bg-opacity-50 backdrop-blur-sm p-2 md:p-3 rounded-lg border border-cyber-danger">
+              <p className="text-cyber-danger font-bold text-xs md:text-sm drop-shadow-lg">{error}</p>
             </div>
           )}
 
@@ -136,7 +134,7 @@ export default function Question({
           </button>
         </form>
 
-        <p className="text-center text-white text-opacity-50 mt-2 md:mt-3 text-xs">
+        <p className="text-center text-white font-semibold mt-2 md:mt-3 text-xs drop-shadow-lg">
           ⚠️ You cannot skip questions. Answer correctly to proceed.
         </p>
       </div>
