@@ -52,17 +52,6 @@ export default function Question({
 
   return (
     <div className="max-w-4xl mx-auto w-full overflow-x-hidden relative">
-      {/* 🎬 Background Video */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="fixed inset-0 w-full h-full object-cover opacity-100 -z-10 pointer-events-none"
-      >
-        <source src="/videos/background.mp4" type="video/mp4" />
-      </video>
-
       <div className="fade-in p-4 md:p-5 relative z-10 bg-black bg-opacity-30 backdrop-blur-sm border border-cyber-border border-opacity-50 rounded-lg shadow-xl">
         {/* Level Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3 md:mb-4">

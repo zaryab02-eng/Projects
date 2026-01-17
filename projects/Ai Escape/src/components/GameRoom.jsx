@@ -187,8 +187,23 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
   const allLevelsCompleted = player?.completedLevels >= roomData?.totalLevels;
 
   return (
-    <div className="viewport-container cyber-grid flex flex-col">
-      <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-4 py-3 md:py-6 min-h-0">
+    <div className="viewport-container cyber-grid flex flex-col relative">
+      {/* 🎬 Background Video - Plays throughout the game */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        disablePictureInPicture
+        disableRemotePlayback
+        controlsList="nodownload nofullscreen noremoteplayback"
+        className="fixed inset-0 w-full h-full object-cover opacity-100 -z-10 pointer-events-none"
+        onContextMenu={(e) => e.preventDefault()}
+      >
+        <source src="/videos/background.mp4" type="video/mp4" />
+      </video>
+
+      <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-4 py-3 md:py-6 min-h-0 relative z-0">
         {/* Header - Fixed */}
         <div className="mb-3 md:mb-4 flex-shrink-0">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
