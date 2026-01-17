@@ -10,6 +10,7 @@ export function useAntiCheat(roomCode, playerId, isGameActive) {
   const hasWarned = useRef(false);
   const visibilityTimeoutRef = useRef(null);
   const lastVisibilityChangeRef = useRef(Date.now());
+  const isProcessingSwitchRef = useRef(false);
 
   useEffect(() => {
     if (!isGameActive || !roomCode || !playerId) return;
@@ -34,15 +35,19 @@ export function useAntiCheat(roomCode, playerId, isGameActive) {
       }
     };
 
-    // Detect tab visibility changes (player switching tabs)
-    // Added debouncing and false positive detection for video-related issues
-    const handleVisibilityChange = async () => {
+    // Core function to handle tab switch detection
+    const processTabSwitch = async () => {
+      // Prevent duplicate processing
+      if (isProcessingSwitchRef.current) {
+        return;
+      }
+
       const now = Date.now();
       const timeSinceLastChange = now - lastVisibilityChangeRef.current;
       
-      // Ignore rapid visibility changes (likely false positives from video or browser behavior)
-      // If visibility changes happen within 500ms, it's likely not a real tab switch
-      if (timeSinceLastChange < 500) {
+      // Only ignore very rapid changes (< 100ms) which are likely browser/video initialization flickers
+      // This allows legitimate tab switches to be detected immediately
+      if (timeSinceLastChange < 100) {
         return;
       }
 
@@ -52,8 +57,10 @@ export function useAntiCheat(roomCode, playerId, isGameActive) {
       }
 
       if (document.hidden) {
-        // Add a small delay to verify this is a real tab switch
-        // If the page becomes visible again quickly, it was likely a false positive
+        isProcessingSwitchRef.current = true;
+        
+        // Very short delay (50ms) to verify this is a real tab switch
+        // This filters out brief flickers while still being responsive to real switches
         visibilityTimeoutRef.current = setTimeout(async () => {
           // Double-check that the page is still hidden after the delay
           if (document.hidden) {
@@ -87,11 +94,22 @@ export function useAntiCheat(roomCode, playerId, isGameActive) {
               }
             }
           }
-        }, 300); // 300ms delay to filter out false positives
+          
+          // Reset processing flag after a short delay to allow new detections
+          setTimeout(() => {
+            isProcessingSwitchRef.current = false;
+          }, 200);
+        }, 50); // 50ms delay - very short to maintain responsiveness
       } else {
-        // Page became visible - update timestamp
+        // Page became visible - update timestamp and reset processing flag
         lastVisibilityChangeRef.current = now;
+        isProcessingSwitchRef.current = false;
       }
+    };
+
+    // Detect tab visibility changes (player switching tabs)
+    const handleVisibilityChange = () => {
+      processTabSwitch();
     };
 
     // Request fullscreen on game start
@@ -112,11 +130,20 @@ export function useAntiCheat(roomCode, playerId, isGameActive) {
       }
     };
 
+    // Detect window blur (especially important for mobile devices)
+    // On mobile, blur event can fire before visibilitychange
+    const handleBlur = () => {
+      // Trigger the same processing function
+      // The function itself will check if document is hidden
+      processTabSwitch();
+    };
+
     // Add event listeners
     document.addEventListener("contextmenu", handleContextMenu);
     document.addEventListener("keydown", handleKeyDown);
     document.addEventListener("visibilitychange", handleVisibilityChange);
     document.addEventListener("fullscreenchange", handleFullscreenChange);
+    window.addEventListener("blur", handleBlur);
 
     // Request fullscreen when game starts
     requestFullscreen();
@@ -127,6 +154,7 @@ export function useAntiCheat(roomCode, playerId, isGameActive) {
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      window.removeEventListener("blur", handleBlur);
       if (visibilityTimeoutRef.current) {
         clearTimeout(visibilityTimeoutRef.current);
       }
