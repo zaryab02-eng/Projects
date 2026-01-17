@@ -236,34 +236,88 @@ export default function GamePage() {
   // Game finished
   if (roomData.status === "finished") {
     const leaderboard = getLeaderboard(roomData);
+    const isSolo = sessionStorage.getItem("isSolo") === "true";
 
     return (
-      <div className="viewport-container cyber-grid flex flex-col">
-        <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-4 py-4 md:py-6">
+      <div className="viewport-container cyber-grid flex flex-col overflow-x-hidden">
+        <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-3 md:px-4 py-3 md:py-4 min-h-0 max-w-full">
           {/* Header - Fixed height */}
-          <div className="text-center mb-3 md:mb-4 flex-shrink-0">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-cyber-accent glow-text mb-2 md:mb-3">
+          <div className="text-center mb-2 md:mb-3 flex-shrink-0">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-cyber-accent glow-text mb-1 md:mb-2">
               GAME COMPLETE
             </h1>
-            <p className="text-sm md:text-base text-white mb-1">Room: {roomCode}</p>
-            <p className="text-xs md:text-sm text-white text-opacity-70">Thank you for playing!</p>
+            <p className="text-xs md:text-sm text-white mb-0.5">Room: {roomCode}</p>
+            <p className="text-xs text-white text-opacity-70">Thank you for playing!</p>
           </div>
 
-          {/* Leaderboard - Scrollable if needed, takes remaining space */}
-          <div className="flex-1 min-h-0 overflow-y-auto mb-3 md:mb-4">
-            <Leaderboard
-              leaderboard={leaderboard}
-              isAdmin={isAdmin}
-              isGameFinished={true}
-            />
-          </div>
-
-          {/* Admin Panel - Fixed height */}
-          {isAdmin && (
-            <div className="flex-shrink-0 mb-3 md:mb-4">
-              <AdminPanel roomData={roomData} />
+          {/* Main Content Grid - Responsive layout */}
+          <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-2 md:gap-3 mb-2 md:mb-3 overflow-hidden max-w-full">
+            {/* Leaderboard - Takes 2 columns on desktop, full width on mobile */}
+            <div className="lg:col-span-2 flex flex-col min-h-0 overflow-y-auto overflow-x-hidden">
+              <Leaderboard
+                leaderboard={leaderboard}
+                isAdmin={isAdmin}
+                isGameFinished={true}
+              />
             </div>
-          )}
+
+            {/* Side Panel - Stats and Admin Panel */}
+            <div className="flex flex-col gap-2 md:gap-3 min-h-0 overflow-y-auto overflow-x-hidden">
+              {/* Game Stats Card */}
+              <div className="card flex-shrink-0 p-3 md:p-4">
+                <h3 className="text-base md:text-lg font-bold text-white mb-2 md:mb-3">
+                  GAME STATS
+                </h3>
+                <div className="space-y-1.5 md:space-y-2">
+                  <div className="bg-cyber-bg p-2 rounded-lg">
+                    <p className="text-white text-opacity-70 text-xs mb-0.5">
+                      Total Players
+                    </p>
+                    <p className="text-cyber-accent font-bold text-sm md:text-base">
+                      {roomData.players ? Object.keys(roomData.players).length : 0}
+                    </p>
+                  </div>
+                  {roomData.difficulty && (
+                    <div className="bg-cyber-bg p-2 rounded-lg">
+                      <p className="text-white text-opacity-70 text-xs mb-0.5">
+                        Difficulty
+                      </p>
+                      <p className="text-cyber-accent font-bold text-sm md:text-base">
+                        {roomData.difficulty}
+                      </p>
+                    </div>
+                  )}
+                  {roomData.totalLevels && (
+                    <div className="bg-cyber-bg p-2 rounded-lg">
+                      <p className="text-white text-opacity-70 text-xs mb-0.5">
+                        Total Levels
+                      </p>
+                      <p className="text-cyber-accent font-bold text-sm md:text-base">
+                        {roomData.totalLevels}
+                      </p>
+                    </div>
+                  )}
+                  {roomData.duration && (
+                    <div className="bg-cyber-bg p-2 rounded-lg">
+                      <p className="text-white text-opacity-70 text-xs mb-0.5">
+                        Duration
+                      </p>
+                      <p className="text-cyber-accent font-bold text-sm md:text-base">
+                        {roomData.duration} minutes
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Admin Panel - Only for admin */}
+              {isAdmin && (
+                <div className="flex-shrink-0">
+                  <AdminPanel roomData={roomData} />
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Action Button - Fixed height */}
           <div className="flex-shrink-0 text-center">
@@ -272,7 +326,7 @@ export default function GamePage() {
                 sessionStorage.clear();
                 navigate("/");
               }}
-              className="btn-primary text-sm md:text-base"
+              className="btn-primary text-xs md:text-sm py-2"
             >
               BACK TO HOME
             </button>

@@ -37,19 +37,19 @@ export default function Leaderboard({ leaderboard, isAdmin, isGameFinished }) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto w-full">
+    <div className="w-full max-w-full mx-auto overflow-x-hidden">
       {!isGameFinished && (
-        <div className="text-center mb-3 md:mb-4">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-cyber-accent glow-text mb-2">
+        <div className="text-center mb-2 md:mb-3">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-cyber-accent glow-text mb-1">
             LIVE LEADERBOARD
           </h2>
-          <p className="text-sm md:text-base text-white text-opacity-70">
+          <p className="text-xs md:text-sm text-white text-opacity-70">
             Real-time Rankings
           </p>
         </div>
       )}
 
-      <div className="space-y-2 md:space-y-3">
+      <div className="space-y-1.5 md:space-y-2 w-full">
         {leaderboard.map((player, index) => {
           const rank = index + 1;
           const isTopThree = rank <= 3;
@@ -59,21 +59,21 @@ export default function Leaderboard({ leaderboard, isAdmin, isGameFinished }) {
               key={player.id}
               className={`card border-2 transition-all duration-300 ${getRankClass(rank)} ${
                 isTopThree ? "animate-pulse-slow" : ""
-              }`}
+              } w-full max-w-full overflow-hidden`}
             >
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center justify-between gap-1.5 md:gap-2 w-full max-w-full overflow-hidden">
                 {/* Rank and Icon */}
-                <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
-                  <div className="flex items-center justify-center w-10 h-10 md:w-16 md:h-16 flex-shrink-0">
+                <div className="flex items-center gap-1.5 md:gap-2 flex-1 min-w-0 overflow-hidden">
+                  <div className="flex items-center justify-center w-8 h-8 md:w-12 md:h-12 flex-shrink-0">
                     {getRankIcon(rank)}
                   </div>
 
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-lg md:text-2xl font-bold text-white mb-1 truncate">
+                  <div className="min-w-0 flex-1 overflow-hidden">
+                    <h3 className="text-sm md:text-base lg:text-lg font-bold text-white mb-0.5 truncate">
                       {player.name}
                     </h3>
                     <p
-                      className={`font-bold text-xs md:text-sm ${
+                      className={`font-bold text-xs truncate ${
                         isTopThree
                           ? "text-cyber-accent"
                           : "text-white text-opacity-50"
@@ -85,23 +85,23 @@ export default function Leaderboard({ leaderboard, isAdmin, isGameFinished }) {
                 </div>
 
                 {/* Stats */}
-                <div className="text-right flex-shrink-0">
-                  <div className="text-xl md:text-3xl font-bold text-cyber-accent mb-1">
+                <div className="text-right flex-shrink-0 ml-1">
+                  <div className="text-base md:text-xl font-bold text-cyber-accent mb-0.5 leading-tight">
                     {player.completedLevels}
                   </div>
-                  <div className="text-xs md:text-sm text-white text-opacity-70 mb-1 md:mb-2">
+                  <div className="text-xs text-white text-opacity-70 mb-0.5 leading-tight">
                     Levels
                   </div>
-                  <div className="text-sm md:text-lg text-white">
-                    ⏱️ {formatTime(player.totalTime)}
+                  <div className="text-xs md:text-sm text-white leading-tight">
+                    {formatTime(player.totalTime)}
                   </div>
                 </div>
               </div>
 
               {/* Winner Badge */}
               {rank === 1 && isGameFinished && (
-                <div className="mt-2 md:mt-3 pt-2 md:pt-3 border-t border-yellow-400">
-                  <p className="text-center text-base md:text-xl font-bold text-yellow-400 glow-text">
+                <div className="mt-1.5 md:mt-2 pt-1.5 md:pt-2 border-t border-yellow-400">
+                  <p className="text-center text-sm md:text-base font-bold text-yellow-400 glow-text">
                     🏆 WINNER 🏆
                   </p>
                 </div>
@@ -111,8 +111,8 @@ export default function Leaderboard({ leaderboard, isAdmin, isGameFinished }) {
         })}
 
         {leaderboard.length === 0 && (
-          <div className="card text-center py-6 md:py-8">
-            <p className="text-white text-opacity-50 text-base md:text-xl">No players yet</p>
+          <div className="card text-center py-4 md:py-6">
+            <p className="text-white text-opacity-50 text-sm md:text-base">No players yet</p>
           </div>
         )}
       </div>
