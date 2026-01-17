@@ -86,19 +86,22 @@ export default function GamePage() {
   // Waiting lobby
   if (roomData.status === "waiting") {
     return (
-      <div className="viewport-container cyber-grid overflow-y-auto">
-        <div className="max-w-6xl mx-auto px-4 py-4 md:py-8">
-          <div className="text-center mb-4 md:mb-8">
-            <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold text-cyber-accent glow-text mb-2">
+      <div className="viewport-container cyber-grid flex flex-col">
+        <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-4 py-3 md:py-6 min-h-0">
+          {/* Header - Fixed height */}
+          <div className="text-center mb-3 md:mb-4 flex-shrink-0">
+            <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold text-cyber-accent glow-text mb-1 md:mb-2">
               ESCAPE ROOM
             </h1>
-            <p className="text-sm md:text-base text-white text-opacity-70">
+            <p className="text-xs md:text-sm text-white text-opacity-70">
               {isAdmin ? "Admin Control Panel" : "Waiting for game to start"}
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4 md:gap-6">
-            <div>
+          {/* Content - Scrollable if needed, takes remaining space */}
+          <div className="flex-1 min-h-0 flex flex-col md:grid md:grid-cols-2 gap-3 md:gap-4 overflow-hidden">
+            {/* Lobby Waiting - Takes available space */}
+            <div className="flex flex-col min-h-0 flex-1 md:flex-none">
               <LobbyWaiting
                 roomData={roomData}
                 playerId={playerId}
@@ -106,48 +109,49 @@ export default function GamePage() {
               />
             </div>
 
+            {/* Admin Panel or Game Info */}
             {isAdmin && (
-              <div>
+              <div className="flex flex-col min-h-0 flex-1 md:flex-none md:overflow-y-auto">
                 <AdminPanel roomData={roomData} />
               </div>
             )}
 
             {!isAdmin && (
-              <div className="card">
-                <h3 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4">
+              <div className="card flex-shrink-0 md:flex-none md:overflow-y-auto">
+                <h3 className="text-lg md:text-2xl font-bold text-white mb-2 md:mb-3">
                   GAME INFO
                 </h3>
 
                 {roomData.difficulty ? (
-                  <div className="space-y-2 md:space-y-3">
-                    <div className="bg-cyber-bg p-3 rounded-lg">
+                  <div className="space-y-2">
+                    <div className="bg-cyber-bg p-2 md:p-3 rounded-lg">
                       <p className="text-white text-opacity-70 text-xs md:text-sm">
                         Difficulty
                       </p>
-                      <p className="text-cyber-accent font-bold text-lg md:text-xl">
+                      <p className="text-cyber-accent font-bold text-base md:text-xl">
                         {roomData.difficulty}
                       </p>
                     </div>
-                    <div className="bg-cyber-bg p-3 rounded-lg">
+                    <div className="bg-cyber-bg p-2 md:p-3 rounded-lg">
                       <p className="text-white text-opacity-70 text-xs md:text-sm">
                         Duration
                       </p>
-                      <p className="text-cyber-accent font-bold text-lg md:text-xl">
+                      <p className="text-cyber-accent font-bold text-base md:text-xl">
                         {roomData.duration} minutes
                       </p>
                     </div>
-                    <div className="bg-cyber-bg p-3 rounded-lg">
+                    <div className="bg-cyber-bg p-2 md:p-3 rounded-lg">
                       <p className="text-white text-opacity-70 text-xs md:text-sm">
                         Total Levels
                       </p>
-                      <p className="text-cyber-accent font-bold text-lg md:text-xl">
+                      <p className="text-cyber-accent font-bold text-base md:text-xl">
                         {roomData.totalLevels}
                       </p>
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-cyber-bg p-4 md:p-6 rounded-lg text-center">
-                    <p className="text-sm md:text-base text-white text-opacity-70">
+                  <div className="bg-cyber-bg p-3 md:p-4 rounded-lg text-center">
+                    <p className="text-xs md:text-sm text-white text-opacity-70">
                       Waiting for admin to configure game settings...
                     </p>
                   </div>
@@ -166,26 +170,27 @@ export default function GamePage() {
       const leaderboard = getLeaderboard(roomData);
 
       return (
-        <div className="viewport-container cyber-grid overflow-y-auto">
-          <div className="max-w-6xl mx-auto px-4 py-4 md:py-8">
-            <div className="mb-4 md:mb-8">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="viewport-container cyber-grid flex flex-col">
+          <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-4 py-3 md:py-6 min-h-0">
+            {/* Header - Fixed */}
+            <div className="mb-3 md:mb-4 flex-shrink-0">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div>
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-cyber-accent glow-text">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-cyber-accent glow-text">
                     ADMIN DASHBOARD
                   </h1>
-                  <p className="text-sm md:text-base text-white text-opacity-70">Room: {roomCode}</p>
+                  <p className="text-xs md:text-sm text-white text-opacity-70">Room: {roomCode}</p>
                 </div>
 
-                <div className="bg-cyber-surface border-2 border-cyber-accent rounded-lg p-3 md:p-4">
+                <div className="bg-cyber-surface border-2 border-cyber-accent rounded-lg p-2 md:p-3 flex-shrink-0">
                   <div className="flex items-center gap-2">
-                    <Clock className="text-cyber-accent" size={20} />
+                    <Clock className="text-cyber-accent" size={18} />
                     <div>
-                      <div className="text-xs md:text-sm text-white text-opacity-70">
+                      <div className="text-xs text-white text-opacity-70">
                         TIME LEFT
                       </div>
                       <div
-                        className={`text-xl md:text-3xl font-bold ${
+                        className={`text-lg md:text-2xl font-bold ${
                           remainingTime < 60000
                             ? "text-cyber-danger animate-pulse"
                             : "text-cyber-accent"
@@ -199,8 +204,9 @@ export default function GamePage() {
               </div>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-4 md:gap-6">
-              <div className="md:col-span-2">
+            {/* Content - Scrollable if needed */}
+            <div className="flex-1 min-h-0 grid md:grid-cols-3 gap-3 md:gap-4 overflow-hidden">
+              <div className="md:col-span-2 flex flex-col min-h-0 overflow-y-auto">
                 <Leaderboard
                   leaderboard={leaderboard}
                   isAdmin={true}
@@ -208,7 +214,7 @@ export default function GamePage() {
                 />
               </div>
 
-              <div>
+              <div className="flex flex-col min-h-0 overflow-y-auto">
                 <AdminPanel roomData={roomData} />
               </div>
             </div>

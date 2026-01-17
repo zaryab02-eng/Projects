@@ -101,7 +101,7 @@ export default function AdminPanel({ roomData }) {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="space-y-3 md:space-y-4 h-full overflow-y-auto">
       {/* Game Configuration */}
       {roomData.status === "waiting" && (
         <div className="card">

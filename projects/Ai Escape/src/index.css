@@ -77,23 +77,27 @@ body {
   height: 100dvh;
   height: -webkit-fill-available;
   width: 100%;
-  overflow-y: auto;
   overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
   position: relative;
+}
+
+/* Default: allow scrolling for pages that need it */
+.viewport-container:not(.flex) {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Flex layout: prevent page scrolling, allow internal scrolling */
+.viewport-container.flex {
+  overflow-y: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 @media (max-width: 768px) {
   .viewport-container {
     height: 100vh;
     height: 100dvh;
-  }
-}
-
-/* Desktop: For pages using flex layout, prevent page scrolling */
-@media (min-width: 769px) {
-  .viewport-container.flex {
-    overflow-y: hidden;
   }
 }
 

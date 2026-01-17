@@ -104,30 +104,30 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
   const allLevelsCompleted = player?.completedLevels >= roomData?.totalLevels;
 
   return (
-    <div className="viewport-container cyber-grid overflow-y-auto">
-      <div className="max-w-6xl mx-auto px-4 py-4 md:py-8">
-        {/* Header */}
-        <div className="mb-4 md:mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+    <div className="viewport-container cyber-grid flex flex-col">
+      <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-4 py-3 md:py-6 min-h-0">
+        {/* Header - Fixed */}
+        <div className="mb-3 md:mb-4 flex-shrink-0">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
             <div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-cyber-accent glow-text">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-cyber-accent glow-text">
                 ESCAPE ROOM
               </h1>
-              <p className="text-xs md:text-sm text-white text-opacity-70">
+              <p className="text-xs text-white text-opacity-70">
                 Room: {roomCode} | Player: {playerName}
               </p>
             </div>
 
             {/* Timer */}
-            <div className="bg-cyber-surface border-2 border-cyber-accent rounded-lg p-3 md:p-4">
+            <div className="bg-cyber-surface border-2 border-cyber-accent rounded-lg p-2 md:p-3 flex-shrink-0">
               <div className="flex items-center gap-2">
-                <Clock className="text-cyber-accent" size={20} />
+                <Clock className="text-cyber-accent" size={18} />
                 <div>
-                  <div className="text-xs md:text-sm text-white text-opacity-70">
+                  <div className="text-xs text-white text-opacity-70">
                     TIME LEFT
                   </div>
                   <div
-                    className={`text-xl md:text-3xl font-bold ${
+                    className={`text-lg md:text-2xl font-bold ${
                       remainingTime < 60000
                         ? "text-cyber-danger animate-pulse"
                         : "text-cyber-accent"
@@ -140,14 +140,14 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
             </div>
           </div>
 
-          {/* Progress */}
-          <div className="bg-cyber-surface rounded-lg p-3 md:p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-white font-bold text-sm md:text-base">
+          {/* Progress - Fixed */}
+          <div className="bg-cyber-surface rounded-lg p-2 md:p-3">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-white font-bold text-xs md:text-sm">
                 Progress: {player?.completedLevels || 0} /{" "}
                 {roomData?.totalLevels || 0} Levels
               </span>
-              <span className="text-cyber-accent font-bold text-sm md:text-base">
+              <span className="text-cyber-accent font-bold text-xs md:text-sm">
                 {Math.floor(
                   ((player?.completedLevels || 0) /
                     (roomData?.totalLevels || 1)) *
@@ -156,7 +156,7 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
                 %
               </span>
             </div>
-            <div className="w-full bg-cyber-bg rounded-full h-2 md:h-3 overflow-hidden">
+            <div className="w-full bg-cyber-bg rounded-full h-2 overflow-hidden">
               <div
                 className="bg-cyber-accent h-full transition-all duration-500 rounded-full"
                 style={{
@@ -167,41 +167,43 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
           </div>
         </div>
 
-        {/* Main Content */}
-        {allLevelsCompleted ? (
-          <div className="card text-center py-6 md:py-12">
-            <h2 className="text-2xl md:text-4xl font-bold text-cyber-accent glow-text mb-3 md:mb-4">
-              🎉 ALL LEVELS COMPLETE! 🎉
-            </h2>
-            <p className="text-base md:text-xl text-white mb-4 md:mb-8">
-              Waiting for other players or timer to finish...
-            </p>
-            <div className="max-w-4xl mx-auto">
-              <Leaderboard
-                leaderboard={leaderboard}
-                isAdmin={isAdmin}
-                isGameFinished={false}
-              />
+        {/* Main Content - Scrollable if needed */}
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          {allLevelsCompleted ? (
+            <div className="card text-center py-4 md:py-6">
+              <h2 className="text-xl md:text-3xl font-bold text-cyber-accent glow-text mb-2 md:mb-3">
+                🎉 ALL LEVELS COMPLETE! 🎉
+              </h2>
+              <p className="text-sm md:text-base text-white mb-3 md:mb-4">
+                Waiting for other players or timer to finish...
+              </p>
+              <div className="max-w-4xl mx-auto">
+                <Leaderboard
+                  leaderboard={leaderboard}
+                  isAdmin={isAdmin}
+                  isGameFinished={false}
+                />
+              </div>
             </div>
-          </div>
-        ) : currentQuestion ? (
-          <Question
-            roomCode={roomCode}
-            playerId={playerId}
-            question={currentQuestion}
-            levelNumber={player?.currentLevel || 1}
-            onCorrectAnswer={handleCorrectAnswer}
-          />
-        ) : (
-          <div className="card text-center py-6 md:py-12">
-            <p className="text-base md:text-xl text-white">Loading question...</p>
-          </div>
-        )}
+          ) : currentQuestion ? (
+            <Question
+              roomCode={roomCode}
+              playerId={playerId}
+              question={currentQuestion}
+              levelNumber={player?.currentLevel || 1}
+              onCorrectAnswer={handleCorrectAnswer}
+            />
+          ) : (
+            <div className="card text-center py-6 md:py-8">
+              <p className="text-sm md:text-base text-white">Loading question...</p>
+            </div>
+          )}
+        </div>
 
-        {/* Warnings */}
+        {/* Warnings - Fixed */}
         {player?.warnings > 0 && (
-          <div className="mt-4 md:mt-6 bg-cyber-warning bg-opacity-20 p-3 md:p-4 rounded-lg border border-cyber-warning">
-            <p className="text-cyber-warning text-center font-bold text-sm md:text-base">
+          <div className="mt-2 bg-cyber-warning bg-opacity-20 p-2 md:p-3 rounded-lg border border-cyber-warning flex-shrink-0">
+            <p className="text-cyber-warning text-center font-bold text-xs md:text-sm">
               ⚠️ WARNING: {player.warnings}/2 - One more violation and you will
               be disqualified!
             </p>
