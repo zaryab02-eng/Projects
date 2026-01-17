@@ -13,6 +13,19 @@ const firebaseConfig = {
   databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
 };
 
+// Validate Firebase config
+if (!firebaseConfig.projectId || !firebaseConfig.databaseURL) {
+  console.error(
+    "❌ Firebase configuration incomplete. Check environment variables:",
+  );
+  console.error("Missing:", {
+    projectId: !firebaseConfig.projectId ? "VITE_FIREBASE_PROJECT_ID" : "✓",
+    databaseURL: !firebaseConfig.databaseURL
+      ? "VITE_FIREBASE_DATABASE_URL"
+      : "✓",
+  });
+}
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
