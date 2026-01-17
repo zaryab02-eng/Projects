@@ -101,27 +101,27 @@ export default function AdminPanel({ roomData }) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Game Configuration */}
       {roomData.status === "waiting" && (
         <div className="card">
-          <div className="flex items-center gap-3 mb-6">
-            <Settings className="text-cyber-accent" size={32} />
-            <h2 className="text-3xl font-bold text-cyber-accent">
+          <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+            <Settings className="text-cyber-accent" size={24} />
+            <h2 className="text-xl md:text-3xl font-bold text-cyber-accent">
               GAME CONFIGURATION
             </h2>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {/* Difficulty */}
             <div>
-              <label className="block text-white font-bold mb-2">
+              <label className="block text-white font-bold mb-2 text-sm md:text-base">
                 DIFFICULTY LEVEL
               </label>
               <select
                 value={difficulty}
                 onChange={(e) => setDifficulty(e.target.value)}
-                className="input"
+                className="input text-lg"
                 disabled={loading}
               >
                 <option value="Easy">Easy - Simple riddles</option>
@@ -132,7 +132,7 @@ export default function AdminPanel({ roomData }) {
 
             {/* Duration */}
             <div>
-              <label className="block text-white font-bold mb-2">
+              <label className="block text-white font-bold mb-2 text-sm md:text-base">
                 GAME DURATION (minutes)
               </label>
               <input
@@ -141,17 +141,17 @@ export default function AdminPanel({ roomData }) {
                 max="120"
                 value={duration}
                 onChange={(e) => setDuration(parseInt(e.target.value))}
-                className="input"
+                className="input text-lg"
                 disabled={loading}
               />
-              <p className="text-white text-opacity-50 text-sm mt-1">
+              <p className="text-white text-opacity-50 text-xs md:text-sm mt-1">
                 Recommended: 15-45 minutes
               </p>
             </div>
 
             {/* Total Levels */}
             <div>
-              <label className="block text-white font-bold mb-2">
+              <label className="block text-white font-bold mb-2 text-sm md:text-base">
                 TOTAL LEVELS
               </label>
               <input
@@ -160,24 +160,24 @@ export default function AdminPanel({ roomData }) {
                 max="20"
                 value={totalLevels}
                 onChange={(e) => setTotalLevels(parseInt(e.target.value))}
-                className="input"
+                className="input text-lg"
                 disabled={loading}
               />
-              <p className="text-white text-opacity-50 text-sm mt-1">
+              <p className="text-white text-opacity-50 text-xs md:text-sm mt-1">
                 Number of questions/levels in the game
               </p>
             </div>
 
             {error && (
-              <div className="bg-cyber-danger bg-opacity-20 p-4 rounded-lg border border-cyber-danger">
-                <p className="text-cyber-danger">{error}</p>
+              <div className="bg-cyber-danger bg-opacity-20 p-3 md:p-4 rounded-lg border border-cyber-danger">
+                <p className="text-cyber-danger text-sm md:text-base">{error}</p>
               </div>
             )}
 
             <button
               onClick={handleSetConfig}
               disabled={loading}
-              className="btn-primary w-full"
+              className="btn-primary w-full text-sm md:text-base"
             >
               {loading
                 ? "SAVING..."
@@ -191,17 +191,17 @@ export default function AdminPanel({ roomData }) {
 
       {/* Game Controls */}
       <div className="card">
-        <h3 className="text-2xl font-bold text-white mb-4">GAME CONTROLS</h3>
+        <h3 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4">GAME CONTROLS</h3>
 
-        <div className="space-y-3">
+        <div className="space-y-2 md:space-y-3">
           {roomData.status === "waiting" && (
             <button
               onClick={handleStartGame}
               disabled={!canStartGame || loading}
               className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50 
-                       disabled:cursor-not-allowed"
+                       disabled:cursor-not-allowed text-sm md:text-base"
             >
-              <Play size={20} />
+              <Play size={18} />
               START GAME
             </button>
           )}
@@ -210,9 +210,9 @@ export default function AdminPanel({ roomData }) {
             <button
               onClick={handleEndGame}
               disabled={loading}
-              className="btn-danger w-full flex items-center justify-center gap-2"
+              className="btn-danger w-full flex items-center justify-center gap-2 text-sm md:text-base"
             >
-              <StopCircle size={20} />
+              <StopCircle size={18} />
               END GAME NOW
             </button>
           )}
@@ -220,16 +220,16 @@ export default function AdminPanel({ roomData }) {
           {roomData.status === "finished" && (
             <button
               onClick={handleExportResults}
-              className="btn-primary w-full flex items-center justify-center gap-2"
+              className="btn-primary w-full flex items-center justify-center gap-2 text-sm md:text-base"
             >
-              <Download size={20} />
+              <Download size={18} />
               EXPORT RESULTS (CSV)
             </button>
           )}
         </div>
 
         {!canStartGame && roomData.status === "waiting" && (
-          <p className="text-cyber-warning text-center mt-4">
+          <p className="text-cyber-warning text-center mt-3 md:mt-4 text-xs md:text-sm">
             {!isConfigSet
               ? "⚠️ Set game configuration first"
               : "⚠️ Waiting for players to join"}
@@ -240,7 +240,7 @@ export default function AdminPanel({ roomData }) {
       {/* Player Management */}
       {players.length > 0 && (
         <div className="card">
-          <h3 className="text-2xl font-bold text-white mb-4">
+          <h3 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4">
             PLAYER MANAGEMENT
           </h3>
 
@@ -248,20 +248,22 @@ export default function AdminPanel({ roomData }) {
             {players.map((player) => (
               <div
                 key={player.id}
-                className="bg-cyber-bg p-3 rounded-lg flex items-center justify-between"
+                className="bg-cyber-bg p-2 md:p-3 rounded-lg flex items-center justify-between gap-2"
               >
-                <div>
-                  <span className="text-white font-bold">{player.name}</span>
-                  {player.disqualified && (
-                    <span className="ml-2 text-cyber-danger text-sm">
-                      DISQUALIFIED
-                    </span>
-                  )}
-                  {player.warnings > 0 && (
-                    <span className="ml-2 text-cyber-warning text-sm">
-                      ⚠️ {player.warnings} warning(s)
-                    </span>
-                  )}
+                <div className="min-w-0 flex-1">
+                  <span className="text-white font-bold text-sm md:text-base truncate block">{player.name}</span>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {player.disqualified && (
+                      <span className="text-cyber-danger text-xs md:text-sm">
+                        DISQUALIFIED
+                      </span>
+                    )}
+                    {player.warnings > 0 && (
+                      <span className="text-cyber-warning text-xs md:text-sm">
+                        ⚠️ {player.warnings} warning(s)
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {!player.disqualified && roomData.status === "playing" && (
@@ -269,11 +271,11 @@ export default function AdminPanel({ roomData }) {
                     onClick={() =>
                       handleDisqualifyPlayer(player.id, player.name)
                     }
-                    className="px-3 py-1 bg-cyber-danger text-white rounded hover:bg-opacity-80 
-                             transition-all duration-300 flex items-center gap-1"
+                    className="px-2 md:px-3 py-1 bg-cyber-danger text-white rounded hover:bg-opacity-80 
+                             transition-all duration-300 flex items-center gap-1 text-xs md:text-sm flex-shrink-0"
                   >
-                    <UserX size={16} />
-                    Disqualify
+                    <UserX size={14} />
+                    <span className="hidden sm:inline">Disqualify</span>
                   </button>
                 )}
               </div>

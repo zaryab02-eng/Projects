@@ -9,14 +9,14 @@ import GamePage from "./pages/GamePage";
  */
 function HomePage() {
   return (
-    <div className="h-screen flex items-center justify-center p-1 md:p-4 cyber-grid overflow-hidden">
-      <div className="w-full max-w-2xl md:max-w-4xl">
+    <div className="viewport-container flex items-center justify-center cyber-grid">
+      <div className="w-full max-w-2xl md:max-w-4xl px-4 py-6 md:py-8">
         {/* Title */}
-        <div className="text-center mb-2 md:mb-12">
-          <h1 className="text-2xl sm:text-3xl md:text-7xl lg:text-8xl font-bold text-cyber-accent glow-text mb-0.5 md:mb-4 leading-tight">
+        <div className="text-center mb-6 md:mb-12">
+          <h1 className="text-3xl sm:text-4xl md:text-7xl lg:text-8xl font-bold text-cyber-accent glow-text mb-2 md:mb-4 leading-tight">
             ESCAPE ROOM
           </h1>
-          <p className="text-xs md:text-2xl text-white text-opacity-70 mb-0 md:mb-2 leading-tight">
+          <p className="text-sm md:text-2xl text-white text-opacity-70 mb-1 md:mb-2 leading-tight">
             Multiplayer Challenge
           </p>
           <p className="text-xs md:text-base text-white text-opacity-50 leading-none hidden md:block">
@@ -25,28 +25,28 @@ function HomePage() {
         </div>
 
         {/* Action Cards */}
-        <div className="grid md:grid-cols-2 gap-1.5 md:gap-6">
+        <div className="grid md:grid-cols-2 gap-3 md:gap-6">
           {/* Admin Card */}
           <Link to="/admin" className="block">
             <div
               className="card hover:border-cyber-accent transition-all duration-300 cursor-pointer 
-                          hover:scale-105 h-full p-2 md:p-6"
+                          hover:scale-[1.02] active:scale-[0.98] h-full p-4 md:p-6"
             >
               <div className="text-center">
                 <div
-                  className="w-10 h-10 md:w-20 md:h-20 bg-cyber-accent rounded-full flex items-center justify-center 
-                              mx-auto mb-1 md:mb-4"
+                  className="w-12 h-12 md:w-20 md:h-20 bg-cyber-accent rounded-full flex items-center justify-center 
+                              mx-auto mb-3 md:mb-4"
                 >
-                  <Shield size={16} className="md:block hidden text-black" />
-                  <Shield size={12} className="md:hidden text-black" />
+                  <Shield size={20} className="md:hidden text-black" />
+                  <Shield size={40} className="hidden md:block text-black" />
                 </div>
-                <h2 className="text-xs md:text-3xl font-bold text-cyber-accent mb-0.5 md:mb-3 leading-tight">
+                <h2 className="text-lg md:text-3xl font-bold text-cyber-accent mb-2 md:mb-3 leading-tight">
                   CREATE GAME
                 </h2>
-                <p className="text-xs md:text-base text-white text-opacity-70 mb-1 md:mb-4 leading-tight">
+                <p className="text-sm md:text-base text-white text-opacity-70 mb-2 md:mb-4 leading-tight">
                   Start new game
                 </p>
-                <ul className="text-left text-white text-opacity-60 space-y-0.5 md:space-y-2 text-xs md:text-base hidden md:block">
+                <ul className="text-left text-white text-opacity-60 space-y-1 md:space-y-2 text-xs md:text-base hidden md:block">
                   <li>• Configure difficulty</li>
                   <li>• Monitor players</li>
                 </ul>
@@ -58,23 +58,23 @@ function HomePage() {
           <Link to="/join" className="block">
             <div
               className="card hover:border-cyber-accent transition-all duration-300 cursor-pointer 
-                          hover:scale-105 h-full p-2 md:p-6"
+                          hover:scale-[1.02] active:scale-[0.98] h-full p-4 md:p-6"
             >
               <div className="text-center">
                 <div
-                  className="w-10 h-10 md:w-20 md:h-20 bg-cyber-accent rounded-full flex items-center justify-center 
-                              mx-auto mb-1 md:mb-4"
+                  className="w-12 h-12 md:w-20 md:h-20 bg-cyber-accent rounded-full flex items-center justify-center 
+                              mx-auto mb-3 md:mb-4"
                 >
-                  <Users size={16} className="md:block hidden text-black" />
-                  <Users size={12} className="md:hidden text-black" />
+                  <Users size={20} className="md:hidden text-black" />
+                  <Users size={40} className="hidden md:block text-black" />
                 </div>
-                <h2 className="text-xs md:text-3xl font-bold text-cyber-accent mb-0.5 md:mb-3 leading-tight">
+                <h2 className="text-lg md:text-3xl font-bold text-cyber-accent mb-2 md:mb-3 leading-tight">
                   JOIN GAME
                 </h2>
-                <p className="text-xs md:text-base text-white text-opacity-70 mb-1 md:mb-4 leading-tight">
+                <p className="text-sm md:text-base text-white text-opacity-70 mb-2 md:mb-4 leading-tight">
                   Enter room code
                 </p>
-                <ul className="text-left text-white text-opacity-60 space-y-0.5 md:space-y-2 text-xs md:text-base hidden md:block">
+                <ul className="text-left text-white text-opacity-60 space-y-1 md:space-y-2 text-xs md:text-base hidden md:block">
                   <li>• Real-time competition</li>
                   <li>• Climb the leaderboard</li>
                 </ul>
@@ -84,7 +84,7 @@ function HomePage() {
         </div>
 
         {/* Footer */}
-        <div className="hidden md:block mt-8 text-center text-white text-opacity-50 text-sm">
+        <div className="hidden md:block mt-6 md:mt-8 text-center text-white text-opacity-50 text-sm">
           <p>PWA Enabled • Install on your device for best experience</p>
         </div>
       </div>

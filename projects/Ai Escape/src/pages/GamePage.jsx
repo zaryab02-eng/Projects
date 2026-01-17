@@ -51,14 +51,14 @@ export default function GamePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center cyber-grid">
+      <div className="viewport-container flex items-center justify-center cyber-grid">
         <div className="card">
           <div className="text-center">
             <div
-              className="animate-spin w-16 h-16 border-4 border-cyber-accent border-t-transparent 
+              className="animate-spin w-12 h-12 md:w-16 md:h-16 border-4 border-cyber-accent border-t-transparent 
                           rounded-full mx-auto mb-4"
             />
-            <p className="text-xl text-white">Loading game...</p>
+            <p className="text-base md:text-xl text-white">Loading game...</p>
           </div>
         </div>
       </div>
@@ -67,14 +67,14 @@ export default function GamePage() {
 
   if (error || !roomData) {
     return (
-      <div className="min-h-screen flex items-center justify-center cyber-grid">
-        <div className="card max-w-2xl">
+      <div className="viewport-container flex items-center justify-center cyber-grid">
+        <div className="card max-w-2xl mx-4">
           <div className="text-center">
-            <h2 className="text-4xl font-bold text-cyber-danger mb-4">ERROR</h2>
-            <p className="text-xl text-white mb-6">
+            <h2 className="text-2xl md:text-4xl font-bold text-cyber-danger mb-4">ERROR</h2>
+            <p className="text-base md:text-xl text-white mb-6">
               {error || "Room not found"}
             </p>
-            <button onClick={() => navigate("/")} className="btn-primary">
+            <button onClick={() => navigate("/")} className="btn-primary text-sm md:text-base">
               BACK TO HOME
             </button>
           </div>
@@ -86,18 +86,18 @@ export default function GamePage() {
   // Waiting lobby
   if (roomData.status === "waiting") {
     return (
-      <div className="min-h-screen p-4 md:p-8 cyber-grid">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-5xl font-bold text-cyber-accent glow-text mb-2">
+      <div className="viewport-container cyber-grid overflow-y-auto">
+        <div className="max-w-6xl mx-auto px-4 py-4 md:py-8">
+          <div className="text-center mb-4 md:mb-8">
+            <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold text-cyber-accent glow-text mb-2">
               ESCAPE ROOM
             </h1>
-            <p className="text-white text-opacity-70">
+            <p className="text-sm md:text-base text-white text-opacity-70">
               {isAdmin ? "Admin Control Panel" : "Waiting for game to start"}
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 gap-4 md:gap-6">
             <div>
               <LobbyWaiting
                 roomData={roomData}
@@ -114,40 +114,40 @@ export default function GamePage() {
 
             {!isAdmin && (
               <div className="card">
-                <h3 className="text-2xl font-bold text-white mb-4">
+                <h3 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4">
                   GAME INFO
                 </h3>
 
                 {roomData.difficulty ? (
-                  <div className="space-y-3">
+                  <div className="space-y-2 md:space-y-3">
                     <div className="bg-cyber-bg p-3 rounded-lg">
-                      <p className="text-white text-opacity-70 text-sm">
+                      <p className="text-white text-opacity-70 text-xs md:text-sm">
                         Difficulty
                       </p>
-                      <p className="text-cyber-accent font-bold text-xl">
+                      <p className="text-cyber-accent font-bold text-lg md:text-xl">
                         {roomData.difficulty}
                       </p>
                     </div>
                     <div className="bg-cyber-bg p-3 rounded-lg">
-                      <p className="text-white text-opacity-70 text-sm">
+                      <p className="text-white text-opacity-70 text-xs md:text-sm">
                         Duration
                       </p>
-                      <p className="text-cyber-accent font-bold text-xl">
+                      <p className="text-cyber-accent font-bold text-lg md:text-xl">
                         {roomData.duration} minutes
                       </p>
                     </div>
                     <div className="bg-cyber-bg p-3 rounded-lg">
-                      <p className="text-white text-opacity-70 text-sm">
+                      <p className="text-white text-opacity-70 text-xs md:text-sm">
                         Total Levels
                       </p>
-                      <p className="text-cyber-accent font-bold text-xl">
+                      <p className="text-cyber-accent font-bold text-lg md:text-xl">
                         {roomData.totalLevels}
                       </p>
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-cyber-bg p-6 rounded-lg text-center">
-                    <p className="text-white text-opacity-70">
+                  <div className="bg-cyber-bg p-4 md:p-6 rounded-lg text-center">
+                    <p className="text-sm md:text-base text-white text-opacity-70">
                       Waiting for admin to configure game settings...
                     </p>
                   </div>
@@ -166,26 +166,26 @@ export default function GamePage() {
       const leaderboard = getLeaderboard(roomData);
 
       return (
-        <div className="min-h-screen p-4 md:p-8 cyber-grid">
-          <div className="max-w-6xl mx-auto">
-            <div className="mb-8">
-              <div className="flex items-center justify-between">
+        <div className="viewport-container cyber-grid overflow-y-auto">
+          <div className="max-w-6xl mx-auto px-4 py-4 md:py-8">
+            <div className="mb-4 md:mb-8">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                  <h1 className="text-4xl font-bold text-cyber-accent glow-text">
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-cyber-accent glow-text">
                     ADMIN DASHBOARD
                   </h1>
-                  <p className="text-white text-opacity-70">Room: {roomCode}</p>
+                  <p className="text-sm md:text-base text-white text-opacity-70">Room: {roomCode}</p>
                 </div>
 
-                <div className="bg-cyber-surface border-2 border-cyber-accent rounded-lg p-4">
+                <div className="bg-cyber-surface border-2 border-cyber-accent rounded-lg p-3 md:p-4">
                   <div className="flex items-center gap-2">
-                    <Clock className="text-cyber-accent" size={24} />
+                    <Clock className="text-cyber-accent" size={20} />
                     <div>
-                      <div className="text-sm text-white text-opacity-70">
+                      <div className="text-xs md:text-sm text-white text-opacity-70">
                         TIME LEFT
                       </div>
                       <div
-                        className={`text-3xl font-bold ${
+                        className={`text-xl md:text-3xl font-bold ${
                           remainingTime < 60000
                             ? "text-cyber-danger animate-pulse"
                             : "text-cyber-accent"
@@ -199,7 +199,7 @@ export default function GamePage() {
               </div>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-3 gap-4 md:gap-6">
               <div className="md:col-span-2">
                 <Leaderboard
                   leaderboard={leaderboard}
@@ -232,14 +232,14 @@ export default function GamePage() {
     const leaderboard = getLeaderboard(roomData);
 
     return (
-      <div className="min-h-screen p-4 md:p-8 cyber-grid">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-6xl font-bold text-cyber-accent glow-text mb-4">
+      <div className="viewport-container cyber-grid overflow-y-auto">
+        <div className="max-w-6xl mx-auto px-4 py-4 md:py-8">
+          <div className="text-center mb-4 md:mb-8">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-cyber-accent glow-text mb-3 md:mb-4">
               GAME COMPLETE
             </h1>
-            <p className="text-xl text-white mb-2">Room: {roomCode}</p>
-            <p className="text-white text-opacity-70">Thank you for playing!</p>
+            <p className="text-base md:text-xl text-white mb-2">Room: {roomCode}</p>
+            <p className="text-sm md:text-base text-white text-opacity-70">Thank you for playing!</p>
           </div>
 
           <Leaderboard
@@ -249,18 +249,18 @@ export default function GamePage() {
           />
 
           {isAdmin && (
-            <div className="mt-8 text-center">
+            <div className="mt-4 md:mt-8 text-center">
               <AdminPanel roomData={roomData} />
             </div>
           )}
 
-          <div className="mt-8 text-center">
+          <div className="mt-4 md:mt-8 text-center">
             <button
               onClick={() => {
                 sessionStorage.clear();
                 navigate("/");
               }}
-              className="btn-primary"
+              className="btn-primary text-sm md:text-base"
             >
               BACK TO HOME
             </button>

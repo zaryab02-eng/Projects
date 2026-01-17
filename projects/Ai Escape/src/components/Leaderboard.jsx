@@ -38,16 +38,16 @@ export default function Leaderboard({ leaderboard, isAdmin, isGameFinished }) {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="text-center mb-8">
-        <h2 className="text-4xl font-bold text-cyber-accent glow-text mb-2">
+      <div className="text-center mb-4 md:mb-8">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-cyber-accent glow-text mb-2">
           {isGameFinished ? "FINAL RESULTS" : "LIVE LEADERBOARD"}
         </h2>
-        <p className="text-white text-opacity-70">
+        <p className="text-sm md:text-base text-white text-opacity-70">
           {isGameFinished ? "Game Complete!" : "Real-time Rankings"}
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3 md:space-y-4">
         {leaderboard.map((player, index) => {
           const rank = index + 1;
           const isTopThree = rank <= 3;
@@ -59,19 +59,19 @@ export default function Leaderboard({ leaderboard, isAdmin, isGameFinished }) {
                 isTopThree ? "animate-pulse-slow" : ""
               }`}
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 {/* Rank and Icon */}
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center justify-center w-16 h-16">
+                <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
+                  <div className="flex items-center justify-center w-10 h-10 md:w-16 md:h-16 flex-shrink-0">
                     {getRankIcon(rank)}
                   </div>
 
-                  <div>
-                    <h3 className="text-2xl font-bold text-white mb-1">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-lg md:text-2xl font-bold text-white mb-1 truncate">
                       {player.name}
                     </h3>
                     <p
-                      className={`font-bold ${
+                      className={`font-bold text-xs md:text-sm ${
                         isTopThree
                           ? "text-cyber-accent"
                           : "text-white text-opacity-50"
@@ -83,14 +83,14 @@ export default function Leaderboard({ leaderboard, isAdmin, isGameFinished }) {
                 </div>
 
                 {/* Stats */}
-                <div className="text-right">
-                  <div className="text-3xl font-bold text-cyber-accent mb-1">
+                <div className="text-right flex-shrink-0">
+                  <div className="text-xl md:text-3xl font-bold text-cyber-accent mb-1">
                     {player.completedLevels}
                   </div>
-                  <div className="text-sm text-white text-opacity-70 mb-2">
-                    Levels Completed
+                  <div className="text-xs md:text-sm text-white text-opacity-70 mb-1 md:mb-2">
+                    Levels
                   </div>
-                  <div className="text-lg text-white">
+                  <div className="text-sm md:text-lg text-white">
                     ⏱️ {formatTime(player.totalTime)}
                   </div>
                 </div>
@@ -98,8 +98,8 @@ export default function Leaderboard({ leaderboard, isAdmin, isGameFinished }) {
 
               {/* Winner Badge */}
               {rank === 1 && isGameFinished && (
-                <div className="mt-4 pt-4 border-t border-yellow-400">
-                  <p className="text-center text-2xl font-bold text-yellow-400 glow-text">
+                <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-yellow-400">
+                  <p className="text-center text-lg md:text-2xl font-bold text-yellow-400 glow-text">
                     🏆 WINNER 🏆
                   </p>
                 </div>
@@ -109,15 +109,15 @@ export default function Leaderboard({ leaderboard, isAdmin, isGameFinished }) {
         })}
 
         {leaderboard.length === 0 && (
-          <div className="card text-center py-12">
-            <p className="text-white text-opacity-50 text-xl">No players yet</p>
+          <div className="card text-center py-8 md:py-12">
+            <p className="text-white text-opacity-50 text-base md:text-xl">No players yet</p>
           </div>
         )}
       </div>
 
       {isAdmin && isGameFinished && (
-        <div className="mt-8 text-center">
-          <p className="text-white text-opacity-70 mb-4">
+        <div className="mt-4 md:mt-8 text-center">
+          <p className="text-white text-opacity-70 mb-4 text-sm md:text-base">
             Results have been finalized
           </p>
         </div>

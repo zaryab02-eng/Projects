@@ -47,26 +47,26 @@ export default function JoinPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 cyber-grid">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-6xl font-bold text-cyber-accent glow-text mb-4">
+    <div className="viewport-container flex items-center justify-center cyber-grid">
+      <div className="w-full max-w-md px-4 py-6 overflow-y-auto">
+        <div className="text-center mb-6 md:mb-8">
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-cyber-accent glow-text mb-3 md:mb-4">
             ESCAPE ROOM
           </h1>
-          <p className="text-xl text-white text-opacity-70">
+          <p className="text-base md:text-xl text-white text-opacity-70">
             Join an existing game
           </p>
         </div>
 
         <div className="card fade-in">
-          <div className="flex items-center gap-3 mb-6">
-            <UserPlus className="text-cyber-accent" size={32} />
-            <h2 className="text-3xl font-bold text-white">JOIN GAME</h2>
+          <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+            <UserPlus className="text-cyber-accent" size={24} />
+            <h2 className="text-xl md:text-3xl font-bold text-white">JOIN GAME</h2>
           </div>
 
-          <form onSubmit={handleJoin} className="space-y-4">
+          <form onSubmit={handleJoin} className="space-y-3 md:space-y-4">
             <div>
-              <label className="block text-white font-bold mb-2">
+              <label className="block text-white font-bold mb-2 text-sm md:text-base">
                 ROOM CODE
               </label>
               <input
@@ -74,7 +74,7 @@ export default function JoinPage() {
                 value={roomCode}
                 onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
                 placeholder="Enter 6-character code"
-                className="input uppercase"
+                className="input uppercase text-lg"
                 maxLength={6}
                 disabled={loading}
                 autoFocus
@@ -82,7 +82,7 @@ export default function JoinPage() {
             </div>
 
             <div>
-              <label className="block text-white font-bold mb-2">
+              <label className="block text-white font-bold mb-2 text-sm md:text-base">
                 YOUR NAME
               </label>
               <input
@@ -90,13 +90,13 @@ export default function JoinPage() {
                 value={playerName}
                 onChange={(e) => setPlayerName(e.target.value)}
                 placeholder="Enter your name"
-                className="input"
+                className="input text-lg"
                 disabled={loading}
               />
             </div>
 
             <div>
-              <label className="block text-white font-bold mb-2">
+              <label className="block text-white font-bold mb-2 text-sm md:text-base">
                 UNIQUE IDENTIFIER
               </label>
               <input
@@ -104,34 +104,34 @@ export default function JoinPage() {
                 value={playerIdentifier}
                 onChange={(e) => setPlayerIdentifier(e.target.value)}
                 placeholder="Roll number / Phone / Email"
-                className="input"
+                className="input text-lg"
                 disabled={loading}
               />
-              <p className="text-white text-opacity-50 text-sm mt-1">
+              <p className="text-white text-opacity-50 text-xs md:text-sm mt-1">
                 This ensures you can only join from one device
               </p>
             </div>
 
             {error && (
-              <div className="bg-cyber-danger bg-opacity-20 p-4 rounded-lg border border-cyber-danger">
-                <p className="text-cyber-danger">{error}</p>
+              <div className="bg-cyber-danger bg-opacity-20 p-3 md:p-4 rounded-lg border border-cyber-danger">
+                <p className="text-cyber-danger text-sm md:text-base">{error}</p>
               </div>
             )}
 
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full flex items-center justify-center gap-2"
+              className="btn-primary w-full flex items-center justify-center gap-2 text-base md:text-lg"
             >
-              <LogIn size={20} />
+              <LogIn size={18} />
               {loading ? "JOINING..." : "JOIN GAME"}
             </button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-cyber-border">
+          <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-cyber-border">
             <button
               onClick={() => navigate("/")}
-              className="btn-secondary w-full"
+              className="btn-secondary w-full text-sm md:text-base"
               disabled={loading}
             >
               ← BACK TO HOME

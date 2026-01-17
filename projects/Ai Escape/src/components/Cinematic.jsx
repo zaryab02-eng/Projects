@@ -65,29 +65,29 @@ export default function Cinematic({ levelNumber, playerName, onComplete }) {
       </video>
 
       {/* Overlay Content */}
-      <div className="relative z-10 text-center">
+      <div className="relative z-10 text-center px-4">
         <div className="animate-pulse-slow">
-          <h1 className="text-6xl md:text-8xl font-bold text-cyber-accent glow-text mb-4">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold text-cyber-accent glow-text mb-3 md:mb-4">
             LEVEL {levelNumber}
           </h1>
-          <h2 className="text-4xl md:text-6xl font-bold text-white mb-8">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 md:mb-8">
             UNLOCKED
           </h2>
-          <p className="text-2xl md:text-4xl text-cyber-accent">{playerName}</p>
+          <p className="text-xl sm:text-2xl md:text-3xl lg:text-4xl text-cyber-accent">{playerName}</p>
         </div>
 
         {canSkip && (
           <button
             onClick={handleSkip}
-            className="mt-12 px-8 py-4 bg-cyber-accent text-black font-bold rounded-lg 
-                     hover:bg-opacity-80 transition-all duration-300 animate-pulse"
+            className="mt-8 md:mt-12 px-6 md:px-8 py-3 md:py-4 bg-cyber-accent text-black font-bold rounded-lg 
+                     hover:bg-opacity-80 active:scale-95 transition-all duration-300 animate-pulse text-sm md:text-base"
           >
             CONTINUE →
           </button>
         )}
 
         {!canSkip && (
-          <p className="mt-12 text-white text-opacity-50">Please wait...</p>
+          <p className="mt-8 md:mt-12 text-white text-opacity-50 text-sm md:text-base">Please wait...</p>
         )}
       </div>
 
