@@ -37,7 +37,7 @@ export default function LobbyWaiting({ roomData, playerId, isAdmin }) {
           <div className="flex items-center gap-2 mb-3 md:mb-4">
             <Users className="text-cyber-accent" size={20} />
             <h3 className="text-lg md:text-2xl font-bold text-white">
-              Players ({players.length}/5)
+              Players ({players.length}/5 max)
             </h3>
           </div>
 
@@ -80,17 +80,14 @@ export default function LobbyWaiting({ roomData, playerId, isAdmin }) {
               </div>
             ))}
 
-            {/* Empty slots */}
-            {[...Array(5 - players.length)].map((_, i) => (
-              <div
-                key={`empty-${i}`}
-                className="bg-cyber-bg bg-opacity-30 p-3 md:p-4 rounded-lg border-2 border-dashed 
-                         border-cyber-border flex items-center gap-2 md:gap-3"
-              >
-                <div className="w-2 h-2 md:w-3 md:h-3 rounded-full bg-gray-700" />
-                <span className="text-xs md:text-sm text-gray-500">Waiting for player...</span>
+            {/* Empty slots - Optional, shows available slots */}
+            {players.length < 5 && (
+              <div className="bg-cyber-bg bg-opacity-20 p-2 md:p-3 rounded-lg border border-dashed border-cyber-border">
+                <p className="text-xs md:text-sm text-white text-opacity-50 text-center">
+                  {5 - players.length} slot{5 - players.length !== 1 ? 's' : ''} available (optional - game can start with current players)
+                </p>
               </div>
-            ))}
+            )}
           </div>
         </div>
 
@@ -114,7 +111,7 @@ export default function LobbyWaiting({ roomData, playerId, isAdmin }) {
         {isAdmin && (
           <div className="bg-cyber-accent bg-opacity-10 p-3 md:p-4 rounded-lg border border-cyber-accent">
             <p className="text-cyber-accent text-center font-bold text-xs md:text-sm">
-              🎮 You are the Admin. Configure game settings to start.
+              🎮 You are the Admin. Configure game settings and start when ready (works with any number of players, up to 5 max).
             </p>
           </div>
         )}

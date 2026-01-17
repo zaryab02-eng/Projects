@@ -44,7 +44,7 @@ export default function AdminPanel({ roomData }) {
       return;
     }
 
-    if (!confirm("Start the game now? All players will begin immediately.")) {
+    if (!confirm(`Start the game now with ${players.length} player${players.length !== 1 ? 's' : ''}? The game will begin immediately.`)) {
       return;
     }
 
@@ -232,7 +232,13 @@ export default function AdminPanel({ roomData }) {
           <p className="text-cyber-warning text-center mt-3 md:mt-4 text-xs md:text-sm">
             {!isConfigSet
               ? "⚠️ Set game configuration first"
-              : "⚠️ Waiting for players to join"}
+              : "⚠️ At least one player must join to start"}
+          </p>
+        )}
+        
+        {canStartGame && roomData.status === "waiting" && (
+          <p className="text-cyber-accent text-center mt-3 md:mt-4 text-xs md:text-sm">
+            ✓ Ready to start! Game can begin with {players.length} player{players.length !== 1 ? 's' : ''} (up to 5 max)
           </p>
         )}
       </div>
