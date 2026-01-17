@@ -17,6 +17,17 @@ export default function Question({
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // 🔊 SOUND EFFECTS FUNCTION
+  const playSound = (soundFile) => {
+    try {
+      const audio = new Audio(soundFile);
+      audio.volume = 0.5; // 50% volume, adjust as needed (0.0 to 1.0)
+      audio.play().catch((err) => console.log("Sound play failed:", err));
+    } catch (err) {
+      console.log("Sound error:", err);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -37,9 +48,15 @@ export default function Question({
       );
 
       if (isCorrect) {
+        // ✅ PLAY CORRECT SOUND
+        playSound("/sounds/correct.mp3");
+
         setAnswer("");
         onCorrectAnswer();
       } else {
+        // ❌ PLAY WRONG SOUND
+        playSound("/sounds/wrong.mp3");
+
         setError("❌ Incorrect answer. Try again!");
         setAnswer("");
       }
@@ -110,7 +127,9 @@ export default function Question({
 
           {error && (
             <div className="bg-black bg-opacity-50 backdrop-blur-sm p-2 md:p-3 rounded-lg border border-cyber-danger">
-              <p className="text-cyber-danger font-bold text-xs md:text-sm drop-shadow-lg">{error}</p>
+              <p className="text-cyber-danger font-bold text-xs md:text-sm drop-shadow-lg">
+                {error}
+              </p>
             </div>
           )}
 

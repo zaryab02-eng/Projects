@@ -73,7 +73,9 @@ export default function Cinematic({ levelNumber, playerName, onComplete }) {
           <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 md:mb-8">
             UNLOCKED
           </h2>
-          <p className="text-xl sm:text-2xl md:text-3xl lg:text-4xl text-cyber-accent">{playerName}</p>
+          <p className="text-xl sm:text-2xl md:text-3xl lg:text-4xl text-cyber-accent">
+            {playerName}
+          </p>
         </div>
 
         {canSkip && (
@@ -87,11 +89,13 @@ export default function Cinematic({ levelNumber, playerName, onComplete }) {
         )}
 
         {!canSkip && (
-          <p className="mt-8 md:mt-12 text-white text-opacity-50 text-sm md:text-base">Please wait...</p>
+          <p className="mt-8 md:mt-12 text-white text-opacity-50 text-sm md:text-base">
+            Please wait...
+          </p>
         )}
       </div>
 
-      {/* Sound effect (optional) */}
+      {/* 🔊 Sound effect - unlock.mp3 plays automatically */}
       <audio autoPlay>
         <source src="/sounds/unlock.mp3" type="audio/mpeg" />
       </audio>
