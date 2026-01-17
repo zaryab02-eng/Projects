@@ -51,8 +51,21 @@ export default function Question({
   };
 
   return (
-    <div className="max-w-4xl mx-auto w-full overflow-x-hidden">
-      <div className="card fade-in p-4 md:p-5">
+    <div className="max-w-4xl mx-auto w-full overflow-x-hidden relative">
+      {/* 🎬 OPTIONAL: Background Video - Delete this section if you don't want it */}
+      {/* To use: Add background.mp4 to /public/videos/ folder */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="fixed inset-0 w-full h-full object-cover opacity-5 -z-10 pointer-events-none"
+      >
+        <source src="/videos/background.mp4" type="video/mp4" />
+      </video>
+      {/* End background video */}
+
+      <div className="card fade-in p-4 md:p-5 relative z-10">
         {/* Level Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3 md:mb-4">
           <div className="flex items-center gap-2">
@@ -85,7 +98,9 @@ export default function Question({
             className="bg-cyber-warning bg-opacity-10 p-2.5 md:p-3 rounded-lg mb-3 md:mb-4 border border-cyber-warning 
                         animate-pulse"
           >
-            <p className="text-cyber-warning text-xs md:text-sm break-words">💡 {question.hint}</p>
+            <p className="text-cyber-warning text-xs md:text-sm break-words">
+              💡 {question.hint}
+            </p>
           </div>
         )}
 
