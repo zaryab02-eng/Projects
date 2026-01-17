@@ -1,1 +1,131 @@
 @import "tailwindcss";
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #0a0a0a;
+  color: #ffffff;
+  font-family: "Courier New", monospace;
+  overflow-x: hidden;
+  /* Disable text selection for anti-cheat */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Disable right-click for anti-cheat */
+body {
+  -webkit-touch-callout: none;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #00ff88;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00dd77;
+}
+
+/* Cyber grid background */
+.cyber-grid {
+  background-image:
+    linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* Glow effect */
+.glow-text {
+  text-shadow:
+    0 0 10px #00ff88,
+    0 0 20px #00ff88,
+    0 0 30px #00ff88;
+}
+
+/* Button styles */
+.btn-primary {
+  @apply bg-cyber-accent text-black font-bold py-3 px-6 rounded-lg 
+         hover:bg-opacity-90 transition-all duration-300 
+         hover:shadow-lg hover:shadow-cyber-accent/50;
+}
+
+.btn-danger {
+  @apply bg-cyber-danger text-white font-bold py-3 px-6 rounded-lg 
+         hover:bg-opacity-90 transition-all duration-300 
+         hover:shadow-lg hover:shadow-cyber-danger/50;
+}
+
+.btn-secondary {
+  @apply bg-cyber-surface text-cyber-accent font-bold py-3 px-6 rounded-lg 
+         border-2 border-cyber-accent hover:bg-cyber-accent hover:text-black 
+         transition-all duration-300;
+}
+
+/* Card styles */
+.card {
+  @apply bg-cyber-surface border border-cyber-border rounded-lg p-6 
+         shadow-xl backdrop-blur-sm;
+}
+
+/* Input styles */
+.input {
+  @apply w-full bg-cyber-bg border-2 border-cyber-border 
+         text-white px-4 py-3 rounded-lg focus:border-cyber-accent 
+         focus:outline-none transition-all duration-300;
+}
+
+/* Animation keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 5px #00ff88;
+  }
+  50% {
+    box-shadow:
+      0 0 20px #00ff88,
+      0 0 30px #00ff88;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.slide-in {
+  animation: slideIn 0.5s ease-out;
+}

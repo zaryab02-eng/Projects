@@ -1,0 +1,18 @@
+{
+  "name": "Escape Room - Multiplayer",
+  "short_name": "EscapeRoom",
+  "description": "Real-time multiplayer escape room game with AI-powered puzzles",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
