@@ -148,19 +148,6 @@ export default function Cinematic({ levelNumber, playerName, totalLevels, isSolo
             )}
           </>
         )}
-
-        {isFinalLevel && isSolo && (
-          <button
-            onClick={() => {
-              sessionStorage.clear();
-              navigate("/");
-            }}
-            className="mt-8 md:mt-12 px-6 md:px-8 py-3 md:py-4 bg-cyber-accent text-black font-bold rounded-lg 
-                     hover:bg-opacity-80 active:scale-95 transition-all duration-300 animate-pulse text-sm md:text-base"
-          >
-            GO BACK TO HOME
-          </button>
-        )}
       </div>
 
       {/* 🔊 Sound effect - different sound for final level */}
