@@ -14,7 +14,7 @@ import {
 export default function AdminPanel({ roomData, hidePlayerManagement = false }) {
   // 🔧 CHANGE DEFAULT GAME SETTINGS HERE
   const [difficulty, setDifficulty] = useState("Medium");
-  const [duration, setDuration] = useState(30); // in minutes
+  const [duration, setDuration] = useState(10); // in minutes
   const [totalLevels, setTotalLevels] = useState(5);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

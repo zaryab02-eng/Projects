@@ -11,7 +11,7 @@ export default function SoloGamePage() {
   const navigate = useNavigate();
   const [playerName, setPlayerName] = useState("");
   const [difficulty, setDifficulty] = useState("Medium");
-  const [duration, setDuration] = useState(30);
+  const [duration, setDuration] = useState(10);
   const [totalLevels, setTotalLevels] = useState(5);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
