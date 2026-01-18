@@ -65,6 +65,19 @@ export async function joinGameRoom(roomCode, playerIdentifier, playerName) {
   const players = roomData.players || {};
   for (const playerId in players) {
     if (players[playerId].identifier === playerIdentifier) {
+      // Ensure name is updated/stored on reconnection
+      const existingPlayerRef = ref(database, `rooms/${roomCode}/players/${playerId}`);
+      await update(existingPlayerRef, { name: playerName });
+      
+      // Store player in global players collection for tracking
+      const globalPlayerRef = ref(database, `players/${playerIdentifier}`);
+      await set(globalPlayerRef, {
+        identifier: playerIdentifier,
+        name: playerName,
+        lastPlayed: Date.now(),
+        lastRoom: roomCode,
+      });
+      
       return playerId; // Return existing player ID for reconnection
     }
   }
@@ -90,6 +103,15 @@ export async function joinGameRoom(roomCode, playerIdentifier, playerName) {
     disqualified: false,
     warnings: 0,
     joinedAt: Date.now(),
+  });
+
+  // Store player in global players collection for tracking across all games
+  const globalPlayerRef = ref(database, `players/${playerIdentifier}`);
+  await set(globalPlayerRef, {
+    identifier: playerIdentifier,
+    name: playerName,
+    lastPlayed: Date.now(),
+    lastRoom: roomCode,
   });
 
   return playerId;
