@@ -9,8 +9,7 @@ export function useAntiCheat(roomCode, playerId, isGameActive) {
   const tabSwitchCount = useRef(0);
   const hasWarned = useRef(false);
   const visibilityTimeoutRef = useRef(null);
-  const lastVisibilityChangeRef = useRef(Date.now());
-  const isProcessingSwitchRef = useRef(false);
+  const lastSwitchProcessedRef = useRef(Date.now());
 
   useEffect(() => {
     if (!isGameActive || !roomCode || !playerId) return;
@@ -35,19 +34,14 @@ export function useAntiCheat(roomCode, playerId, isGameActive) {
       }
     };
 
-    // Core function to handle tab switch detection
+    // Core function to handle tab switch detection - STRICT MODE
     const processTabSwitch = async () => {
-      // Prevent duplicate processing
-      if (isProcessingSwitchRef.current) {
-        return;
-      }
-
       const now = Date.now();
-      const timeSinceLastChange = now - lastVisibilityChangeRef.current;
+      const timeSinceLastProcessed = now - lastSwitchProcessedRef.current;
       
-      // Only ignore very rapid changes (< 100ms) which are likely browser/video initialization flickers
-      // This allows legitimate tab switches to be detected immediately
-      if (timeSinceLastChange < 100) {
+      // Only ignore extremely rapid changes (< 20ms) - these are likely browser internal events
+      // This ensures the first legitimate tab switch is ALWAYS detected
+      if (timeSinceLastProcessed < 20) {
         return;
       }
 
@@ -57,17 +51,15 @@ export function useAntiCheat(roomCode, playerId, isGameActive) {
       }
 
       if (document.hidden) {
-        isProcessingSwitchRef.current = true;
-        
-        // Very short delay (50ms) to verify this is a real tab switch
-        // This filters out brief flickers while still being responsive to real switches
+        // Minimal delay (20ms) - just enough to verify it's still hidden
+        // This makes detection immediate and sensitive
         visibilityTimeoutRef.current = setTimeout(async () => {
-          // Double-check that the page is still hidden after the delay
+          // Double-check that the page is still hidden
           if (document.hidden) {
             tabSwitchCount.current += 1;
-            lastVisibilityChangeRef.current = Date.now();
+            lastSwitchProcessedRef.current = Date.now();
 
-            // Warn after first tab switch
+            // Warn after first tab switch - ALWAYS
             if (tabSwitchCount.current === 1 && !hasWarned.current) {
               hasWarned.current = true;
               alert(
@@ -94,16 +86,10 @@ export function useAntiCheat(roomCode, playerId, isGameActive) {
               }
             }
           }
-          
-          // Reset processing flag after a short delay to allow new detections
-          setTimeout(() => {
-            isProcessingSwitchRef.current = false;
-          }, 200);
-        }, 50); // 50ms delay - very short to maintain responsiveness
+        }, 20); // 20ms delay - minimal to maintain maximum sensitivity
       } else {
-        // Page became visible - update timestamp and reset processing flag
-        lastVisibilityChangeRef.current = now;
-        isProcessingSwitchRef.current = false;
+        // Page became visible - update timestamp
+        lastSwitchProcessedRef.current = now;
       }
     };
 
@@ -131,19 +117,27 @@ export function useAntiCheat(roomCode, playerId, isGameActive) {
     };
 
     // Detect window blur (especially important for mobile devices)
-    // On mobile, blur event can fire before visibilitychange
+    // On mobile, blur event can fire before visibilitychange or when app is minimized
     const handleBlur = () => {
-      // Trigger the same processing function
-      // The function itself will check if document is hidden
+      // Immediately process if document is hidden or about to be hidden
+      // Don't wait - be as sensitive as possible
+      if (document.hidden || !document.hasFocus()) {
+        processTabSwitch();
+      }
+    };
+
+    // Also detect pagehide event (mobile browsers when app is minimized)
+    const handlePageHide = () => {
       processTabSwitch();
     };
 
-    // Add event listeners
+    // Add event listeners - multiple events for maximum detection
     document.addEventListener("contextmenu", handleContextMenu);
     document.addEventListener("keydown", handleKeyDown);
     document.addEventListener("visibilitychange", handleVisibilityChange);
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     window.addEventListener("blur", handleBlur);
+    window.addEventListener("pagehide", handlePageHide);
 
     // Request fullscreen when game starts
     requestFullscreen();
@@ -155,6 +149,7 @@ export function useAntiCheat(roomCode, playerId, isGameActive) {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
       window.removeEventListener("blur", handleBlur);
+      window.removeEventListener("pagehide", handlePageHide);
       if (visibilityTimeoutRef.current) {
         clearTimeout(visibilityTimeoutRef.current);
       }
