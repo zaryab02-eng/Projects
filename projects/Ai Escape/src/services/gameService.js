@@ -299,6 +299,7 @@ export function getLeaderboard(roomData) {
     .map((p) => ({
       id: p.id,
       name: p.name,
+      identifier: p.identifier || '',
       completedLevels: p.completedLevels || 0,
       totalTime: p.totalTime || 0,
     }))
@@ -314,7 +315,7 @@ export function getLeaderboard(roomData) {
 }
 
 /**
- * Export results to CSV format
+ * Export results to CSV format (deprecated - use exportResultsPDF)
  */
 export function exportResultsCSV(roomData) {
   const leaderboard = getLeaderboard(roomData);
@@ -328,6 +329,107 @@ export function exportResultsCSV(roomData) {
   });
 
   return csv;
+}
+
+/**
+ * Export results to PDF format
+ */
+export async function exportResultsPDF(roomData) {
+  try {
+    // Dynamically import jsPDF to avoid bundling issues
+    const module = await import('jspdf');
+    const jsPDF = module.default || module.jsPDF;
+    const leaderboard = getLeaderboard(roomData);
+    const doc = new jsPDF();
+
+    // PDF Title
+    doc.setFontSize(20);
+    doc.setTextColor(0, 150, 200); // Cyan color
+    doc.text('ESCAPE ROOM - GAME RESULTS', 105, 20, { align: 'center' });
+
+    // Room Code
+    doc.setFontSize(12);
+    doc.setTextColor(50, 50, 50); // Dark gray
+    doc.text(`Room Code: ${roomData.roomCode}`, 105, 30, { align: 'center' });
+
+    // Game Info
+    let yPos = 45;
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100); // Gray
+    
+    if (roomData.difficulty) {
+      doc.text(`Difficulty: ${roomData.difficulty}`, 20, yPos);
+      yPos += 7;
+    }
+    if (roomData.totalLevels) {
+      doc.text(`Total Levels: ${roomData.totalLevels}`, 20, yPos);
+      yPos += 7;
+    }
+    if (roomData.duration) {
+      doc.text(`Duration: ${roomData.duration} minutes`, 20, yPos);
+      yPos += 7;
+    }
+    if (roomData.players) {
+      doc.text(`Total Players: ${Object.keys(roomData.players).length}`, 20, yPos);
+      yPos += 10;
+    }
+
+    // Table Header
+    doc.setFillColor(0, 100, 200);
+    doc.rect(20, yPos, 170, 8, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'bold');
+    doc.text('Rank', 22, yPos + 6);
+    doc.text('Name', 35, yPos + 6);
+    doc.text('Identifier', 85, yPos + 6);
+    doc.text('Lvls', 125, yPos + 6);
+    doc.text('Time', 150, yPos + 6);
+
+    yPos += 8;
+
+    // Table Rows
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(10);
+    
+    leaderboard.forEach((player, index) => {
+      const rank = index + 1;
+      const timeInSeconds = Math.floor(player.totalTime / 1000);
+      const minutes = Math.floor(timeInSeconds / 60);
+      const seconds = timeInSeconds % 60;
+      const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+      // Alternate row colors
+      if (index % 2 === 0) {
+        doc.setFillColor(240, 240, 240); // Light gray background
+        doc.rect(20, yPos, 170, 7, 'F');
+      }
+
+      doc.setTextColor(0, 0, 0); // Black text
+      doc.setFontSize(9);
+      doc.text(rank.toString(), 22, yPos + 5);
+      // Truncate name if too long
+      const displayName = player.name.length > 12 ? player.name.substring(0, 10) + '...' : player.name;
+      doc.text(displayName, 35, yPos + 5);
+      doc.text(player.identifier || 'N/A', 85, yPos + 5);
+      doc.text(player.completedLevels.toString(), 125, yPos + 5);
+      doc.text(timeString, 150, yPos + 5);
+
+      yPos += 7;
+
+      // Add new page if needed
+      if (yPos > 280) {
+        doc.addPage();
+        yPos = 20;
+      }
+    });
+
+    // Save PDF
+    doc.save(`escape-room-results-${roomData.roomCode}.pdf`);
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    alert('Error generating PDF: ' + (error.message || 'Unknown error. Please check the browser console.'));
+  }
 }
 
 /**

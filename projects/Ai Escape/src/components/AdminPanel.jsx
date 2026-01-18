@@ -5,7 +5,7 @@ import {
   startGame,
   endGame,
   disqualifyPlayer,
-  exportResultsCSV,
+  exportResultsPDF,
 } from "../services/gameService";
 
 /**
@@ -93,15 +93,13 @@ export default function AdminPanel({ roomData, hidePlayerManagement = false }) {
     }
   };
 
-  const handleExportResults = () => {
-    const csv = exportResultsCSV(roomData);
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `escape-room-results-${roomData.roomCode}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+  const handleExportResults = async () => {
+    try {
+      await exportResultsPDF(roomData);
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      alert('Error generating PDF: ' + (error.message || 'Please check the browser console for details.'));
+    }
   };
 
   return (
@@ -161,7 +159,7 @@ export default function AdminPanel({ roomData, hidePlayerManagement = false }) {
               <input
                 type="number"
                 min="1"
-                max="20"
+                max="10"
                 value={totalLevels}
                 onChange={(e) => setTotalLevels(parseInt(e.target.value))}
                 className="input text-lg"
@@ -255,13 +253,13 @@ export default function AdminPanel({ roomData, hidePlayerManagement = false }) {
             className="btn-primary w-full flex items-center justify-center gap-2 text-sm md:text-base"
           >
             <Download size={18} />
-            EXPORT RESULTS (CSV)
+            EXPORT RESULTS (PDF)
           </button>
         </div>
       )}
 
-      {/* Player Management - Hidden when hidePlayerManagement is true */}
-      {!hidePlayerManagement && players.length > 0 && (
+      {/* Player Management - Only show when game is playing and hidePlayerManagement is false */}
+      {!hidePlayerManagement && roomData.status === "playing" && players.length > 0 && (
         <div className="card w-full max-w-full overflow-hidden">
           <h3 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4">
             PLAYER MANAGEMENT

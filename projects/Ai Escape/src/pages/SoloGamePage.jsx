@@ -145,7 +145,7 @@ export default function SoloGamePage() {
               <input
                 type="number"
                 min="1"
-                max="20"
+                max="10"
                 value={totalLevels}
                 onChange={(e) => setTotalLevels(parseInt(e.target.value))}
                 className="input text-sm md:text-base"

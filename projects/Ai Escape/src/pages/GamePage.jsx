@@ -102,7 +102,8 @@ export default function GamePage() {
     );
   }
 
-  if (error || !roomData) {
+  // Only show error if loading is complete AND there's an actual error (not just initial null state)
+  if (!loading && error && !roomData) {
     return (
       <div className="viewport-container flex items-center justify-center cyber-grid">
         <div className="card max-w-2xl mx-4">
@@ -114,11 +115,31 @@ export default function GamePage() {
               {error || "Room not found"}
             </p>
             <button
-              onClick={() => navigate("/")}
+              onClick={() => {
+                sessionStorage.clear();
+                navigate("/");
+              }}
               className="btn-primary text-sm md:text-base"
             >
               BACK TO HOME
             </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If still loading or no roomData yet, keep loading screen
+  if (!roomData) {
+    return (
+      <div className="viewport-container flex items-center justify-center cyber-grid">
+        <div className="card">
+          <div className="text-center">
+            <div
+              className="animate-spin w-12 h-12 md:w-16 md:h-16 border-4 border-cyber-accent border-t-transparent 
+                          rounded-full mx-auto mb-4"
+            />
+            <p className="text-base md:text-xl text-white">Loading game...</p>
           </div>
         </div>
       </div>
@@ -153,7 +174,7 @@ export default function GamePage() {
 
             {/* Admin Panel or Game Info */}
             {isAdmin && (
-              <div className="flex flex-col min-h-0 flex-1 md:flex-none md:overflow-y-auto">
+              <div className="flex flex-col min-h-0 flex-1 md:flex-none overflow-y-auto">
                 <AdminPanel roomData={roomData} />
               </div>
             )}
@@ -310,70 +331,68 @@ export default function GamePage() {
               </div>
             </div>
 
-            {/* Side Panel - Stats and Admin Actions - Scrollable container */}
-            <div className="lg:col-span-1 flex flex-col min-h-0 overflow-hidden">
+            {/* Side Panel - Stats and Admin Actions */}
+            <div className="lg:col-span-1 flex flex-col min-h-0 gap-3 md:gap-4">
+              {/* Game Stats Card - Scrollable if needed */}
               <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
-                <div className="flex flex-col gap-3 md:gap-4 pb-2">
-                  {/* Game Stats Card */}
-                  <div className="card p-3 md:p-4 lg:p-5 flex-shrink-0">
-                    <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-white mb-3 md:mb-4">
-                      GAME STATS
-                    </h3>
-                    <div className="space-y-2 md:space-y-3">
+                <div className="card p-3 md:p-4 lg:p-5">
+                  <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-white mb-3 md:mb-4">
+                    GAME STATS
+                  </h3>
+                  <div className="space-y-2 md:space-y-3">
+                    <div className="bg-cyber-bg p-2 md:p-3 rounded-lg">
+                      <p className="text-white text-opacity-70 text-xs md:text-sm mb-0.5 md:mb-1">
+                        Total Players
+                      </p>
+                      <p className="text-cyber-accent font-bold text-base md:text-lg lg:text-xl">
+                        {roomData.players
+                          ? Object.keys(roomData.players).length
+                          : 0}
+                      </p>
+                    </div>
+                    {roomData.difficulty && (
                       <div className="bg-cyber-bg p-2 md:p-3 rounded-lg">
                         <p className="text-white text-opacity-70 text-xs md:text-sm mb-0.5 md:mb-1">
-                          Total Players
+                          Difficulty
                         </p>
                         <p className="text-cyber-accent font-bold text-base md:text-lg lg:text-xl">
-                          {roomData.players
-                            ? Object.keys(roomData.players).length
-                            : 0}
+                          {roomData.difficulty}
                         </p>
                       </div>
-                      {roomData.difficulty && (
-                        <div className="bg-cyber-bg p-2 md:p-3 rounded-lg">
-                          <p className="text-white text-opacity-70 text-xs md:text-sm mb-0.5 md:mb-1">
-                            Difficulty
-                          </p>
-                          <p className="text-cyber-accent font-bold text-base md:text-lg lg:text-xl">
-                            {roomData.difficulty}
-                          </p>
-                        </div>
-                      )}
-                      {roomData.totalLevels && (
-                        <div className="bg-cyber-bg p-2 md:p-3 rounded-lg">
-                          <p className="text-white text-opacity-70 text-xs md:text-sm mb-0.5 md:mb-1">
-                            Total Levels
-                          </p>
-                          <p className="text-cyber-accent font-bold text-base md:text-lg lg:text-xl">
-                            {roomData.totalLevels}
-                          </p>
-                        </div>
-                      )}
-                      {roomData.duration && (
-                        <div className="bg-cyber-bg p-2 md:p-3 rounded-lg">
-                          <p className="text-white text-opacity-70 text-xs md:text-sm mb-0.5 md:mb-1">
-                            Duration
-                          </p>
-                          <p className="text-cyber-accent font-bold text-base md:text-lg lg:text-xl">
-                            {roomData.duration} minutes
-                          </p>
-                        </div>
-                      )}
-                    </div>
+                    )}
+                    {roomData.totalLevels && (
+                      <div className="bg-cyber-bg p-2 md:p-3 rounded-lg">
+                        <p className="text-white text-opacity-70 text-xs md:text-sm mb-0.5 md:mb-1">
+                          Total Levels
+                        </p>
+                        <p className="text-cyber-accent font-bold text-base md:text-lg lg:text-xl">
+                          {roomData.totalLevels}
+                        </p>
+                      </div>
+                    )}
+                    {roomData.duration && (
+                      <div className="bg-cyber-bg p-2 md:p-3 rounded-lg">
+                        <p className="text-white text-opacity-70 text-xs md:text-sm mb-0.5 md:mb-1">
+                          Duration
+                        </p>
+                        <p className="text-cyber-accent font-bold text-base md:text-lg lg:text-xl">
+                          {roomData.duration} minutes
+                        </p>
+                      </div>
+                    )}
                   </div>
-
-                  {/* Admin Panel - Only export button, no player management */}
-                  {isAdmin && (
-                    <div className="flex-shrink-0">
-                      <AdminPanel
-                        roomData={roomData}
-                        hidePlayerManagement={true}
-                      />
-                    </div>
-                  )}
                 </div>
               </div>
+
+              {/* Admin Actions - Fixed, always visible */}
+              {isAdmin && (
+                <div className="flex-shrink-0">
+                  <AdminPanel
+                    roomData={roomData}
+                    hidePlayerManagement={true}
+                  />
+                </div>
+              )}
             </div>
           </div>
 

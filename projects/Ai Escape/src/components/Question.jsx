@@ -52,7 +52,8 @@ export default function Question({
         playSound("/sounds/correct.mp3");
 
         setAnswer("");
-        onCorrectAnswer();
+        // Pass the level number that was just completed
+        onCorrectAnswer(levelNumber);
       } else {
         // ❌ PLAY WRONG SOUND
         playSound("/sounds/wrong.mp3");

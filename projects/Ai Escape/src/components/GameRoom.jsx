@@ -33,19 +33,8 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
     }
   }, [remainingTime, isAdmin, roomData?.status, roomCode]);
 
-  // Auto-end solo game when all levels are completed
-  useEffect(() => {
-    if (isSolo && roomData?.status === "playing") {
-      const player = roomData?.players?.[playerId];
-      if (player && player.completedLevels >= roomData?.totalLevels) {
-        // Small delay to show completion message, then auto-end
-        const timer = setTimeout(() => {
-          endGame(roomCode);
-        }, 2000);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [isSolo, roomData?.status, roomData?.players, roomData?.totalLevels, playerId, roomCode]);
+  // Note: Game ending is now handled after the final cinematic video plays
+  // This allows the final unlock video to play before showing the finished screen
 
   // Check if player is disqualified
   if (player?.disqualified) {
@@ -73,22 +62,70 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
   }
 
   // Show cinematic after level completion
-  if (showCinematic && completedLevel) {
+  const totalLevels = roomData?.totalLevels || 0;
+  const isFinalLevel = showCinematic && completedLevel && completedLevel >= totalLevels;
+  
+  // Auto-hide cinematic when final level finishes and status changes to "finished"
+  useEffect(() => {
+    if (isFinalLevel && roomData?.status === "finished") {
+      // Status changed to finished, hide cinematic immediately
+      setShowCinematic(false);
+      setCompletedLevel(null);
+    }
+  }, [isFinalLevel, roomData?.status]);
+
+  // Show cinematic for non-final levels or final level before status changes to "finished"
+  // For final level, automatically transition to results after video ends
+  if (showCinematic && completedLevel && !(isFinalLevel && roomData?.status === "finished")) {
     return (
       <Cinematic
         levelNumber={completedLevel}
         playerName={playerName}
+        totalLevels={totalLevels}
+        isSolo={isSolo}
         onComplete={() => {
-          setShowCinematic(false);
-          setCompletedLevel(null);
+          const totalLevelsValue = roomData?.totalLevels || 0;
+          const isFinal = completedLevel >= totalLevelsValue;
+          
+          // If this is the final level, end the game and auto-hide after video
+          if (isFinal && roomData?.status === "playing") {
+            // End the game - this will update status to "finished"
+            endGame(roomCode)
+              .then(() => {
+                // Status updated, hide cinematic to show results
+                setTimeout(() => {
+                  setShowCinematic(false);
+                  setCompletedLevel(null);
+                }, 100);
+              })
+              .catch((err) => {
+                console.error("Error ending game:", err);
+                // Even if there's an error, hide cinematic after delay
+                setTimeout(() => {
+                  setShowCinematic(false);
+                  setCompletedLevel(null);
+                }, 1500);
+              });
+            
+            // Fallback: Force hide cinematic after reasonable delay
+            // This ensures automatic transition even if status update is delayed
+            setTimeout(() => {
+              setShowCinematic(false);
+              setCompletedLevel(null);
+            }, 1500); // 1.5 seconds should be enough for Firebase update + margin
+          } else {
+            // For non-final levels, hide immediately
+            setShowCinematic(false);
+            setCompletedLevel(null);
+          }
         }}
       />
     );
   }
 
-  const handleCorrectAnswer = () => {
-    const levelJustCompleted = player.currentLevel;
-    setCompletedLevel(levelJustCompleted);
+  const handleCorrectAnswer = (completedLevelNumber) => {
+    // The level number passed from Question is the level that was just completed
+    setCompletedLevel(completedLevelNumber);
     setShowCinematic(true);
   };
 

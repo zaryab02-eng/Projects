@@ -22,6 +22,12 @@ export default function JoinPage() {
       return;
     }
 
+    // Validate unique identifier is exactly 10 digits
+    if (!/^\d{10}$/.test(playerIdentifier.trim())) {
+      setError("Unique identifier must be exactly 10 digits");
+      return;
+    }
+
     setLoading(true);
     setError("");
 
@@ -102,13 +108,21 @@ export default function JoinPage() {
               <input
                 type="text"
                 value={playerIdentifier}
-                onChange={(e) => setPlayerIdentifier(e.target.value)}
-                placeholder="Roll number / Phone / Email"
+                onChange={(e) => {
+                  // Only allow numbers
+                  const value = e.target.value.replace(/\D/g, '');
+                  // Limit to 10 digits
+                  if (value.length <= 10) {
+                    setPlayerIdentifier(value);
+                  }
+                }}
+                placeholder="Enter 10-digit number"
                 className="input text-sm md:text-base"
                 disabled={loading}
+                maxLength={10}
               />
               <p className="text-white text-opacity-50 text-xs mt-0.5">
-                Ensures single device access
+                Enter 10-digit number only
               </p>
             </div>
 
