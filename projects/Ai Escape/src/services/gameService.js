@@ -9,7 +9,7 @@ import {
   push,
   remove,
 } from "firebase/database";
-import { generateAllQuestions } from "./gemini";
+import { generateAllQuestions, checkAnswer } from "./gemini";
 
 /**
  * Generate a unique 6-character room code
@@ -190,9 +190,13 @@ export async function submitAnswer(roomCode, playerId, levelNumber, answer) {
     throw new Error("Invalid level");
   }
 
-  // Case-insensitive comparison
-  const isCorrect =
-    answer.toLowerCase().trim() === currentQuestion.answer.toLowerCase().trim();
+  // Ensure answer is a string
+  if (typeof answer !== "string") {
+    answer = String(answer || "");
+  }
+
+  // Case-insensitive comparison (handles array of acceptable answers)
+  const isCorrect = checkAnswer(answer, currentQuestion.answer);
 
   if (isCorrect) {
     const playerRef = ref(database, `rooms/${roomCode}/players/${playerId}`);
