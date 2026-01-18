@@ -11,7 +11,7 @@ import {
 /**
  * Admin Panel - game configuration and controls
  */
-export default function AdminPanel({ roomData }) {
+export default function AdminPanel({ roomData, hidePlayerManagement = false }) {
   // 🔧 CHANGE DEFAULT GAME SETTINGS HERE
   const [difficulty, setDifficulty] = useState("Medium");
   const [duration, setDuration] = useState(30); // in minutes
@@ -44,7 +44,11 @@ export default function AdminPanel({ roomData }) {
       return;
     }
 
-    if (!confirm(`Start the game now with ${players.length} player${players.length !== 1 ? 's' : ''}? The game will begin immediately.`)) {
+    if (
+      !confirm(
+        `Start the game now with ${players.length} player${players.length !== 1 ? "s" : ""}? The game will begin immediately.`,
+      )
+    ) {
       return;
     }
 
@@ -101,7 +105,7 @@ export default function AdminPanel({ roomData }) {
   };
 
   return (
-    <div className="space-y-3 md:space-y-4 h-full overflow-y-auto">
+    <div className="space-y-3 md:space-y-4 w-full">
       {/* Game Configuration */}
       {roomData.status === "waiting" && (
         <div className="card">
@@ -170,7 +174,9 @@ export default function AdminPanel({ roomData }) {
 
             {error && (
               <div className="bg-cyber-danger bg-opacity-20 p-3 md:p-4 rounded-lg border border-cyber-danger">
-                <p className="text-cyber-danger text-sm md:text-base">{error}</p>
+                <p className="text-cyber-danger text-sm md:text-base">
+                  {error}
+                </p>
               </div>
             )}
 
@@ -192,7 +198,9 @@ export default function AdminPanel({ roomData }) {
       {/* Game Controls */}
       {roomData.status !== "finished" && (
         <div className="card">
-          <h3 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4">GAME CONTROLS</h3>
+          <h3 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4">
+            GAME CONTROLS
+          </h3>
 
           <div className="space-y-2 md:space-y-3">
             {roomData.status === "waiting" && (
@@ -226,10 +234,11 @@ export default function AdminPanel({ roomData }) {
                 : "⚠️ At least one player must join to start"}
             </p>
           )}
-          
+
           {canStartGame && roomData.status === "waiting" && (
             <p className="text-cyber-accent text-center mt-3 md:mt-4 text-xs md:text-sm">
-              ✓ Ready to start! Game can begin with {players.length} player{players.length !== 1 ? 's' : ''} (up to 5 max)
+              ✓ Ready to start! Game can begin with {players.length} player
+              {players.length !== 1 ? "s" : ""} (up to 5 max)
             </p>
           )}
         </div>
@@ -238,6 +247,9 @@ export default function AdminPanel({ roomData }) {
       {/* Export Results - Only shown on finished page */}
       {roomData.status === "finished" && (
         <div className="card">
+          <h3 className="text-lg md:text-xl font-bold text-white mb-3">
+            ADMIN ACTIONS
+          </h3>
           <button
             onClick={handleExportResults}
             className="btn-primary w-full flex items-center justify-center gap-2 text-sm md:text-base"
@@ -248,21 +260,23 @@ export default function AdminPanel({ roomData }) {
         </div>
       )}
 
-      {/* Player Management */}
-      {players.length > 0 && (
-        <div className="card">
+      {/* Player Management - Hidden when hidePlayerManagement is true */}
+      {!hidePlayerManagement && players.length > 0 && (
+        <div className="card w-full max-w-full overflow-hidden">
           <h3 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4">
             PLAYER MANAGEMENT
           </h3>
 
-          <div className="space-y-2">
+          <div className="space-y-2 max-w-full overflow-hidden">
             {players.map((player) => (
               <div
                 key={player.id}
-                className="bg-cyber-bg p-2 md:p-3 rounded-lg flex items-center justify-between gap-2"
+                className="bg-cyber-bg p-2 md:p-3 rounded-lg flex items-center justify-between gap-2 max-w-full overflow-hidden"
               >
-                <div className="min-w-0 flex-1">
-                  <span className="text-white font-bold text-sm md:text-base truncate block">{player.name}</span>
+                <div className="min-w-0 flex-1 overflow-hidden">
+                  <span className="text-white font-bold text-sm md:text-base truncate block">
+                    {player.name}
+                  </span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {player.disqualified && (
                       <span className="text-cyber-danger text-xs md:text-sm">

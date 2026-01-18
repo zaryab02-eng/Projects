@@ -70,11 +70,16 @@ export default function GamePage() {
       <div className="viewport-container flex items-center justify-center cyber-grid">
         <div className="card max-w-2xl mx-4">
           <div className="text-center">
-            <h2 className="text-2xl md:text-4xl font-bold text-cyber-danger mb-4">ERROR</h2>
+            <h2 className="text-2xl md:text-4xl font-bold text-cyber-danger mb-4">
+              ERROR
+            </h2>
             <p className="text-base md:text-xl text-white mb-6">
               {error || "Room not found"}
             </p>
-            <button onClick={() => navigate("/")} className="btn-primary text-sm md:text-base">
+            <button
+              onClick={() => navigate("/")}
+              className="btn-primary text-sm md:text-base"
+            >
               BACK TO HOME
             </button>
           </div>
@@ -179,7 +184,9 @@ export default function GamePage() {
                   <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-cyber-accent glow-text">
                     ADMIN DASHBOARD
                   </h1>
-                  <p className="text-xs md:text-sm text-white text-opacity-70">Room: {roomCode}</p>
+                  <p className="text-xs md:text-sm text-white text-opacity-70">
+                    Room: {roomCode}
+                  </p>
                 </div>
 
                 <div className="bg-cyber-surface border-2 border-cyber-accent rounded-lg p-2 md:p-3 flex-shrink-0">
@@ -236,97 +243,111 @@ export default function GamePage() {
   // Game finished
   if (roomData.status === "finished") {
     const leaderboard = getLeaderboard(roomData);
-    const isSolo = sessionStorage.getItem("isSolo") === "true";
 
     return (
-      <div className="viewport-container cyber-grid flex flex-col overflow-x-hidden">
-        <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-3 md:px-4 py-3 md:py-4 min-h-0 max-w-full">
+      <div className="viewport-container cyber-grid flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-3 md:px-4 py-3 md:py-4 lg:py-6 min-h-0 overflow-hidden">
           {/* Header - Fixed height */}
-          <div className="text-center mb-2 md:mb-3 flex-shrink-0">
+          <div className="text-center mb-3 md:mb-4 lg:mb-6 flex-shrink-0">
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-cyber-accent glow-text mb-1 md:mb-2">
               GAME COMPLETE
             </h1>
-            <p className="text-xs md:text-sm text-white mb-0.5">Room: {roomCode}</p>
-            <p className="text-xs text-white text-opacity-70">Thank you for playing!</p>
+            <p className="text-xs md:text-sm text-white mb-0.5 md:mb-1">
+              Room: {roomCode}
+            </p>
+            <p className="text-xs md:text-sm text-white text-opacity-70">
+              Thank you for playing!
+            </p>
           </div>
 
-          {/* Main Content Grid - Responsive layout */}
-          <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-2 md:gap-3 mb-2 md:mb-3 overflow-hidden max-w-full">
-            {/* Leaderboard - Takes 2 columns on desktop, full width on mobile */}
-            <div className="lg:col-span-2 flex flex-col min-h-0 overflow-y-auto overflow-x-hidden">
-              <Leaderboard
-                leaderboard={leaderboard}
-                isAdmin={isAdmin}
-                isGameFinished={true}
-              />
+          {/* Main Content Grid - Improved desktop layout with proper overflow */}
+          <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-2 md:gap-3 lg:gap-4 mb-3 md:mb-4 overflow-hidden">
+            {/* Leaderboard - Takes 2/3 of desktop space */}
+            <div className="lg:col-span-2 flex flex-col min-h-0 overflow-hidden">
+              <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+                <Leaderboard
+                  leaderboard={leaderboard}
+                  isAdmin={isAdmin}
+                  isGameFinished={true}
+                />
+              </div>
             </div>
 
-            {/* Side Panel - Stats and Admin Panel */}
-            <div className="flex flex-col gap-2 md:gap-3 min-h-0 overflow-y-auto overflow-x-hidden">
-              {/* Game Stats Card */}
-              <div className="card flex-shrink-0 p-3 md:p-4">
-                <h3 className="text-base md:text-lg font-bold text-white mb-2 md:mb-3">
-                  GAME STATS
-                </h3>
-                <div className="space-y-1.5 md:space-y-2">
-                  <div className="bg-cyber-bg p-2 rounded-lg">
-                    <p className="text-white text-opacity-70 text-xs mb-0.5">
-                      Total Players
-                    </p>
-                    <p className="text-cyber-accent font-bold text-sm md:text-base">
-                      {roomData.players ? Object.keys(roomData.players).length : 0}
-                    </p>
+            {/* Side Panel - Stats and Admin Actions - Scrollable container */}
+            <div className="lg:col-span-1 flex flex-col min-h-0 overflow-hidden">
+              <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+                <div className="flex flex-col gap-3 md:gap-4 pb-2">
+                  {/* Game Stats Card */}
+                  <div className="card p-3 md:p-4 lg:p-5 flex-shrink-0">
+                    <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-white mb-3 md:mb-4">
+                      GAME STATS
+                    </h3>
+                    <div className="space-y-2 md:space-y-3">
+                      <div className="bg-cyber-bg p-2 md:p-3 rounded-lg">
+                        <p className="text-white text-opacity-70 text-xs md:text-sm mb-0.5 md:mb-1">
+                          Total Players
+                        </p>
+                        <p className="text-cyber-accent font-bold text-base md:text-lg lg:text-xl">
+                          {roomData.players
+                            ? Object.keys(roomData.players).length
+                            : 0}
+                        </p>
+                      </div>
+                      {roomData.difficulty && (
+                        <div className="bg-cyber-bg p-2 md:p-3 rounded-lg">
+                          <p className="text-white text-opacity-70 text-xs md:text-sm mb-0.5 md:mb-1">
+                            Difficulty
+                          </p>
+                          <p className="text-cyber-accent font-bold text-base md:text-lg lg:text-xl">
+                            {roomData.difficulty}
+                          </p>
+                        </div>
+                      )}
+                      {roomData.totalLevels && (
+                        <div className="bg-cyber-bg p-2 md:p-3 rounded-lg">
+                          <p className="text-white text-opacity-70 text-xs md:text-sm mb-0.5 md:mb-1">
+                            Total Levels
+                          </p>
+                          <p className="text-cyber-accent font-bold text-base md:text-lg lg:text-xl">
+                            {roomData.totalLevels}
+                          </p>
+                        </div>
+                      )}
+                      {roomData.duration && (
+                        <div className="bg-cyber-bg p-2 md:p-3 rounded-lg">
+                          <p className="text-white text-opacity-70 text-xs md:text-sm mb-0.5 md:mb-1">
+                            Duration
+                          </p>
+                          <p className="text-cyber-accent font-bold text-base md:text-lg lg:text-xl">
+                            {roomData.duration} minutes
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  {roomData.difficulty && (
-                    <div className="bg-cyber-bg p-2 rounded-lg">
-                      <p className="text-white text-opacity-70 text-xs mb-0.5">
-                        Difficulty
-                      </p>
-                      <p className="text-cyber-accent font-bold text-sm md:text-base">
-                        {roomData.difficulty}
-                      </p>
-                    </div>
-                  )}
-                  {roomData.totalLevels && (
-                    <div className="bg-cyber-bg p-2 rounded-lg">
-                      <p className="text-white text-opacity-70 text-xs mb-0.5">
-                        Total Levels
-                      </p>
-                      <p className="text-cyber-accent font-bold text-sm md:text-base">
-                        {roomData.totalLevels}
-                      </p>
-                    </div>
-                  )}
-                  {roomData.duration && (
-                    <div className="bg-cyber-bg p-2 rounded-lg">
-                      <p className="text-white text-opacity-70 text-xs mb-0.5">
-                        Duration
-                      </p>
-                      <p className="text-cyber-accent font-bold text-sm md:text-base">
-                        {roomData.duration} minutes
-                      </p>
+
+                  {/* Admin Panel - Only export button, no player management */}
+                  {isAdmin && (
+                    <div className="flex-shrink-0">
+                      <AdminPanel
+                        roomData={roomData}
+                        hidePlayerManagement={true}
+                      />
                     </div>
                   )}
                 </div>
               </div>
-
-              {/* Admin Panel - Only for admin */}
-              {isAdmin && (
-                <div className="flex-shrink-0">
-                  <AdminPanel roomData={roomData} />
-                </div>
-              )}
             </div>
           </div>
 
           {/* Action Button - Fixed height */}
-          <div className="flex-shrink-0 text-center">
+          <div className="flex-shrink-0 text-center pt-2">
             <button
               onClick={() => {
                 sessionStorage.clear();
                 navigate("/");
               }}
-              className="btn-primary text-xs md:text-sm py-2"
+              className="btn-primary text-xs md:text-sm lg:text-base px-6 md:px-8 py-2 md:py-3"
             >
               BACK TO HOME
             </button>
