@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGameState, formatTime } from "../hooks/useGameState";
-import { getLeaderboard } from "../services/gameService";
+import { getLeaderboard, endGame } from "../services/gameService";
 import LobbyWaiting from "../components/LobbyWaiting";
 import GameRoom from "../components/GameRoom";
 import AdminPanel from "../components/AdminPanel";
@@ -48,6 +48,43 @@ export default function GamePage() {
       setPlayerName(savedPlayerName);
     }
   }, [navigate]);
+
+  // Auto-end multiplayer game when all players complete all levels (admin only)
+  useEffect(() => {
+    if (
+      isAdmin &&
+      roomCode &&
+      roomData?.status === "playing" &&
+      roomData?.players &&
+      roomData?.totalLevels
+    ) {
+      const players = roomData.players;
+      const activePlayers = Object.values(players).filter(
+        (p) => !p.disqualified
+      );
+
+      // Check if all active players have completed all levels
+      const allPlayersCompleted =
+        activePlayers.length > 0 &&
+        activePlayers.every(
+          (player) => (player.completedLevels || 0) >= roomData.totalLevels
+        );
+
+      if (allPlayersCompleted) {
+        // Small delay to show completion state, then auto-end
+        const timer = setTimeout(() => {
+          endGame(roomCode);
+        }, 2000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [
+    isAdmin,
+    roomCode,
+    roomData?.status,
+    roomData?.players,
+    roomData?.totalLevels,
+  ]);
 
   if (loading) {
     return (
