@@ -11,6 +11,7 @@ export default function Question({
   question,
   levelNumber,
   onCorrectAnswer,
+  onWrongAnswer, // NEW: callback for wrong answers
 }) {
   const [answer, setAnswer] = useState("");
   const [showHint, setShowHint] = useState(false);
@@ -57,6 +58,11 @@ export default function Question({
       } else {
         // ❌ PLAY WRONG SOUND
         playSound("/sounds/wrong.mp3");
+
+        // NEW: Trigger wrong answer video
+        if (onWrongAnswer) {
+          onWrongAnswer();
+        }
 
         setError("❌ Incorrect answer. Try again!");
         setAnswer("");
