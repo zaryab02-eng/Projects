@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, AlertCircle, Copy } from 'lucide-react';
+import { notify } from "../utils/notify";
 
 /**
  * Diagnostic Page - Check Firebase and environment configuration
@@ -91,7 +92,7 @@ export default function DiagnosticPage() {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(() => {
-      alert('Copied to clipboard!');
+      notify.success("Copied to clipboard.");
     });
   };
 

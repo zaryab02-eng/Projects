@@ -60,7 +60,7 @@ export default function GamePage() {
     ) {
       const players = roomData.players;
       const activePlayers = Object.values(players).filter(
-        (p) => !p.disqualified
+        (p) => !p.disqualified && !p.gaveUp
       );
 
       // Check if all active players have completed all levels

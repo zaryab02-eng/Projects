@@ -12,6 +12,8 @@ import { signOutUser } from "../services/authService";
 import Question from "./Question";
 import Cinematic from "./Cinematic";
 import Leaderboard from "./Leaderboard";
+import { notify } from "../utils/notify";
+import { useConfirm } from "./ui/OverlaysProvider";
 
 /**
  * Game Room - main gameplay area for players
@@ -42,6 +44,7 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
   const leaderboard = roomData ? getLeaderboard(roomData) : [];
   const playerRank = leaderboard.findIndex((p) => p.id === playerId) + 1 || 0;
   const effectivePlayerName = player?.name || playerName;
+  const { confirm } = useConfirm();
 
   const handleSaveName = async () => {
     const soloUserId = sessionStorage.getItem("soloUserId");
@@ -98,37 +101,75 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
 
   // Helper function to calculate total wrong answers from levelWrongAnswers object
   const calculateTotalWrongAnswers = (playerData) => {
-    if (playerData.totalWrongAnswers !== undefined) {
-      return playerData.totalWrongAnswers;
+    if (!playerData) return 0;
+
+    // Prefer summing per-level counters because `totalWrongAnswers` can be stale
+    // (it was previously only recalculated when a level was completed).
+    if (playerData.levelWrongAnswers && typeof playerData.levelWrongAnswers === "object") {
+      const levelWrongAnswers = playerData.levelWrongAnswers || {};
+      let total = 0;
+      for (const level in levelWrongAnswers) {
+        total += Number(levelWrongAnswers[level] || 0);
+      }
+      return total;
     }
-    // Calculate from levelWrongAnswers object
-    const levelWrongAnswers = playerData.levelWrongAnswers || {};
-    let total = 0;
-    for (const level in levelWrongAnswers) {
-      total += levelWrongAnswers[level];
+
+    return Number(playerData.totalWrongAnswers || 0);
+  };
+
+  const calculateTotalTimeForSubmission = (playerData) => {
+    if (!playerData || !roomData) return Number(playerData?.totalTime || 0);
+    const base = Number(playerData.totalTime || 0);
+    if (roomData.status !== "playing") return base;
+
+    const now = Date.now();
+    const currentLevel = Number(playerData.currentLevel || 0);
+    const levelStartTime = Number(playerData.levelStartTime || roomData.startTime || 0);
+    if (!currentLevel || !levelStartTime) return base;
+
+    const elapsed = Math.max(0, now - levelStartTime);
+
+    // Solo mode applies a wrong-answer time penalty (10s each) when a level completes.
+    // When giving up/leaving mid-level, include the current level's penalty too so the
+    // leaderboard remains fair and consistent.
+    let penalty = 0;
+    if (isSolo) {
+      const levelWrongAnswers = playerData.levelWrongAnswers || {};
+      const currentWrong = Number(levelWrongAnswers[currentLevel] || 0);
+      penalty = currentWrong * 10 * 1000;
     }
-    return total;
+
+    return base + elapsed + penalty;
   };
 
   const handleGiveUp = async () => {
     if (!isGameActive || !player) return;
 
-    const confirmed = window.confirm(
-      "Are you sure you want to give up? Your current progress will be saved."
-    );
+    const confirmed = await confirm({
+      title: "Give up?",
+      message: "Your current progress will be saved.",
+      confirmText: "Give up",
+      cancelText: "Cancel",
+      danger: true,
+    });
     if (!confirmed) return;
 
     // Calculate total wrong answers correctly
     const totalWrongAnswers = calculateTotalWrongAnswers(player);
+    const totalTimeForSubmission = calculateTotalTimeForSubmission(player);
 
-    // Update player's totalWrongAnswers in database if not already set
-    if (player.totalWrongAnswers === undefined) {
-      try {
-        const playerRef = ref(database, `rooms/${roomCode}/players/${playerId}`);
-        await update(playerRef, { totalWrongAnswers });
-      } catch (err) {
-        console.error("Error updating wrong answers:", err);
-      }
+    // Always keep the room player record consistent (realtime leaderboard accuracy).
+    // Also mark multiplayer players as "gaveUp" without ending the room for everyone.
+    try {
+      const playerRef = ref(database, `rooms/${roomCode}/players/${playerId}`);
+      await update(playerRef, {
+        totalWrongAnswers,
+        totalTime: totalTimeForSubmission,
+        lastProgressAt: Date.now(),
+        ...(isSolo ? {} : { gaveUp: true }),
+      });
+    } catch (err) {
+      console.error("Error updating give up stats:", err);
     }
 
     // For solo mode, submit to global leaderboard
@@ -146,28 +187,24 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
             soloDifficulty,
             soloTotalLevels,
             player.completedLevels || 0,
-            player.totalTime || 0,
+            totalTimeForSubmission,
             totalWrongAnswers
           );
         } catch (err) {
           console.error("Error submitting to leaderboard:", err);
         }
       }
-    }
+      // End the solo room immediately after saving
+      try {
+        await endGame(roomCode);
+      } catch (err) {
+        console.error("Error ending game:", err);
+      }
 
-    // End the game
-    try {
-      await endGame(roomCode);
-    } catch (err) {
-      console.error("Error ending game:", err);
-    }
-
-    if (isSolo) {
       sessionStorage.clear();
       navigate("/");
     } else {
-      // For multiplayer, just wait for game to finish normally
-      // The results will show on the finished screen
+      notify.info("You gave up. Your score is locked in for this room.");
     }
   };
 
@@ -176,6 +213,7 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
     if (isSolo && isGameActive && player) {
       // Calculate total wrong answers correctly
       const totalWrongAnswers = calculateTotalWrongAnswers(player);
+      const totalTimeForSubmission = calculateTotalTimeForSubmission(player);
 
       // Submit current progress to leaderboard before terminating
       const soloUserId = sessionStorage.getItem("soloUserId");
@@ -190,7 +228,7 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
             soloDifficulty,
             soloTotalLevels,
             player.completedLevels || 0,
-            player.totalTime || 0,
+            totalTimeForSubmission,
             totalWrongAnswers
           );
         } catch (err) {
@@ -207,7 +245,7 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
       
       sessionStorage.clear();
       navigate("/");
-      alert("Game terminated: You left the tab/app during solo mode.");
+      notify.warning("Game ended: you left the tab/app during solo mode.", { duration: 5000 });
     }
   };
 
@@ -422,6 +460,40 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
             <p className="text-sm md:text-base text-white text-opacity-70">
               Reason: Too many warnings (tab switching or other violations)
             </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Multiplayer: player gave up (do not end the entire room)
+  if (!isSolo && roomData?.status === "playing" && player?.gaveUp) {
+    return (
+      <div className="viewport-container cyber-grid flex flex-col overflow-x-hidden">
+        <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-3 md:px-4 py-3 md:py-4 min-h-0">
+          <div className="card mb-3 md:mb-4">
+            <div className="text-center">
+              <Flag className="text-cyber-warning mx-auto mb-2" size={40} />
+              <h2 className="text-xl md:text-3xl font-bold text-cyber-warning mb-2">
+                YOU GAVE UP
+              </h2>
+              <p className="text-sm md:text-base text-white text-opacity-70">
+                Your progress has been saved. You can stay to watch the live leaderboard.
+              </p>
+              <button
+                onClick={() => {
+                  sessionStorage.clear();
+                  navigate("/");
+                }}
+                className="mt-4 btn-primary text-sm md:text-base"
+              >
+                EXIT TO HOME
+              </button>
+            </div>
+          </div>
+
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+            <Leaderboard leaderboard={leaderboard} isAdmin={isAdmin} isGameFinished={false} />
           </div>
         </div>
       </div>

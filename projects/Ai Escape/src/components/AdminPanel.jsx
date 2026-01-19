@@ -7,6 +7,8 @@ import {
   disqualifyPlayer,
   exportResultsPDF,
 } from "../services/gameService";
+import { notify } from "../utils/notify";
+import { useConfirm } from "./ui/OverlaysProvider";
 
 /**
  * Admin Panel - game configuration and controls
@@ -18,6 +20,7 @@ export default function AdminPanel({ roomData, hidePlayerManagement = false }) {
   const [totalLevels, setTotalLevels] = useState(5);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { confirm } = useConfirm();
 
   const players = Object.values(roomData.players || {});
   const isConfigSet =
@@ -32,7 +35,7 @@ export default function AdminPanel({ roomData, hidePlayerManagement = false }) {
 
     try {
       await setGameConfig(roomData.roomCode, difficulty, duration, totalLevels);
-      alert("✓ Game configuration saved!");
+      notify.success("Game configuration saved.");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -42,17 +45,17 @@ export default function AdminPanel({ roomData, hidePlayerManagement = false }) {
 
   const handleStartGame = async () => {
     if (!canStartGame) {
-      alert("Please set game configuration and wait for at least one player");
+      notify.warning("Set the game configuration and wait for players to be ready.");
       return;
     }
 
-    if (
-      !confirm(
-        `Start the game now with ${players.length} player${players.length !== 1 ? "s" : ""}? The game will begin immediately.`,
-      )
-    ) {
-      return;
-    }
+    const ok = await confirm({
+      title: "Start game now?",
+      message: `Start with ${players.length} player${players.length !== 1 ? "s" : ""}? The game will begin immediately.`,
+      confirmText: "Start",
+      cancelText: "Cancel",
+    });
+    if (!ok) return;
 
     setLoading(true);
     setError("");
@@ -61,37 +64,47 @@ export default function AdminPanel({ roomData, hidePlayerManagement = false }) {
       await startGame(roomData.roomCode);
     } catch (err) {
       setError(err.message);
-      alert("Error starting game: " + err.message);
+      notify.error(err.message ? `Failed to start game: ${err.message}` : "Failed to start game.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleEndGame = async () => {
-    if (!confirm("End the game now? This will finalize all results.")) {
-      return;
-    }
+    const ok = await confirm({
+      title: "End game?",
+      message: "This will finalize all results.",
+      confirmText: "End game",
+      cancelText: "Cancel",
+      danger: true,
+    });
+    if (!ok) return;
 
     setLoading(true);
     try {
       await endGame(roomData.roomCode);
     } catch (err) {
-      alert("Error ending game: " + err.message);
+      notify.error(err.message ? `Failed to end game: ${err.message}` : "Failed to end game.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleDisqualifyPlayer = async (playerId, playerName) => {
-    if (!confirm(`Disqualify ${playerName}? This action cannot be undone.`)) {
-      return;
-    }
+    const ok = await confirm({
+      title: `Disqualify ${playerName}?`,
+      message: "This action cannot be undone.",
+      confirmText: "Disqualify",
+      cancelText: "Cancel",
+      danger: true,
+    });
+    if (!ok) return;
 
     try {
       await disqualifyPlayer(roomData.roomCode, playerId);
-      alert(`${playerName} has been disqualified`);
+      notify.success(`${playerName} has been disqualified.`);
     } catch (err) {
-      alert("Error disqualifying player: " + err.message);
+      notify.error(err.message ? `Failed to disqualify: ${err.message}` : "Failed to disqualify player.");
     }
   };
 
@@ -100,7 +113,7 @@ export default function AdminPanel({ roomData, hidePlayerManagement = false }) {
       await exportResultsPDF(roomData);
     } catch (error) {
       console.error('Error exporting PDF:', error);
-      alert('Error generating PDF: ' + (error.message || 'Please check the browser console for details.'));
+      notify.error(error.message ? `PDF export failed: ${error.message}` : "PDF export failed.");
     }
   };
 

@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import ErrorBoundary from "./components/ErrorBoundary";
+import OverlaysProvider from "./components/ui/OverlaysProvider";
 import "./index.css";
 
 // Load media test utilities in development
@@ -53,7 +54,9 @@ window.addEventListener('unhandledrejection', (event) => {
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <App />
+      <OverlaysProvider>
+        <App />
+      </OverlaysProvider>
     </ErrorBoundary>
   </React.StrictMode>,
 );

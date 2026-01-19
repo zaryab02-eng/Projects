@@ -10,6 +10,8 @@ import {
   remove,
 } from "firebase/database";
 import { generateAllQuestions, checkAnswer } from "./gemini";
+import { compareEscapeRanking } from "../utils/ranking";
+import { notify } from "../utils/notify";
 
 /**
  * Generate a unique 6-character room code
@@ -106,6 +108,10 @@ export async function joinGameRoom(roomCode, playerIdentifier, playerName) {
     completedLevels: 0,
     totalTime: 0,
     levelTimes: {},
+    levelWrongAnswers: {},
+    totalWrongAnswers: 0,
+    lastProgressAt: Date.now(),
+    gaveUp: false,
     disqualified: false,
     warnings: 0,
     joinedAt: Date.now(),
@@ -280,6 +286,7 @@ export async function submitAnswer(roomCode, playerId, levelNumber, answer) {
       completedLevels: levelNumber,
       totalTime: newTotalTime,
       [`levelTimes/${levelNumber}`]: levelTime,
+      lastProgressAt: now,
     };
 
     // Track total wrong answers across all levels (for both solo and multiplayer)
@@ -304,11 +311,21 @@ export async function submitAnswer(roomCode, playerId, levelNumber, answer) {
     await update(playerRef, updates);
   } else {
     // Wrong answer - increment wrong answers count for this level (for both solo and multiplayer)
+    const now = Date.now();
     const currentWrongAnswers = (playerData.levelWrongAnswers && playerData.levelWrongAnswers[levelNumber]) || 0;
     const levelWrongAnswers = playerData.levelWrongAnswers || {};
     levelWrongAnswers[levelNumber] = currentWrongAnswers + 1;
+
+    // Keep realtime leaderboard accurate by updating totalWrongAnswers on every wrong attempt
+    let totalWrongAnswers = 0;
+    for (const level in levelWrongAnswers) {
+      totalWrongAnswers += Number(levelWrongAnswers[level] || 0);
+    }
+
     await update(playerRef, {
-      levelWrongAnswers: levelWrongAnswers
+      levelWrongAnswers,
+      totalWrongAnswers,
+      lastProgressAt: now,
     });
   }
 
@@ -389,24 +406,11 @@ export function getLeaderboard(roomData) {
       identifier: p.identifier || '',
       completedLevels: p.completedLevels || 0,
       totalTime: p.totalTime || 0,
-      totalWrongAnswers: p.totalWrongAnswers || 0,
+      totalWrongAnswers: p.totalWrongAnswers ?? 0,
+      timestamp: p.lastProgressAt || p.joinedAt || 0,
+      gaveUp: !!p.gaveUp,
     }))
-    .sort((a, b) => {
-      // Sort according to ranking priority (same as solo mode):
-      // 1. Higher levels completed (descending)
-      // 2. Less total time (ascending)
-      // 3. Fewer wrong attempts (ascending)
-      if (b.completedLevels !== a.completedLevels) {
-        return b.completedLevels - a.completedLevels;
-      }
-      if (a.totalTime !== b.totalTime) {
-        return a.totalTime - b.totalTime;
-      }
-      // Wrong answers (fewer is better)
-      const aWrong = a.totalWrongAnswers || 0;
-      const bWrong = b.totalWrongAnswers || 0;
-      return aWrong - bWrong;
-    });
+    .sort(compareEscapeRanking);
 
   return leaderboard;
 }
@@ -525,7 +529,7 @@ export async function exportResultsPDF(roomData) {
     doc.save(`escape-room-results-${roomData.roomCode}.pdf`);
   } catch (error) {
     console.error('Error generating PDF:', error);
-    alert('Error generating PDF: ' + (error.message || 'Unknown error. Please check the browser console.'));
+    notify.error(error.message ? `PDF export failed: ${error.message}` : "PDF export failed. Please try again.");
   }
 }
 

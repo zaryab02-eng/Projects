@@ -1,5 +1,6 @@
 import { database } from "./firebase";
 import { ref, set, get, update, query, orderByChild, limitToFirst, startAt, equalTo } from "firebase/database";
+import { compareEscapeRanking } from "../utils/ranking";
 
 /**
  * Get leaderboard key from difficulty and level count
@@ -59,33 +60,8 @@ export async function getGlobalLeaderboard(difficulty, totalLevels, userId = nul
       });
     });
 
-    // Sort according to ranking priority:
-    // 1. Higher levels completed (descending)
-    // 2. Less total time (ascending)
-    // 3. Fewer wrong attempts (ascending)
-    // 4. Newer entry ranks above older (descending timestamp)
-    allResults.sort((a, b) => {
-      // 1. Levels completed (higher is better)
-      if (b.completedLevels !== a.completedLevels) {
-        return b.completedLevels - a.completedLevels;
-      }
-
-      // 2. Total time (less is better)
-      if (a.totalTime !== b.totalTime) {
-        return a.totalTime - b.totalTime;
-      }
-
-      // 3. Wrong answers (fewer is better)
-      const aWrong = a.totalWrongAnswers || 0;
-      const bWrong = b.totalWrongAnswers || 0;
-      if (aWrong !== bWrong) {
-        return aWrong - bWrong;
-      }
-
-      // 4. Newer entry ranks above older (higher timestamp is better)
-      // Since we stored sortTimestamp as negative, we reverse the comparison
-      return b.timestamp - a.timestamp;
-    });
+    // Sort using shared ranking logic (same as multiplayer realtime leaderboard)
+    allResults.sort(compareEscapeRanking);
 
     const topPlayers = allResults.slice(0, 20);
     

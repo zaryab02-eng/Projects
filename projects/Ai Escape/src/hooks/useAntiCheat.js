@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { addPlayerWarning } from "../services/gameService";
+import { notify } from "../utils/notify";
 
 /**
  * Anti-cheat hook to detect suspicious behavior
@@ -74,9 +75,10 @@ export function useAntiCheat(roomCode, playerId, isGameActive, roomData = null) 
             // Warn after first tab switch - ALWAYS
             if (tabSwitchCount.current === 1 && !hasWarned.current) {
               hasWarned.current = true;
-              alert(
-                "⚠️ Warning: Tab switching detected! Do not switch tabs during the game.",
-              );
+              notify.warning("Tab switching detected. Please stay in the game tab.", {
+                id: "antiCheat-tab-warning",
+                duration: 4500,
+              });
             }
 
             // Add warning to database
@@ -89,8 +91,9 @@ export function useAntiCheat(roomCode, playerId, isGameActive, roomData = null) 
                 );
 
                 if (warnings >= 2) {
-                  alert(
-                    "🚫 DISQUALIFIED: Too many tab switches detected. You have been removed from the game.",
+                  notify.error(
+                    "Disqualified: too many tab switches detected. You’ve been removed from the game.",
+                    { id: "antiCheat-disqualified", duration: 6000 }
                   );
                 }
               } catch (error) {
