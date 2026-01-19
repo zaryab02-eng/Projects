@@ -18,14 +18,35 @@ export default function Question({
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // 🔊 SOUND EFFECTS FUNCTION
+  // 🔊 SOUND EFFECTS FUNCTION - Safari-safe with defensive error handling
   const playSound = (soundFile) => {
     try {
       const audio = new Audio(soundFile);
       audio.volume = 0.5; // 50% volume, adjust as needed (0.0 to 1.0)
-      audio.play().catch((err) => console.log("Sound play failed:", err));
+      
+      // Safari-safe: handle autoplay restrictions
+      const playPromise = audio.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log(`Sound playing: ${soundFile}`);
+          })
+          .catch((err) => {
+            console.log("Sound autoplay prevented (normal on Safari):", err);
+            // App continues - sound is non-critical
+          });
+      }
+      
+      // Handle audio loading errors
+      audio.addEventListener('error', (e) => {
+        console.error(`Audio file failed to load: ${soundFile}`, e);
+        // App continues - sound is non-critical
+      });
+      
     } catch (err) {
-      console.log("Sound error:", err);
+      console.log("Sound initialization error (non-critical):", err);
+      // App continues - sound is non-critical
     }
   };
 
@@ -49,8 +70,8 @@ export default function Question({
       );
 
       if (isCorrect) {
-        // ✅ PLAY CORRECT SOUND
-        playSound("/sounds/correct.mp3");
+        // ✅ PLAY CORRECT SOUND (using unlock.mp3 as correct sound)
+        playSound("/sounds/unlock.mp3");
 
         setAnswer("");
         // Pass the level number that was just completed

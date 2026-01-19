@@ -20,6 +20,7 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
 
   // NEW: State for wrong answer video
   const [showWrongVideo, setShowWrongVideo] = useState(false);
+  const [videoError, setVideoError] = useState(false);
   const backgroundVideoRef = useRef(null);
   const wrongVideoRef = useRef(null);
 
@@ -30,6 +31,17 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
   const currentQuestion = roomData?.questions?.[player?.currentLevel - 1];
   const leaderboard = roomData ? getLeaderboard(roomData) : [];
   const playerRank = leaderboard.findIndex((p) => p.id === playerId) + 1 || 0;
+
+  // Initialize background video for Safari
+  useEffect(() => {
+    if (backgroundVideoRef.current) {
+      // Try to play background video
+      backgroundVideoRef.current.play().catch((err) => {
+        console.log("Background video autoplay prevented (normal on Safari):", err);
+        // Will try again after user interaction
+      });
+    }
+  }, []);
 
   // Auto-end game when timer expires (admin only)
   useEffect(() => {
@@ -50,7 +62,7 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
     }
   }, [isFinalLevel, roomData?.status]);
 
-  // NEW: Handle wrong answer video playback
+  // NEW: Handle wrong answer video playback - Safari-safe
   const handleWrongAnswer = () => {
     setShowWrongVideo(true);
 
@@ -59,10 +71,14 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
       backgroundVideoRef.current.pause();
     }
 
-    // Play wrong answer video
+    // Play wrong answer video - Safari-safe
     if (wrongVideoRef.current) {
       wrongVideoRef.current.currentTime = 0;
-      wrongVideoRef.current.play();
+      wrongVideoRef.current.play().catch((err) => {
+        console.log("Wrong video play prevented:", err);
+        // If video fails, just hide it and continue
+        handleWrongVideoEnd();
+      });
     }
   };
 
@@ -70,9 +86,12 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
   const handleWrongVideoEnd = () => {
     setShowWrongVideo(false);
 
-    // Resume background video
+    // Resume background video - Safari-safe
     if (backgroundVideoRef.current) {
-      backgroundVideoRef.current.play();
+      backgroundVideoRef.current.play().catch((err) => {
+        console.log("Background video resume prevented:", err);
+        // App continues even if video fails
+      });
     }
   };
 
@@ -155,7 +174,7 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
   if (roomData?.status === "finished") {
     return (
       <div className="viewport-container cyber-grid flex flex-col overflow-x-hidden">
-        <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-3 md:px-4 py-3 md:py-4 min-h-0 max-w-full">
+        <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-3 md:px-4 py-3 md:py-4 min-h-0">
           <div className="text-center mb-2 md:mb-3 flex-shrink-0">
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-cyber-accent glow-text mb-1 md:mb-2">
               GAME COMPLETE
@@ -244,36 +263,54 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
 
   return (
     <div className="viewport-container cyber-grid flex flex-col relative">
-      {/* 🎬 Background Video - Plays throughout the game */}
+      {/* 🎬 Background Video - Safari-safe with error handling */}
       <video
         ref={backgroundVideoRef}
         autoPlay
         loop
         muted
         playsInline
+        preload="auto"
         disablePictureInPicture
         disableRemotePlayback
         controlsList="nodownload nofullscreen noremoteplayback"
         className="fixed inset-0 w-full h-full object-cover opacity-100 -z-10 pointer-events-none"
         onContextMenu={(e) => e.preventDefault()}
-        style={{ display: showWrongVideo ? "none" : "block" }}
+        style={{ 
+          display: showWrongVideo ? "none" : "block",
+          opacity: videoError ? 0 : 1 
+        }}
+        onError={(e) => {
+          console.error("Background video failed to load:", e);
+          setVideoError(true);
+          // App continues even if video fails - don't crash!
+        }}
+        onLoadedData={() => {
+          console.log("Background video loaded successfully");
+          setVideoError(false);
+        }}
       >
         <source src="/videos/background.mp4" type="video/mp4" />
       </video>
 
-      {/* ❌ Wrong Answer Video - Plays when wrong answer is submitted */}
+      {/* ❌ Wrong Answer Video - Safari-safe with error handling */}
       {showWrongVideo && (
         <video
           ref={wrongVideoRef}
-          autoPlay
           muted
           playsInline
+          preload="auto"
           disablePictureInPicture
           disableRemotePlayback
           controlsList="nodownload nofullscreen noremoteplayback"
           className="fixed inset-0 w-full h-full object-cover opacity-100 -z-10 pointer-events-none"
           onContextMenu={(e) => e.preventDefault()}
           onEnded={handleWrongVideoEnd}
+          onError={(e) => {
+            console.error("Wrong video failed to load:", e);
+            // If wrong video fails, just skip it
+            handleWrongVideoEnd();
+          }}
         >
           <source src="/videos/wrong.mp4" type="video/mp4" />
         </video>

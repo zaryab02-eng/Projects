@@ -25,7 +25,8 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,mp4}"],
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,mp4,mp3}"],
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10MB for videos
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/firebasestorage\.googleapis\.com\/.*/i,
@@ -34,6 +35,29 @@ export default defineConfig({
               cacheName: "firebase-storage-cache",
               expiration: {
                 maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+            },
+          },
+          {
+            urlPattern: /\.mp4$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "video-cache",
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+              rangeRequests: true,
+            },
+          },
+          {
+            urlPattern: /\.mp3$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "audio-cache",
+              expiration: {
+                maxEntries: 10,
                 maxAgeSeconds: 60 * 60 * 24 * 30,
               },
             },

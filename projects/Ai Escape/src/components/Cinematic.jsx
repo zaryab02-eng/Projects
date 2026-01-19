@@ -4,12 +4,15 @@ import { useNavigate } from "react-router-dom";
 /**
  * Cinematic component - plays after each level completion
  * Shows full-screen video with player name overlay
+ * ✅ Safari-compatible with defensive error handling
  */
 export default function Cinematic({ levelNumber, playerName, totalLevels, isSolo, onComplete }) {
   const navigate = useNavigate();
   const [canSkip, setCanSkip] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
+  const [videoError, setVideoError] = useState(false);
   const videoRef = useRef(null);
+  const audioRef = useRef(null);
 
   // Determine if this is the final level
   const isFinalLevel = levelNumber >= (totalLevels || 0);
@@ -18,12 +21,33 @@ export default function Cinematic({ levelNumber, playerName, totalLevels, isSolo
   // Videos should be placed in /public/videos/
   // Use level1.mp4 for all levels except final, use final.mp4 for final level
   const videoPath = isFinalLevel ? `/videos/final.mp4` : `/videos/level1.mp4`;
+  const soundPath = isFinalLevel ? "/sounds/final.mp3" : "/sounds/unlock.mp3";
 
   useEffect(() => {
     // Allow skipping after 3 seconds
     const skipTimer = setTimeout(() => {
       setCanSkip(true);
     }, 3000);
+
+    // 🔊 Safari-safe audio playback
+    const playAudio = () => {
+      if (audioRef.current) {
+        audioRef.current.play().catch((err) => {
+          console.log("Audio autoplay prevented (normal on Safari):", err);
+        });
+      }
+    };
+
+    // Start audio after user has interacted (or try immediately)
+    playAudio();
+
+    // 🎬 Safari-safe video playback
+    if (videoRef.current) {
+      videoRef.current.play().catch((err) => {
+        console.log("Video autoplay prevented (normal on Safari):", err);
+        // App continues even if video fails
+      });
+    }
 
     // For final level, stop video after 8 seconds and auto-complete
     if (isFinalLevel) {
@@ -86,17 +110,26 @@ export default function Cinematic({ levelNumber, playerName, totalLevels, isSolo
         fadeOut ? "opacity-0" : "opacity-100"
       }`}
     >
-      {/* Video Background */}
+      {/* Video Background - Safari-safe with error handling */}
       <video
         ref={videoRef}
-        autoPlay
         muted
+        playsInline
+        preload="auto"
         onEnded={handleVideoEnd}
+        onError={(e) => {
+          console.error("Video failed to load:", e);
+          setVideoError(true);
+          // App continues even if video fails - don't crash!
+        }}
+        onLoadedData={() => {
+          console.log("Video loaded successfully");
+          setVideoError(false);
+        }}
         className="absolute inset-0 w-full h-full object-cover"
+        style={{ opacity: videoError ? 0 : 1 }}
       >
         <source src={videoPath} type="video/mp4" />
-        {/* Fallback if video doesn't exist */}
-        Your browser does not support the video tag.
       </video>
 
       {/* Overlay Content */}
@@ -150,9 +183,16 @@ export default function Cinematic({ levelNumber, playerName, totalLevels, isSolo
         )}
       </div>
 
-      {/* 🔊 Sound effect - different sound for final level */}
-      <audio autoPlay>
-        <source src={isFinalLevel ? "/sounds/final.mp3" : "/sounds/unlock.mp3"} type="audio/mpeg" />
+      {/* 🔊 Sound effect - Safari-safe with error handling */}
+      <audio
+        ref={audioRef}
+        preload="auto"
+        onError={(e) => {
+          console.log("Audio failed to load (non-critical):", e);
+          // App continues even if audio fails
+        }}
+      >
+        <source src={soundPath} type="audio/mpeg" />
       </audio>
     </div>
   );
