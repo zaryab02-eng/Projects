@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
+import ErrorBoundary from "./components/ErrorBoundary";
 import "./index.css";
 
 // Load media test utilities in development
@@ -24,7 +25,7 @@ window.addEventListener('error', (event) => {
   console.error('Application error:', event.error || event.message);
 }, true);
 
-// ✅ Handle unhandled promise rejections (common with Safari autoplay)
+// ✅ Handle unhandled promise rejections (common with Safari autoplay AND Firebase errors)
 window.addEventListener('unhandledrejection', (event) => {
   console.warn('Unhandled promise rejection (non-critical):', event.reason);
   
@@ -35,11 +36,24 @@ window.addEventListener('unhandledrejection', (event) => {
        event.reason.message?.includes('autoplay'))) {
     console.log('Safari autoplay restriction detected - app continues normally');
     event.preventDefault(); // Prevent unhandled rejection error
+    return;
+  }
+  
+  // Check if it's a Firebase/network error (common cause of TLS errors)
+  if (event.reason &&
+      (event.reason.message?.includes('Firebase') ||
+       event.reason.message?.includes('network') ||
+       event.reason.message?.includes('fetch') ||
+       event.reason.message?.includes('Failed to fetch'))) {
+    console.error('🔴 Network/Firebase error detected:', event.reason);
+    // Don't prevent - let Error Boundary handle it
   }
 });
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </React.StrictMode>,
 );

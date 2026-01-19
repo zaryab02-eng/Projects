@@ -4,6 +4,7 @@ import AdminPage from "./pages/AdminPage";
 import JoinPage from "./pages/JoinPage";
 import GamePage from "./pages/GamePage";
 import SoloGamePage from "./pages/SoloGamePage";
+import DiagnosticPage from "./components/DiagnosticPage";
 
 /**
  * Main App Component - Landing page and routing
@@ -114,6 +115,7 @@ export default function App() {
         <Route path="/join" element={<JoinPage />} />
         <Route path="/solo" element={<SoloGamePage />} />
         <Route path="/game" element={<GamePage />} />
+        <Route path="/diagnostic" element={<DiagnosticPage />} />
       </Routes>
     </BrowserRouter>
   );

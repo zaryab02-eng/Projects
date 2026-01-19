@@ -20,28 +20,34 @@ export function generateRoomCode() {
 
 /**
  * Create a new game room (Admin)
+ * ✅ Safari-safe with error handling
  */
 export async function createGameRoom(adminName) {
-  const roomCode = generateRoomCode();
-  const roomRef = ref(database, `rooms/${roomCode}`);
+  try {
+    const roomCode = generateRoomCode();
+    const roomRef = ref(database, `rooms/${roomCode}`);
 
-  const roomData = {
-    roomCode,
-    adminName,
-    status: "waiting", // waiting, playing, finished
-    difficulty: null,
-    duration: null, // in minutes
-    totalLevels: null,
-    startTime: null,
-    endTime: null,
-    serverStartTimestamp: null,
-    questions: [],
-    players: {},
-    createdAt: Date.now(),
-  };
+    const roomData = {
+      roomCode,
+      adminName,
+      status: "waiting", // waiting, playing, finished
+      difficulty: null,
+      duration: null, // in minutes
+      totalLevels: null,
+      startTime: null,
+      endTime: null,
+      serverStartTimestamp: null,
+      questions: [],
+      players: {},
+      createdAt: Date.now(),
+    };
 
-  await set(roomRef, roomData);
-  return roomCode;
+    await set(roomRef, roomData);
+    return roomCode;
+  } catch (error) {
+    console.error("❌ Firebase error creating room:", error);
+    throw new Error("Unable to connect to game servers. Please check your internet connection.");
+  }
 }
 
 /**
