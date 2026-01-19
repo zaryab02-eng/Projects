@@ -270,30 +270,30 @@ export default function SoloGamePage() {
           </div>
 
           <div className="text-center">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-cyber-accent glow-text mb-1 md:mb-2">
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold text-cyber-accent glow-text mb-2 md:mb-3 leading-tight tracking-tight">
             SOLO GAME SETUP
           </h1>
-          <p className="text-xs md:text-sm text-white text-opacity-70">
+          <p className="text-xs md:text-base text-white text-opacity-80 font-medium">
             Choose your challenge
           </p>
           </div>
         </div>
 
-        <div className="card fade-in p-4 md:p-5">
-          <div className="flex items-center gap-2 mb-3 md:mb-4">
-            <Settings className="text-cyber-accent" size={20} />
-            <h2 className="text-lg md:text-xl font-bold text-white">GAME SETUP</h2>
+        <div className="card fade-in p-5 md:p-6">
+          <div className="flex items-center gap-3 mb-4 md:mb-6">
+            <Settings className="text-cyber-accent" size={24} />
+            <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight">GAME SETUP</h2>
           </div>
 
-          <form onSubmit={handleStartSoloGame} className="space-y-2.5 md:space-y-3">
+          <form onSubmit={handleStartSoloGame} className="space-y-4 md:space-y-5">
             <div>
-              <label className="block text-white font-bold mb-1 text-xs md:text-sm">
+              <label className="block text-white font-bold mb-2 text-sm md:text-base">
                 DIFFICULTY
               </label>
               <select
                 value={difficulty}
                 onChange={(e) => setDifficulty(e.target.value)}
-                className="input text-sm md:text-base"
+                className="input text-sm md:text-base rounded-xl"
                 disabled={loading}
               >
                 <option value="Easy">Easy</option>
@@ -303,16 +303,16 @@ export default function SoloGamePage() {
             </div>
 
             <div>
-              <label className="block text-white font-bold mb-1 text-xs md:text-sm">
+              <label className="block text-white font-bold mb-2 text-sm md:text-base">
                 NUMBER OF LEVELS
               </label>
-              <p className="text-white text-opacity-60 text-xs mb-2">
+              <p className="text-white text-opacity-70 text-xs md:text-sm mb-3">
                 Choose either 5 or 10 levels
               </p>
               <select
                 value={totalLevels}
                 onChange={(e) => setTotalLevels(parseInt(e.target.value))}
-                className="input text-sm md:text-base"
+                className="input text-sm md:text-base rounded-xl"
                 disabled={loading}
               >
                 <option value={5}>5 Levels</option>
@@ -335,17 +335,17 @@ export default function SoloGamePage() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full flex items-center justify-center gap-2 text-sm md:text-base py-2.5"
+              className="btn-primary w-full flex items-center justify-center gap-2 text-sm md:text-base py-3 rounded-xl shadow-lg hover:shadow-xl transition-all"
             >
-              <Play size={16} />
+              <Play size={18} />
               {loading ? "STARTING..." : "START SOLO GAME"}
             </button>
           </form>
 
-          <div className="mt-3 pt-3 border-t border-cyber-border">
+          <div className="mt-5 pt-5 border-t border-cyber-border">
             <button
               onClick={() => navigate("/")}
-              className="btn-secondary w-full text-xs md:text-sm py-2"
+              className="btn-secondary w-full text-xs md:text-sm py-2.5 rounded-xl"
               disabled={loading}
             >
               ← BACK TO HOME

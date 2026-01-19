@@ -575,15 +575,15 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
 
             {/* Timer and Give Up Button */}
             <div className="flex items-center gap-2 md:gap-3">
-              <div className="bg-cyber-surface border-2 border-cyber-accent rounded-lg p-2 md:p-3 flex-shrink-0">
-                <div className="flex items-center gap-2">
-                  <Clock className="text-cyber-accent" size={18} />
+              <div className="bg-cyber-surface border-2 border-cyber-accent rounded-xl p-3 md:p-4 flex-shrink-0 shadow-lg">
+                <div className="flex items-center gap-2 md:gap-3">
+                  <Clock className="text-cyber-accent" size={20} />
                   <div>
-                    <div className="text-xs text-white text-opacity-70">
+                    <div className="text-xs md:text-sm text-white text-opacity-70 font-medium">
                       TIME LEFT
                     </div>
                     <div
-                      className={`text-lg md:text-2xl font-bold ${
+                      className={`text-xl md:text-3xl font-bold tracking-tight ${
                         remainingTime < 60000
                           ? "text-cyber-danger animate-pulse"
                           : "text-cyber-accent"
@@ -598,10 +598,10 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
                 <button
                   type="button"
                   onClick={handleGiveUp}
-                  className="inline-flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 md:py-2 bg-cyber-danger bg-opacity-20 border border-cyber-danger rounded-lg hover:bg-opacity-30 transition-all duration-300 text-[10px] md:text-xs"
+                  className="inline-flex items-center gap-1.5 px-3 md:px-4 py-2 md:py-2.5 bg-cyber-danger bg-opacity-20 border border-cyber-danger rounded-xl hover:bg-opacity-30 transition-all duration-300 text-xs md:text-sm shadow-lg hover:shadow-xl"
                   title="Give up and save current progress"
                 >
-                  <Flag size={12} />
+                  <Flag size={14} />
                   GIVE UP
                 </button>
               )}
@@ -609,13 +609,13 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
           </div>
 
           {/* Progress - Fixed */}
-          <div className="bg-cyber-surface rounded-lg p-2 md:p-3">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-white font-bold text-xs md:text-sm">
+          <div className="bg-cyber-surface rounded-xl p-3 md:p-4 border border-cyber-border shadow-lg">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-white font-bold text-sm md:text-base">
                 Progress: {player?.completedLevels || 0} /{" "}
                 {roomData?.totalLevels || 0} Levels
               </span>
-              <span className="text-cyber-accent font-bold text-xs md:text-sm">
+              <span className="text-cyber-accent font-bold text-sm md:text-base">
                 {Math.floor(
                   ((player?.completedLevels || 0) /
                     (roomData?.totalLevels || 1)) *
@@ -624,9 +624,9 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
                 %
               </span>
             </div>
-            <div className="w-full bg-cyber-bg rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-cyber-bg rounded-full h-2.5 overflow-hidden">
               <div
-                className="bg-cyber-accent h-full transition-all duration-500 rounded-full"
+                className="bg-cyber-accent h-full transition-all duration-500 rounded-full shadow-lg shadow-cyber-accent/30"
                 style={{
                   width: `${((player?.completedLevels || 0) / (roomData?.totalLevels || 1)) * 100}%`,
                 }}
@@ -702,8 +702,8 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
 
         {/* Warnings - Fixed */}
         {player?.warnings > 0 && (
-          <div className="mt-2 bg-cyber-warning bg-opacity-20 p-2 md:p-3 rounded-lg border border-cyber-warning flex-shrink-0">
-            <p className="text-cyber-warning text-center font-bold text-xs md:text-sm">
+          <div className="mt-3 bg-cyber-warning bg-opacity-20 p-3 md:p-4 rounded-xl border border-cyber-warning flex-shrink-0 shadow-lg">
+            <p className="text-cyber-warning text-center font-bold text-sm md:text-base">
               ⚠️ WARNING: {player.warnings}/2 - One more violation and you will
               be disqualified!
             </p>

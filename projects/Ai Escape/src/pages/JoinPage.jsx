@@ -55,24 +55,24 @@ export default function JoinPage() {
   return (
     <div className="viewport-container flex items-center justify-center cyber-grid overflow-y-auto">
       <div className="w-full max-w-md px-4 py-3 md:py-4">
-        <div className="text-center mb-3 md:mb-4">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-cyber-accent glow-text mb-1 md:mb-2">
+        <div className="text-center mb-4 md:mb-6">
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold text-cyber-accent glow-text mb-2 md:mb-3 leading-tight tracking-tight">
             ESCAPE ROOM
           </h1>
-          <p className="text-xs md:text-sm text-white text-opacity-70">
+          <p className="text-xs md:text-base text-white text-opacity-80 font-medium">
             Join an existing game
           </p>
         </div>
 
-        <div className="card fade-in p-4 md:p-5">
-          <div className="flex items-center gap-2 mb-3 md:mb-4">
-            <UserPlus className="text-cyber-accent" size={20} />
-            <h2 className="text-lg md:text-xl font-bold text-white">JOIN GAME</h2>
+        <div className="card fade-in p-5 md:p-6">
+          <div className="flex items-center gap-3 mb-4 md:mb-6">
+            <UserPlus className="text-cyber-accent" size={24} />
+            <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight">JOIN GAME</h2>
           </div>
 
-          <form onSubmit={handleJoin} className="space-y-2.5 md:space-y-3">
+          <form onSubmit={handleJoin} className="space-y-4 md:space-y-5">
             <div>
-              <label className="block text-white font-bold mb-1 text-xs md:text-sm">
+              <label className="block text-white font-bold mb-2 text-sm md:text-base">
                 ROOM CODE
               </label>
               <input
@@ -80,7 +80,7 @@ export default function JoinPage() {
                 value={roomCode}
                 onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
                 placeholder="Enter 6-character code"
-                className="input uppercase text-sm md:text-base"
+                className="input uppercase text-sm md:text-base rounded-xl"
                 maxLength={6}
                 disabled={loading}
                 autoFocus
@@ -88,7 +88,7 @@ export default function JoinPage() {
             </div>
 
             <div>
-              <label className="block text-white font-bold mb-1 text-xs md:text-sm">
+              <label className="block text-white font-bold mb-2 text-sm md:text-base">
                 YOUR NAME
               </label>
               <input
@@ -96,13 +96,13 @@ export default function JoinPage() {
                 value={playerName}
                 onChange={(e) => setPlayerName(e.target.value)}
                 placeholder="Enter your name"
-                className="input text-sm md:text-base"
+                className="input text-sm md:text-base rounded-xl"
                 disabled={loading}
               />
             </div>
 
             <div>
-              <label className="block text-white font-bold mb-1 text-xs md:text-sm">
+              <label className="block text-white font-bold mb-2 text-sm md:text-base">
                 UNIQUE IDENTIFIER
               </label>
               <input
@@ -117,11 +117,11 @@ export default function JoinPage() {
                   }
                 }}
                 placeholder="Enter 10-digit number"
-                className="input text-sm md:text-base"
+                className="input text-sm md:text-base rounded-xl"
                 disabled={loading}
                 maxLength={10}
               />
-              <p className="text-white text-opacity-50 text-xs mt-0.5">
+              <p className="text-white text-opacity-70 text-xs md:text-sm mt-2">
                 Enter 10-digit number only
               </p>
             </div>
@@ -135,17 +135,17 @@ export default function JoinPage() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full flex items-center justify-center gap-2 text-sm md:text-base py-2.5"
+              className="btn-primary w-full flex items-center justify-center gap-2 text-sm md:text-base py-3 rounded-xl shadow-lg hover:shadow-xl transition-all"
             >
-              <LogIn size={16} />
+              <LogIn size={18} />
               {loading ? "JOINING..." : "JOIN GAME"}
             </button>
           </form>
 
-          <div className="mt-3 pt-3 border-t border-cyber-border">
+          <div className="mt-5 pt-5 border-t border-cyber-border">
             <button
               onClick={() => navigate("/")}
-              className="btn-secondary w-full text-xs md:text-sm py-2"
+              className="btn-secondary w-full text-xs md:text-sm py-2.5 rounded-xl"
               disabled={loading}
             >
               ← BACK TO HOME

@@ -13,83 +13,95 @@ import DiagnosticPage from "./components/DiagnosticPage";
 function HomePage() {
   return (
     <div className="viewport-container flex items-center justify-center cyber-grid overflow-y-auto">
-      <div className="w-full max-w-2xl md:max-w-4xl px-4 py-4 md:py-6">
+      <div className="w-full max-w-2xl md:max-w-5xl px-4 py-4 md:py-8">
         {/* Title */}
-        <div className="text-center mb-4 md:mb-6 relative">
+        <div className="text-center mb-6 md:mb-8 relative">
           {/* Leaderboard Button - Top Right */}
           <Link
             to="/leaderboard"
-            className="absolute top-0 right-0 flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 md:py-2 bg-cyber-surface border border-cyber-accent rounded-lg hover:bg-cyber-accent hover:bg-opacity-20 transition-all duration-300 text-xs md:text-sm"
+            className="absolute top-0 right-0 flex items-center gap-1.5 px-3 md:px-4 py-2 md:py-2.5 bg-cyber-surface border border-cyber-accent/30 rounded-xl hover:bg-cyber-accent hover:bg-opacity-20 hover:border-cyber-accent transition-all duration-300 text-xs md:text-sm shadow-lg hover:shadow-xl"
           >
             <Trophy size={14} className="md:hidden" />
             <Trophy size={18} className="hidden md:block" />
             <span className="hidden sm:inline">LEADERBOARD</span>
           </Link>
 
-          <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold text-cyber-accent glow-text mb-1 md:mb-2 leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-cyber-accent glow-text mb-2 md:mb-3 leading-tight tracking-tight">
             ESCAPE ROOM
           </h1>
-          <p className="text-xs md:text-lg text-white text-opacity-70 mb-0.5 md:mb-1 leading-tight">
+          <p className="text-sm md:text-xl text-white text-opacity-80 mb-1 md:mb-2 leading-tight font-medium">
             Multiplayer Challenge
           </p>
-          <p className="text-xs md:text-sm text-white text-opacity-50 leading-none hidden md:block">
+          <p className="text-xs md:text-base text-white text-opacity-60 leading-relaxed hidden md:block">
             Solve AI puzzles. Beat the clock.
           </p>
         </div>
 
         {/* Action Cards */}
-        <div className="grid md:grid-cols-2 gap-2.5 md:gap-4">
+        <div className="grid md:grid-cols-2 gap-4 md:gap-6">
           {/* Solo Game Card */}
-          <Link to="/solo" className="block">
+          <Link to="/solo" className="block group">
             <div
-              className="card hover:border-cyber-accent transition-all duration-300 cursor-pointer 
-                          hover:scale-[1.02] active:scale-[0.98] h-full p-3 md:p-4"
+              className="card hover:border-cyber-accent/50 transition-all duration-300 cursor-pointer 
+                          hover:scale-[1.02] active:scale-[0.98] h-full p-4 md:p-6 hover:shadow-2xl"
             >
               <div className="text-center">
                 <div
-                  className="w-10 h-10 md:w-16 md:h-16 bg-cyber-accent rounded-full flex items-center justify-center 
-                              mx-auto mb-2 md:mb-3"
+                  className="w-12 h-12 md:w-20 md:h-20 bg-cyber-accent rounded-2xl flex items-center justify-center 
+                              mx-auto mb-3 md:mb-4 shadow-lg shadow-cyber-accent/20 group-hover:shadow-cyber-accent/40 transition-shadow"
                 >
-                  <User size={18} className="md:hidden text-black" />
-                  <User size={32} className="hidden md:block text-black" />
+                  <User size={20} className="md:hidden text-black" />
+                  <User size={40} className="hidden md:block text-black" />
                 </div>
-                <h2 className="text-base md:text-2xl font-bold text-cyber-accent mb-1 md:mb-2 leading-tight">
+                <h2 className="text-lg md:text-3xl font-bold text-cyber-accent mb-2 md:mb-3 leading-tight tracking-tight">
                   SOLO GAME
                 </h2>
-                <p className="text-xs md:text-sm text-white text-opacity-70 mb-1.5 md:mb-2 leading-tight">
+                <p className="text-sm md:text-base text-white text-opacity-80 mb-2 md:mb-3 leading-relaxed font-medium">
                   Play alone at your pace
                 </p>
-                <ul className="text-left text-white text-opacity-60 space-y-0.5 md:space-y-1 text-xs md:text-sm hidden md:block">
-                  <li>• Set your own difficulty</li>
-                  <li>• Choose levels & time</li>
+                <ul className="text-left text-white text-opacity-70 space-y-1 md:space-y-1.5 text-xs md:text-sm hidden md:block">
+                  <li className="flex items-center gap-2">
+                    <span className="text-cyber-accent">•</span>
+                    <span>Set your own difficulty</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-cyber-accent">•</span>
+                    <span>Choose levels & time</span>
+                  </li>
                 </ul>
               </div>
             </div>
           </Link>
 
           {/* Join Card */}
-          <Link to="/join" className="block">
+          <Link to="/join" className="block group">
             <div
-              className="card hover:border-cyber-accent transition-all duration-300 cursor-pointer 
-                          hover:scale-[1.02] active:scale-[0.98] h-full p-3 md:p-4"
+              className="card hover:border-cyber-accent/50 transition-all duration-300 cursor-pointer 
+                          hover:scale-[1.02] active:scale-[0.98] h-full p-4 md:p-6 hover:shadow-2xl"
             >
               <div className="text-center">
                 <div
-                  className="w-10 h-10 md:w-16 md:h-16 bg-cyber-accent rounded-full flex items-center justify-center 
-                              mx-auto mb-2 md:mb-3"
+                  className="w-12 h-12 md:w-20 md:h-20 bg-cyber-accent rounded-2xl flex items-center justify-center 
+                              mx-auto mb-3 md:mb-4 shadow-lg shadow-cyber-accent/20 group-hover:shadow-cyber-accent/40 transition-shadow"
                 >
-                  <Users size={18} className="md:hidden text-black" />
-                  <Users size={32} className="hidden md:block text-black" />
+                  <Users size={20} className="md:hidden text-black" />
+                  <Users size={40} className="hidden md:block text-black" />
                 </div>
-                <h2 className="text-base md:text-2xl font-bold text-cyber-accent mb-1 md:mb-2 leading-tight">
+                <h2 className="text-lg md:text-3xl font-bold text-cyber-accent mb-2 md:mb-3 leading-tight tracking-tight">
                   JOIN GAME
                 </h2>
-                <p className="text-xs md:text-sm text-white text-opacity-70 mb-1.5 md:mb-2 leading-tight">
+                <p className="text-sm md:text-base text-white text-opacity-80 mb-2 md:mb-3 leading-relaxed font-medium">
                   Enter room code
                 </p>
-                <ul className="text-left text-white text-opacity-60 space-y-0.5 md:space-y-1 text-xs md:text-sm hidden md:block">
-                  <li>• Real-time competition</li>
-                  <li>• Climb the leaderboard</li>
+                <ul className="text-left text-white text-opacity-70 space-y-1 md:space-y-1.5 text-xs md:text-sm hidden md:block">
+                  <li className="flex items-center gap-2">
+                    <span className="text-cyber-accent">•</span>
+                    <span>Real-time competition</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-cyber-accent">•</span>
+                    <span>Climb the leaderboard</span>
+                  </li>
                 </ul>
               </div>
             </div>
@@ -97,21 +109,21 @@ function HomePage() {
         </div>
 
         {/* Create Game Link - Small button below cards */}
-        <div className="mt-3 md:mt-4 text-center">
+        <div className="mt-5 md:mt-6 text-center">
           <Link
             to="/admin"
-            className="inline-flex items-center gap-1.5 text-white text-opacity-60 hover:text-opacity-100 
-                       text-xs md:text-sm transition-all duration-300 underline underline-offset-2"
+            className="inline-flex items-center gap-2 px-4 py-2 text-white text-opacity-70 hover:text-opacity-100 
+                       text-xs md:text-sm transition-all duration-300 rounded-lg hover:bg-cyber-surface/50 border border-transparent hover:border-cyber-border"
           >
-            <Shield size={12} />
+            <Shield size={14} />
             Create Multiplayer Game
           </Link>
         </div>
 
         {/* Footer */}
-        <div className="mt-4 md:mt-5 text-center text-white text-opacity-50 text-[10px] md:text-xs">
+        <div className="mt-6 md:mt-8 text-center text-white text-opacity-50 text-[10px] md:text-xs space-y-1">
           <p className="hidden md:block">PWA Enabled • Install on your device for best experience</p>
-          <p className="mt-1">Made by Zaryab</p>
+          <p>Made by Zaryab</p>
         </div>
       </div>
     </div>
