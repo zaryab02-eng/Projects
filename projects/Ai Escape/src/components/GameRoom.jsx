@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Clock, AlertTriangle } from "lucide-react";
 import { useGameState, formatTime } from "../hooks/useGameState";
 import { useAntiCheat } from "../hooks/useAntiCheat";
+import { useTabVisibility } from "../hooks/useTabVisibility";
 import { getLeaderboard, endGame } from "../services/gameService";
+import { submitSoloResult } from "../services/leaderboardService";
 import Question from "./Question";
 import Cinematic from "./Cinematic";
 import Leaderboard from "./Leaderboard";
@@ -31,6 +33,69 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
   const currentQuestion = roomData?.questions?.[player?.currentLevel - 1];
   const leaderboard = roomData ? getLeaderboard(roomData) : [];
   const playerRank = leaderboard.findIndex((p) => p.id === playerId) + 1 || 0;
+
+  // Solo mode: Tab visibility detection with grace timer
+  const handleTabLeave = async () => {
+    if (isSolo && isGameActive && player) {
+      // Submit current progress to leaderboard before terminating
+      const soloUserId = sessionStorage.getItem("soloUserId");
+      const soloDifficulty = sessionStorage.getItem("soloDifficulty");
+      const soloTotalLevels = parseInt(sessionStorage.getItem("soloTotalLevels") || "5");
+
+      if (soloUserId && soloDifficulty) {
+        try {
+          await submitSoloResult(
+            soloUserId,
+            playerName,
+            soloDifficulty,
+            soloTotalLevels,
+            player.completedLevels || 0,
+            player.totalTime || 0,
+            player.totalWrongAnswers || 0
+          );
+        } catch (err) {
+          console.error("Error submitting to leaderboard:", err);
+        }
+      }
+
+      // Terminate solo game if player leaves tab/app
+      try {
+        await endGame(roomCode);
+      } catch (err) {
+        console.error("Error ending game:", err);
+      }
+      
+      sessionStorage.clear();
+      navigate("/");
+      alert("Game terminated: You left the tab/app during solo mode.");
+    }
+  };
+
+  useTabVisibility(handleTabLeave, 7500); // 7.5 second grace period
+
+  // Submit solo result to global leaderboard when game finishes
+  useEffect(() => {
+    if (isSolo && roomData?.status === "finished" && player) {
+      const soloUserId = sessionStorage.getItem("soloUserId");
+      const soloDifficulty = sessionStorage.getItem("soloDifficulty");
+      const soloTotalLevels = parseInt(sessionStorage.getItem("soloTotalLevels") || "5");
+
+      if (soloUserId && soloDifficulty && player.completedLevels !== undefined) {
+        submitSoloResult(
+          soloUserId,
+          playerName,
+          soloDifficulty,
+          soloTotalLevels,
+          player.completedLevels || 0,
+          player.totalTime || 0,
+          player.totalWrongAnswers || 0
+        ).catch((err) => {
+          console.error("Error submitting to leaderboard:", err);
+          // Don't show error to user - leaderboard submission is non-critical
+        });
+      }
+    }
+  }, [isSolo, roomData?.status, player, playerName]);
 
   // Initialize background video for Safari
   useEffect(() => {

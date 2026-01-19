@@ -226,20 +226,34 @@ export async function submitAnswer(roomCode, playerId, levelNumber, answer) {
   // Case-insensitive comparison (handles array of acceptable answers)
   const isCorrect = checkAnswer(answer, currentQuestion.answer);
 
-  if (isCorrect) {
-    const playerRef = ref(database, `rooms/${roomCode}/players/${playerId}`);
-    const playerSnapshot = await get(playerRef);
-    const playerData = playerSnapshot.val();
+  const playerRef = ref(database, `rooms/${roomCode}/players/${playerId}`);
+  const playerSnapshot = await get(playerRef);
+  const playerData = playerSnapshot.val();
 
+  // Check if this is a solo game
+  const isSolo = sessionStorage.getItem("isSolo") === "true";
+
+  if (isCorrect) {
     const now = Date.now();
     const levelTime = now - (playerData.levelStartTime || roomData.startTime);
-    const newTotalTime = (playerData.totalTime || 0) + levelTime;
+    
+    // For solo mode: add time penalty for wrong answers in this level
+    // Each wrong answer adds 10 seconds penalty (applied when level completes)
+    const levelWrongAnswers = (playerData.levelWrongAnswers && playerData.levelWrongAnswers[levelNumber]) || 0;
+    const wrongAnswersPenalty = isSolo ? (levelWrongAnswers * 10 * 1000) : 0;
+    const newTotalTime = (playerData.totalTime || 0) + levelTime + wrongAnswersPenalty;
 
     const updates = {
       completedLevels: levelNumber,
       totalTime: newTotalTime,
       [`levelTimes/${levelNumber}`]: levelTime,
     };
+
+    // Track total wrong answers across all levels (for solo mode)
+    if (isSolo) {
+      const totalWrongAnswers = (playerData.totalWrongAnswers || 0) + levelWrongAnswers;
+      updates.totalWrongAnswers = totalWrongAnswers;
+    }
 
     // Move to next level if available
     if (levelNumber < roomData.totalLevels) {
@@ -252,6 +266,16 @@ export async function submitAnswer(roomCode, playerId, levelNumber, answer) {
     }
 
     await update(playerRef, updates);
+  } else {
+    // Wrong answer - increment wrong answers count for this level (for solo mode)
+    if (isSolo) {
+      const currentWrongAnswers = (playerData.levelWrongAnswers && playerData.levelWrongAnswers[levelNumber]) || 0;
+      const levelWrongAnswers = playerData.levelWrongAnswers || {};
+      levelWrongAnswers[levelNumber] = currentWrongAnswers + 1;
+      await update(playerRef, {
+        levelWrongAnswers: levelWrongAnswers
+      });
+    }
   }
 
   return isCorrect;

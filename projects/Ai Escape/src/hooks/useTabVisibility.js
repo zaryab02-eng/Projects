@@ -1,0 +1,68 @@
+import { useEffect, useRef } from "react";
+
+/**
+ * Hook to detect tab visibility changes and implement grace timer
+ * For solo mode only - terminates game if player leaves tab/app
+ */
+export function useTabVisibility(onTerminate, gracePeriodMs = 7500) {
+  const graceTimerRef = useRef(null);
+  const isVisibleRef = useRef(true);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const isVisible = !document.hidden;
+
+      if (!isVisible) {
+        // Tab/app became hidden - start grace timer
+        isVisibleRef.current = false;
+        
+        // Clear any existing timer
+        if (graceTimerRef.current) {
+          clearTimeout(graceTimerRef.current);
+        }
+
+        // Start new grace timer
+        graceTimerRef.current = setTimeout(() => {
+          // Grace period expired - terminate game
+          if (onTerminate) {
+            onTerminate();
+          }
+        }, gracePeriodMs);
+      } else {
+        // Tab/app became visible again - cancel grace timer
+        isVisibleRef.current = true;
+        
+        if (graceTimerRef.current) {
+          clearTimeout(graceTimerRef.current);
+          graceTimerRef.current = null;
+        }
+      }
+    };
+
+    // Listen for visibility changes
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // Also listen for page unload (browser close/refresh)
+    const handleBeforeUnload = () => {
+      if (onTerminate) {
+        onTerminate();
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    // Cleanup
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      
+      if (graceTimerRef.current) {
+        clearTimeout(graceTimerRef.current);
+      }
+    };
+  }, [onTerminate, gracePeriodMs]);
+
+  return {
+    isVisible: isVisibleRef.current,
+  };
+}

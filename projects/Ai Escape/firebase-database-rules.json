@@ -1,0 +1,30 @@
+{
+  "rules": {
+    "rooms": {
+      ".read": true,
+      ".write": true,
+      "$roomCode": {
+        ".validate": "newData.hasChildren(['roomCode', 'status', 'adminName'])",
+        "status": {
+          ".validate": "newData.isString() && (newData.val() === 'waiting' || newData.val() === 'playing' || newData.val() === 'finished')"
+        }
+      }
+    },
+    "players": {
+      ".read": true,
+      ".write": true,
+      "$playerId": {
+        ".validate": "newData.hasChildren(['identifier', 'name'])"
+      }
+    },
+    "soloLeaderboards": {
+      ".read": true,
+      "$category": {
+        ".write": true,
+        "$userId": {
+          ".validate": "newData.hasChildren(['userId', 'displayName', 'difficulty', 'totalLevels', 'completedLevels', 'totalTime', 'timestamp']) && newData.child('userId').isString() && newData.child('displayName').isString() && newData.child('difficulty').isString() && newData.child('totalLevels').val() is int && newData.child('completedLevels').val() is int && newData.child('totalTime').val() is int && newData.child('timestamp').val() is int"
+        }
+      }
+    }
+  }
+}

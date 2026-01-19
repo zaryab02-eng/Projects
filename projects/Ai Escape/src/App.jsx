@@ -1,9 +1,10 @@
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
-import { Shield, Users, User } from "lucide-react";
+import { Shield, Users, User, Trophy } from "lucide-react";
 import AdminPage from "./pages/AdminPage";
 import JoinPage from "./pages/JoinPage";
 import GamePage from "./pages/GamePage";
 import SoloGamePage from "./pages/SoloGamePage";
+import GlobalLeaderboardPage from "./pages/GlobalLeaderboardPage";
 import DiagnosticPage from "./components/DiagnosticPage";
 
 /**
@@ -14,7 +15,17 @@ function HomePage() {
     <div className="viewport-container flex items-center justify-center cyber-grid overflow-y-auto">
       <div className="w-full max-w-2xl md:max-w-4xl px-4 py-4 md:py-6">
         {/* Title */}
-        <div className="text-center mb-4 md:mb-6">
+        <div className="text-center mb-4 md:mb-6 relative">
+          {/* Leaderboard Button - Top Right */}
+          <Link
+            to="/leaderboard"
+            className="absolute top-0 right-0 flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 md:py-2 bg-cyber-surface border border-cyber-accent rounded-lg hover:bg-cyber-accent hover:bg-opacity-20 transition-all duration-300 text-xs md:text-sm"
+          >
+            <Trophy size={14} className="md:hidden" />
+            <Trophy size={18} className="hidden md:block" />
+            <span className="hidden sm:inline">LEADERBOARD</span>
+          </Link>
+
           <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold text-cyber-accent glow-text mb-1 md:mb-2 leading-tight">
             ESCAPE ROOM
           </h1>
@@ -115,6 +126,7 @@ export default function App() {
         <Route path="/join" element={<JoinPage />} />
         <Route path="/solo" element={<SoloGamePage />} />
         <Route path="/game" element={<GamePage />} />
+        <Route path="/leaderboard" element={<GlobalLeaderboardPage />} />
         <Route path="/diagnostic" element={<DiagnosticPage />} />
       </Routes>
     </BrowserRouter>
