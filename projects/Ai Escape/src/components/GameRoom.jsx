@@ -12,6 +12,7 @@ import { signOutUser } from "../services/authService";
 import Question from "./Question";
 import Cinematic from "./Cinematic";
 import Leaderboard from "./Leaderboard";
+import RoomLeaderboard from "./RoomLeaderboard";
 import { notify } from "../utils/notify";
 import { useConfirm } from "./ui/OverlaysProvider";
 
@@ -493,7 +494,11 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
           </div>
 
           <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
-            <Leaderboard leaderboard={leaderboard} isAdmin={isAdmin} isGameFinished={false} />
+            <RoomLeaderboard
+              leaderboard={leaderboard}
+              totalLevels={roomData?.totalLevels || 0}
+              currentPlayerId={playerId}
+            />
           </div>
         </div>
       </div>
@@ -529,11 +534,19 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
 
           <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-2 md:gap-3 mb-2 md:mb-3 overflow-hidden max-w-full">
             <div className="lg:col-span-2 flex flex-col min-h-0 overflow-y-auto overflow-x-hidden">
-              <Leaderboard
-                leaderboard={leaderboard}
-                isAdmin={isAdmin}
-                isGameFinished={true}
-              />
+              {isSolo ? (
+                <Leaderboard
+                  leaderboard={leaderboard}
+                  isAdmin={isAdmin}
+                  isGameFinished={true}
+                />
+              ) : (
+                <RoomLeaderboard
+                  leaderboard={leaderboard}
+                  totalLevels={roomData?.totalLevels || 0}
+                  currentPlayerId={playerId}
+                />
+              )}
             </div>
 
             <div className="flex flex-col gap-2 md:gap-3 min-h-0 overflow-y-auto overflow-x-hidden">
@@ -788,10 +801,10 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
                     Waiting for other players or timer to finish...
                   </p>
                   <div className="max-w-4xl mx-auto">
-                    <Leaderboard
+                    <RoomLeaderboard
                       leaderboard={leaderboard}
-                      isAdmin={isAdmin}
-                      isGameFinished={false}
+                      totalLevels={roomData?.totalLevels || 0}
+                      currentPlayerId={playerId}
                     />
                   </div>
                 </>

@@ -5,7 +5,7 @@ import { getLeaderboard, endGame } from "../services/gameService";
 import LobbyWaiting from "../components/LobbyWaiting";
 import GameRoom from "../components/GameRoom";
 import AdminPanel from "../components/AdminPanel";
-import Leaderboard from "../components/Leaderboard";
+import RoomLeaderboard from "../components/RoomLeaderboard";
 import { Clock } from "lucide-react";
 
 /**
@@ -49,7 +49,8 @@ export default function GamePage() {
     }
   }, [navigate]);
 
-  // Auto-end multiplayer game when all players complete all levels (admin only)
+  // Auto-end multiplayer game when TOP 3 finish (admin only).
+  // If fewer than 3 eligible players exist, end when all eligible players finish.
   useEffect(() => {
     if (
       isAdmin &&
@@ -63,14 +64,15 @@ export default function GamePage() {
         (p) => !p.disqualified && !p.gaveUp
       );
 
-      // Check if all active players have completed all levels
-      const allPlayersCompleted =
-        activePlayers.length > 0 &&
-        activePlayers.every(
-          (player) => (player.completedLevels || 0) >= roomData.totalLevels
-        );
+      const finishers = activePlayers.filter(
+        (player) => (player.completedLevels || 0) >= roomData.totalLevels
+      );
 
-      if (allPlayersCompleted) {
+      const requiredFinishers = Math.min(3, activePlayers.length);
+      const shouldEnd =
+        activePlayers.length > 0 && finishers.length >= requiredFinishers;
+
+      if (shouldEnd) {
         // Small delay to show completion state, then auto-end
         const timer = setTimeout(() => {
           endGame(roomCode);
@@ -272,11 +274,7 @@ export default function GamePage() {
             {/* Content - Scrollable if needed */}
             <div className="flex-1 min-h-0 grid md:grid-cols-3 gap-3 md:gap-4 overflow-hidden">
               <div className="md:col-span-2 flex flex-col min-h-0 overflow-y-auto">
-                <Leaderboard
-                  leaderboard={leaderboard}
-                  isAdmin={true}
-                  isGameFinished={false}
-                />
+                <RoomLeaderboard leaderboard={leaderboard} totalLevels={roomData?.totalLevels || 0} />
               </div>
 
               <div className="flex flex-col min-h-0 overflow-y-auto">
@@ -323,11 +321,7 @@ export default function GamePage() {
             {/* Leaderboard - Takes 2/3 of desktop space */}
             <div className="lg:col-span-2 flex flex-col min-h-0 overflow-hidden">
               <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
-                <Leaderboard
-                  leaderboard={leaderboard}
-                  isAdmin={isAdmin}
-                  isGameFinished={true}
-                />
+                <RoomLeaderboard leaderboard={leaderboard} totalLevels={roomData?.totalLevels || 0} />
               </div>
             </div>
 
