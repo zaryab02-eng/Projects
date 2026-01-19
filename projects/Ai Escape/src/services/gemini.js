@@ -1,9 +1,3 @@
-/**
- * Question Bank - Static questions for each difficulty level
- * Questions are shuffled each time to ensure variety
- * All questions verified with multiple acceptable answers
- */
-
 // Easy Level Questions (50 questions)
 const easyQuestions = [
   {
