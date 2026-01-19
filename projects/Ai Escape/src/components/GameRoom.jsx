@@ -33,7 +33,7 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
   const wrongVideoRef = useRef(null);
 
   const isGameActive = roomData?.status === "playing";
-  useAntiCheat(roomCode, playerId, isGameActive && !isAdmin);
+  useAntiCheat(roomCode, playerId, isGameActive && !isAdmin, roomData);
 
   const player = roomData?.players?.[playerId];
   const currentQuestion = roomData?.questions?.[player?.currentLevel - 1];

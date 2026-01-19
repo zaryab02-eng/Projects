@@ -65,11 +65,24 @@ export default function GlobalLeaderboardPage() {
   const top3Players = leaderboardData?.topPlayers.slice(0, 3) || [];
   const remainingPlayers = leaderboardData?.topPlayers.slice(3) || [];
   const currentUser = getCurrentUser();
-  const playerRank = leaderboardData?.playerRank;
+  
   // Player data is either in topPlayers (if in top 20) or in playerData (if below top 20)
   const playerData =
     leaderboardData?.topPlayers.find((p) => p.userId === currentUser?.uid) ||
     leaderboardData?.playerData;
+  
+  // Calculate player rank: if in top 20, find index in topPlayers; otherwise use playerRank from API
+  let playerRank = null;
+  if (currentUser?.uid) {
+    if (playerData && leaderboardData?.topPlayers) {
+      const indexInTop = leaderboardData.topPlayers.findIndex((p) => p.userId === currentUser.uid);
+      if (indexInTop >= 0) {
+        playerRank = indexInTop + 1; // Rank is 1-based
+      } else if (leaderboardData?.playerRank) {
+        playerRank = leaderboardData.playerRank; // Player is below top 20
+      }
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white overflow-y-auto">

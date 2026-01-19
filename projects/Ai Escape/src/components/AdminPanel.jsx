@@ -22,7 +22,9 @@ export default function AdminPanel({ roomData, hidePlayerManagement = false }) {
   const players = Object.values(roomData.players || {});
   const isConfigSet =
     roomData.difficulty && roomData.duration && roomData.totalLevels;
-  const canStartGame = isConfigSet && players.length > 0;
+  // All players must be ready to start the game
+  const allPlayersReady = players.length > 0 && players.every((p) => p.ready === true);
+  const canStartGame = isConfigSet && allPlayersReady;
 
   const handleSetConfig = async () => {
     setLoading(true);
@@ -229,13 +231,15 @@ export default function AdminPanel({ roomData, hidePlayerManagement = false }) {
             <p className="text-cyber-warning text-center mt-3 md:mt-4 text-xs md:text-sm">
               {!isConfigSet
                 ? "⚠️ Set game configuration first"
-                : "⚠️ At least one player must join to start"}
+                : !allPlayersReady
+                  ? `⚠️ All players must be ready to start (${players.filter((p) => p.ready).length}/${players.length} ready)`
+                  : "⚠️ At least one player must join to start"}
             </p>
           )}
 
           {canStartGame && roomData.status === "waiting" && (
             <p className="text-cyber-accent text-center mt-3 md:mt-4 text-xs md:text-sm">
-              ✓ Ready to start! Game can begin with {players.length} player
+              ✓ All players ready! Game can begin with {players.length} player
               {players.length !== 1 ? "s" : ""} (up to 5 max)
             </p>
           )}

@@ -5,7 +5,7 @@ import { addPlayerWarning } from "../services/gameService";
  * Anti-cheat hook to detect suspicious behavior
  * Implements realistic web-based anti-cheat measures
  */
-export function useAntiCheat(roomCode, playerId, isGameActive) {
+export function useAntiCheat(roomCode, playerId, isGameActive, roomData = null) {
   const tabSwitchCount = useRef(0);
   const hasWarned = useRef(false);
   const visibilityTimeoutRef = useRef(null);
@@ -13,6 +13,18 @@ export function useAntiCheat(roomCode, playerId, isGameActive) {
 
   useEffect(() => {
     if (!isGameActive || !roomCode || !playerId) return;
+    
+    // Check if player has completed all levels - if so, disable anti-cheat
+    if (roomData?.players?.[playerId]) {
+      const player = roomData.players[playerId];
+      const totalLevels = roomData.totalLevels || 0;
+      const completedLevels = player.completedLevels || 0;
+      
+      // If player completed all levels, don't enforce anti-cheat
+      if (completedLevels >= totalLevels && totalLevels > 0) {
+        return;
+      }
+    }
 
     // Disable right-click
     const handleContextMenu = (e) => {
@@ -154,7 +166,7 @@ export function useAntiCheat(roomCode, playerId, isGameActive) {
         clearTimeout(visibilityTimeoutRef.current);
       }
     };
-  }, [roomCode, playerId, isGameActive]);
+  }, [roomCode, playerId, isGameActive, roomData]);
 
   return {
     tabSwitchCount: tabSwitchCount.current,

@@ -169,6 +169,7 @@ export async function setGameConfig(
 
 /**
  * Start the game (Admin only)
+ * Requires all players to be ready
  */
 export async function startGame(roomCode) {
   const roomRef = ref(database, `rooms/${roomCode}`);
@@ -182,6 +183,20 @@ export async function startGame(roomCode) {
 
   if (!roomData.difficulty || !roomData.duration || !roomData.totalLevels) {
     throw new Error("Game configuration incomplete");
+  }
+
+  // Check that all players are ready
+  const players = roomData.players || {};
+  const playerList = Object.values(players);
+  
+  if (playerList.length === 0) {
+    throw new Error("No players in the room");
+  }
+
+  const allPlayersReady = playerList.every((p) => p.ready === true);
+  if (!allPlayersReady) {
+    const readyCount = playerList.filter((p) => p.ready === true).length;
+    throw new Error(`All players must be ready to start. ${readyCount}/${playerList.length} players are ready.`);
   }
 
   // Generate questions
@@ -203,7 +218,6 @@ export async function startGame(roomCode) {
   });
 
   // Initialize all players to level 1
-  const players = roomData.players || {};
   for (const playerId in players) {
     await update(ref(database, `rooms/${roomCode}/players/${playerId}`), {
       currentLevel: 1,
