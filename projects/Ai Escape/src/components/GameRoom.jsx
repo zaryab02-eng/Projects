@@ -5,6 +5,8 @@ import { useGameState, formatTime } from "../hooks/useGameState";
 import { useAntiCheat } from "../hooks/useAntiCheat";
 import { useTabVisibility } from "../hooks/useTabVisibility";
 import { getLeaderboard, endGame, updatePlayerNameInRoom } from "../services/gameService";
+import { ref, update } from "firebase/database";
+import { database } from "../services/firebase";
 import { submitSoloResult, getGlobalLeaderboard, updateSoloDisplayNameEverywhere } from "../services/leaderboardService";
 import { signOutUser } from "../services/authService";
 import Question from "./Question";
@@ -94,32 +96,62 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
     }
   };
 
+  // Helper function to calculate total wrong answers from levelWrongAnswers object
+  const calculateTotalWrongAnswers = (playerData) => {
+    if (playerData.totalWrongAnswers !== undefined) {
+      return playerData.totalWrongAnswers;
+    }
+    // Calculate from levelWrongAnswers object
+    const levelWrongAnswers = playerData.levelWrongAnswers || {};
+    let total = 0;
+    for (const level in levelWrongAnswers) {
+      total += levelWrongAnswers[level];
+    }
+    return total;
+  };
+
   const handleGiveUp = async () => {
-    if (!isSolo || !isGameActive || !player) return;
+    if (!isGameActive || !player) return;
 
     const confirmed = window.confirm(
-      "Are you sure you want to give up? Your current progress will be saved to the leaderboard."
+      "Are you sure you want to give up? Your current progress will be saved."
     );
     if (!confirmed) return;
 
-    const soloUserId = sessionStorage.getItem("soloUserId");
-    const soloDifficulty = sessionStorage.getItem("soloDifficulty");
-    const soloTotalLevels = parseInt(sessionStorage.getItem("soloTotalLevels") || "5");
+    // Calculate total wrong answers correctly
+    const totalWrongAnswers = calculateTotalWrongAnswers(player);
 
-    if (soloUserId && soloDifficulty) {
+    // Update player's totalWrongAnswers in database if not already set
+    if (player.totalWrongAnswers === undefined) {
       try {
-        // Submit current progress to leaderboard
-        await submitSoloResult(
-          soloUserId,
-          effectivePlayerName,
-          soloDifficulty,
-          soloTotalLevels,
-          player.completedLevels || 0,
-          player.totalTime || 0,
-          player.totalWrongAnswers || 0
-        );
+        const playerRef = ref(database, `rooms/${roomCode}/players/${playerId}`);
+        await update(playerRef, { totalWrongAnswers });
       } catch (err) {
-        console.error("Error submitting to leaderboard:", err);
+        console.error("Error updating wrong answers:", err);
+      }
+    }
+
+    // For solo mode, submit to global leaderboard
+    if (isSolo) {
+      const soloUserId = sessionStorage.getItem("soloUserId");
+      const soloDifficulty = sessionStorage.getItem("soloDifficulty");
+      const soloTotalLevels = parseInt(sessionStorage.getItem("soloTotalLevels") || "5");
+
+      if (soloUserId && soloDifficulty) {
+        try {
+          // Submit current progress to leaderboard
+          await submitSoloResult(
+            soloUserId,
+            effectivePlayerName,
+            soloDifficulty,
+            soloTotalLevels,
+            player.completedLevels || 0,
+            player.totalTime || 0,
+            totalWrongAnswers
+          );
+        } catch (err) {
+          console.error("Error submitting to leaderboard:", err);
+        }
       }
     }
 
@@ -130,13 +162,21 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
       console.error("Error ending game:", err);
     }
 
-    sessionStorage.clear();
-    navigate("/");
+    if (isSolo) {
+      sessionStorage.clear();
+      navigate("/");
+    } else {
+      // For multiplayer, just wait for game to finish normally
+      // The results will show on the finished screen
+    }
   };
 
   // Solo mode: Tab visibility detection with grace timer
   const handleTabLeave = async () => {
     if (isSolo && isGameActive && player) {
+      // Calculate total wrong answers correctly
+      const totalWrongAnswers = calculateTotalWrongAnswers(player);
+
       // Submit current progress to leaderboard before terminating
       const soloUserId = sessionStorage.getItem("soloUserId");
       const soloDifficulty = sessionStorage.getItem("soloDifficulty");
@@ -151,7 +191,7 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
             soloTotalLevels,
             player.completedLevels || 0,
             player.totalTime || 0,
-            player.totalWrongAnswers || 0
+            totalWrongAnswers
           );
         } catch (err) {
           console.error("Error submitting to leaderboard:", err);
@@ -197,6 +237,9 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
         const before = await getGlobalLeaderboard(difficulty, totalLevels, soloUserId);
         const rankBefore = computeRank(before);
 
+        // Calculate total wrong answers correctly
+        const totalWrongAnswers = calculateTotalWrongAnswers(player);
+
         await submitSoloResult(
           soloUserId,
           effectivePlayerName,
@@ -204,7 +247,7 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
           totalLevels,
           player.completedLevels || 0,
           player.totalTime || 0,
-          player.totalWrongAnswers || 0
+          totalWrongAnswers
         );
 
         const after = await getGlobalLeaderboard(difficulty, totalLevels, soloUserId);
@@ -594,12 +637,12 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
                   </div>
                 </div>
               </div>
-              {isSolo && !isAdmin && isGameActive && (
+              {!isAdmin && isGameActive && (
                 <button
                   type="button"
                   onClick={handleGiveUp}
                   className="inline-flex items-center gap-1.5 px-3 md:px-4 py-2 md:py-2.5 bg-cyber-danger bg-opacity-20 border border-cyber-danger rounded-xl hover:bg-opacity-30 transition-all duration-300 text-xs md:text-sm shadow-lg hover:shadow-xl"
-                  title="Give up and save current progress"
+                  title={isSolo ? "Give up and save current progress to leaderboard" : "Give up and save current progress"}
                 >
                   <Flag size={14} />
                   GIVE UP

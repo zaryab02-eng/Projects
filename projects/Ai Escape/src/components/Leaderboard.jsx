@@ -92,9 +92,14 @@ export default function Leaderboard({ leaderboard, isAdmin, isGameFinished }) {
                   <div className="text-xs md:text-sm text-white text-opacity-70 mb-1 leading-tight">
                     Levels
                   </div>
-                  <div className="text-xs md:text-sm text-white leading-tight">
+                  <div className="text-xs md:text-sm text-white mb-1 leading-tight">
                     {formatTime(player.totalTime)}
                   </div>
+                  {player.totalWrongAnswers !== undefined && (
+                    <div className="text-xs text-white text-opacity-60 leading-tight">
+                      {player.totalWrongAnswers || 0} wrong
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -185,7 +185,7 @@ export async function startGame(roomCode) {
     throw new Error("Game configuration incomplete");
   }
 
-  // Check that all players are ready
+  // Check that all players are ready (only for multiplayer mode, not solo)
   const players = roomData.players || {};
   const playerList = Object.values(players);
   
@@ -193,10 +193,16 @@ export async function startGame(roomCode) {
     throw new Error("No players in the room");
   }
 
-  const allPlayersReady = playerList.every((p) => p.ready === true);
-  if (!allPlayersReady) {
-    const readyCount = playerList.filter((p) => p.ready === true).length;
-    throw new Error(`All players must be ready to start. ${readyCount}/${playerList.length} players are ready.`);
+  // Detect solo mode: solo rooms have adminName starting with "Solo-" or only 1 player
+  const isSoloMode = (roomData.adminName && roomData.adminName.startsWith("Solo-")) || playerList.length === 1;
+
+  // Only require all players to be ready in multiplayer mode
+  if (!isSoloMode) {
+    const allPlayersReady = playerList.every((p) => p.ready === true);
+    if (!allPlayersReady) {
+      const readyCount = playerList.filter((p) => p.ready === true).length;
+      throw new Error(`All players must be ready to start. ${readyCount}/${playerList.length} players are ready.`);
+    }
   }
 
   // Generate questions
@@ -276,11 +282,14 @@ export async function submitAnswer(roomCode, playerId, levelNumber, answer) {
       [`levelTimes/${levelNumber}`]: levelTime,
     };
 
-    // Track total wrong answers across all levels (for solo mode)
-    if (isSolo) {
-      const totalWrongAnswers = (playerData.totalWrongAnswers || 0) + levelWrongAnswers;
-      updates.totalWrongAnswers = totalWrongAnswers;
+    // Track total wrong answers across all levels (for both solo and multiplayer)
+    // Sum up all wrong answers from all levels including the current one
+    const allLevelWrongAnswers = playerData.levelWrongAnswers || {};
+    let totalWrongAnswers = 0;
+    for (const level in allLevelWrongAnswers) {
+      totalWrongAnswers += allLevelWrongAnswers[level];
     }
+    updates.totalWrongAnswers = totalWrongAnswers;
 
     // Move to next level if available
     if (levelNumber < roomData.totalLevels) {
@@ -294,15 +303,13 @@ export async function submitAnswer(roomCode, playerId, levelNumber, answer) {
 
     await update(playerRef, updates);
   } else {
-    // Wrong answer - increment wrong answers count for this level (for solo mode)
-    if (isSolo) {
-      const currentWrongAnswers = (playerData.levelWrongAnswers && playerData.levelWrongAnswers[levelNumber]) || 0;
-      const levelWrongAnswers = playerData.levelWrongAnswers || {};
-      levelWrongAnswers[levelNumber] = currentWrongAnswers + 1;
-      await update(playerRef, {
-        levelWrongAnswers: levelWrongAnswers
-      });
-    }
+    // Wrong answer - increment wrong answers count for this level (for both solo and multiplayer)
+    const currentWrongAnswers = (playerData.levelWrongAnswers && playerData.levelWrongAnswers[levelNumber]) || 0;
+    const levelWrongAnswers = playerData.levelWrongAnswers || {};
+    levelWrongAnswers[levelNumber] = currentWrongAnswers + 1;
+    await update(playerRef, {
+      levelWrongAnswers: levelWrongAnswers
+    });
   }
 
   return isCorrect;
@@ -369,6 +376,7 @@ export function subscribeToRoom(roomCode, callback) {
 
 /**
  * Get leaderboard data
+ * Uses same ranking logic as solo mode: levels, time, wrong attempts
  */
 export function getLeaderboard(roomData) {
   const players = roomData.players || {};
@@ -381,13 +389,23 @@ export function getLeaderboard(roomData) {
       identifier: p.identifier || '',
       completedLevels: p.completedLevels || 0,
       totalTime: p.totalTime || 0,
+      totalWrongAnswers: p.totalWrongAnswers || 0,
     }))
     .sort((a, b) => {
-      // Sort by levels completed (descending), then by time (ascending)
+      // Sort according to ranking priority (same as solo mode):
+      // 1. Higher levels completed (descending)
+      // 2. Less total time (ascending)
+      // 3. Fewer wrong attempts (ascending)
       if (b.completedLevels !== a.completedLevels) {
         return b.completedLevels - a.completedLevels;
       }
-      return a.totalTime - b.totalTime;
+      if (a.totalTime !== b.totalTime) {
+        return a.totalTime - b.totalTime;
+      }
+      // Wrong answers (fewer is better)
+      const aWrong = a.totalWrongAnswers || 0;
+      const bWrong = b.totalWrongAnswers || 0;
+      return aWrong - bWrong;
     });
 
   return leaderboard;
