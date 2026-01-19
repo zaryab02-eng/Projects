@@ -13,7 +13,7 @@ export function useTabVisibility(onTerminate, gracePeriodMs = 7500) {
       const isVisible = !document.hidden;
 
       if (!isVisible) {
-        // Tab/app became hidden - start grace timer
+        // Tab/app became hidden - start grace timer (or terminate immediately if 0)
         isVisibleRef.current = false;
         
         // Clear any existing timer
@@ -21,13 +21,20 @@ export function useTabVisibility(onTerminate, gracePeriodMs = 7500) {
           clearTimeout(graceTimerRef.current);
         }
 
-        // Start new grace timer
-        graceTimerRef.current = setTimeout(() => {
-          // Grace period expired - terminate game
+        // If grace period is 0, terminate immediately
+        if (gracePeriodMs === 0) {
           if (onTerminate) {
             onTerminate();
           }
-        }, gracePeriodMs);
+        } else {
+          // Start new grace timer
+          graceTimerRef.current = setTimeout(() => {
+            // Grace period expired - terminate game
+            if (onTerminate) {
+              onTerminate();
+            }
+          }, gracePeriodMs);
+        }
       } else {
         // Tab/app became visible again - cancel grace timer
         isVisibleRef.current = true;

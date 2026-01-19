@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clock, AlertTriangle, Pencil, X, Check, LogOut } from "lucide-react";
+import { Clock, AlertTriangle, Pencil, X, Check, LogOut, Flag } from "lucide-react";
 import { useGameState, formatTime } from "../hooks/useGameState";
 import { useAntiCheat } from "../hooks/useAntiCheat";
 import { useTabVisibility } from "../hooks/useTabVisibility";
@@ -94,6 +94,46 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
     }
   };
 
+  const handleGiveUp = async () => {
+    if (!isSolo || !isGameActive || !player) return;
+
+    const confirmed = window.confirm(
+      "Are you sure you want to give up? Your current progress will be saved to the leaderboard."
+    );
+    if (!confirmed) return;
+
+    const soloUserId = sessionStorage.getItem("soloUserId");
+    const soloDifficulty = sessionStorage.getItem("soloDifficulty");
+    const soloTotalLevels = parseInt(sessionStorage.getItem("soloTotalLevels") || "5");
+
+    if (soloUserId && soloDifficulty) {
+      try {
+        // Submit current progress to leaderboard
+        await submitSoloResult(
+          soloUserId,
+          effectivePlayerName,
+          soloDifficulty,
+          soloTotalLevels,
+          player.completedLevels || 0,
+          player.totalTime || 0,
+          player.totalWrongAnswers || 0
+        );
+      } catch (err) {
+        console.error("Error submitting to leaderboard:", err);
+      }
+    }
+
+    // End the game
+    try {
+      await endGame(roomCode);
+    } catch (err) {
+      console.error("Error ending game:", err);
+    }
+
+    sessionStorage.clear();
+    navigate("/");
+  };
+
   // Solo mode: Tab visibility detection with grace timer
   const handleTabLeave = async () => {
     if (isSolo && isGameActive && player) {
@@ -131,7 +171,8 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
     }
   };
 
-  useTabVisibility(handleTabLeave, 7500); // 7.5 second grace period
+  // Solo mode: immediate termination (no grace period)
+  useTabVisibility(handleTabLeave, isSolo ? 0 : 7500);
 
   // Submit solo result to global leaderboard when game finishes and compute rank change
   useEffect(() => {
@@ -193,6 +234,13 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
     }
   }, []);
 
+  // Preload wrong answer video to prevent freeze on first play
+  useEffect(() => {
+    if (wrongVideoRef.current) {
+      wrongVideoRef.current.load(); // Force preload
+    }
+  }, []);
+
   // Auto-end game when timer expires (admin only)
   useEffect(() => {
     if (isAdmin && remainingTime === 0 && roomData?.status === "playing") {
@@ -212,7 +260,7 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
     }
   }, [isFinalLevel, roomData?.status]);
 
-  // NEW: Handle wrong answer video playback - Safari-safe
+  // NEW: Handle wrong answer video playback - Safari-safe with preload check
   const handleWrongAnswer = () => {
     setShowWrongVideo(true);
 
@@ -221,14 +269,30 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
       backgroundVideoRef.current.pause();
     }
 
-    // Play wrong answer video - Safari-safe
+    // Play wrong answer video - Safari-safe with readyState check
     if (wrongVideoRef.current) {
+      // Ensure video is loaded before playing
+      if (wrongVideoRef.current.readyState < 2) {
+        wrongVideoRef.current.load();
+      }
+      
       wrongVideoRef.current.currentTime = 0;
-      wrongVideoRef.current.play().catch((err) => {
-        console.log("Wrong video play prevented:", err);
-        // If video fails, just hide it and continue
-        handleWrongVideoEnd();
-      });
+      
+      // Wait for video to be ready if needed
+      const playVideo = () => {
+        if (wrongVideoRef.current) {
+          wrongVideoRef.current.play().catch((err) => {
+            console.log("Wrong video play prevented:", err);
+            handleWrongVideoEnd();
+          });
+        }
+      };
+
+      if (wrongVideoRef.current.readyState >= 2) {
+        playVideo();
+      } else {
+        wrongVideoRef.current.addEventListener('canplay', playVideo, { once: true });
+      }
     }
   };
 
@@ -457,28 +521,28 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
         <source src="/videos/background.mp4" type="video/mp4" />
       </video>
 
-      {/* ❌ Wrong Answer Video - Safari-safe with error handling */}
-      {showWrongVideo && (
-        <video
-          ref={wrongVideoRef}
-          muted
-          playsInline
-          preload="auto"
-          disablePictureInPicture
-          disableRemotePlayback
-          controlsList="nodownload nofullscreen noremoteplayback"
-          className="fixed inset-0 w-full h-full object-cover opacity-100 -z-10 pointer-events-none"
-          onContextMenu={(e) => e.preventDefault()}
-          onEnded={handleWrongVideoEnd}
-          onError={(e) => {
-            console.error("Wrong video failed to load:", e);
-            // If wrong video fails, just skip it
-            handleWrongVideoEnd();
-          }}
-        >
-          <source src="/videos/wrong.mp4" type="video/mp4" />
-        </video>
-      )}
+      {/* ❌ Wrong Answer Video - Safari-safe with error handling, always rendered for preload */}
+      <video
+        ref={wrongVideoRef}
+        muted
+        playsInline
+        preload="auto"
+        disablePictureInPicture
+        disableRemotePlayback
+        controlsList="nodownload nofullscreen noremoteplayback"
+        className={`fixed inset-0 w-full h-full object-cover opacity-100 -z-10 pointer-events-none ${
+          showWrongVideo ? "" : "hidden"
+        }`}
+        onContextMenu={(e) => e.preventDefault()}
+        onEnded={handleWrongVideoEnd}
+        onError={(e) => {
+          console.error("Wrong video failed to load:", e);
+          // If wrong video fails, just skip it
+          handleWrongVideoEnd();
+        }}
+      >
+        <source src="/videos/wrong.mp4" type="video/mp4" />
+      </video>
 
       <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-4 py-3 md:py-6 min-h-0 relative z-0">
         {/* Header - Fixed */}
@@ -493,67 +557,15 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
                   Room: {roomCode} | Player: {player?.name || playerName}
                 </p>
                 {isSolo && !isAdmin && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={handleSignOut}
-                      className="inline-flex items-center gap-1.5 px-2 py-1 bg-cyber-surface border border-cyber-border rounded-lg hover:border-cyber-accent transition-all duration-300 text-[10px]"
-                      title="Sign out"
-                    >
-                      <LogOut size={12} />
-                      SIGN OUT
-                    </button>
-                    {!isEditingName ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setNameDraft(player?.name || playerName || "");
-                          setIsEditingName(true);
-                          setRenameError("");
-                        }}
-                        className="inline-flex items-center gap-1.5 px-2 py-1 bg-cyber-surface border border-cyber-accent rounded-lg hover:bg-cyber-accent hover:bg-opacity-20 transition-all duration-300 text-[10px]"
-                        disabled={renameLoading}
-                        title="Edit your display name (updates leaderboard too)"
-                      >
-                        <Pencil size={12} />
-                        EDIT NAME
-                      </button>
-                    ) : (
-                      <div className="flex items-center gap-1.5">
-                        <input
-                          type="text"
-                          value={nameDraft}
-                          onChange={(e) => setNameDraft(e.target.value)}
-                          className="input text-[10px] py-1 px-2 w-32"
-                          maxLength={30}
-                          disabled={renameLoading}
-                          autoFocus
-                        />
-                        <button
-                          type="button"
-                          onClick={handleSaveName}
-                          className="inline-flex items-center justify-center w-7 h-7 bg-cyber-surface border border-cyber-accent rounded-lg hover:bg-cyber-accent hover:bg-opacity-20 transition-all duration-300"
-                          disabled={renameLoading || !(nameDraft || "").trim()}
-                          title="Save"
-                        >
-                          <Check size={12} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsEditingName(false);
-                            setNameDraft(player?.name || playerName || "");
-                            setRenameError("");
-                          }}
-                          className="inline-flex items-center justify-center w-7 h-7 bg-cyber-surface border border-cyber-border rounded-lg hover:border-cyber-accent transition-all duration-300"
-                          disabled={renameLoading}
-                          title="Cancel"
-                        >
-                          <X size={12} />
-                        </button>
-                      </div>
-                    )}
-                  </>
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="inline-flex items-center gap-1.5 px-2 py-1 bg-cyber-surface border border-cyber-border rounded-lg hover:border-cyber-accent transition-all duration-300 text-[10px]"
+                    title="Sign out"
+                  >
+                    <LogOut size={12} />
+                    SIGN OUT
+                  </button>
                 )}
               </div>
               {renameError && (
@@ -561,25 +573,38 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
               )}
             </div>
 
-            {/* Timer */}
-            <div className="bg-cyber-surface border-2 border-cyber-accent rounded-lg p-2 md:p-3 flex-shrink-0">
-              <div className="flex items-center gap-2">
-                <Clock className="text-cyber-accent" size={18} />
-                <div>
-                  <div className="text-xs text-white text-opacity-70">
-                    TIME LEFT
-                  </div>
-                  <div
-                    className={`text-lg md:text-2xl font-bold ${
-                      remainingTime < 60000
-                        ? "text-cyber-danger animate-pulse"
-                        : "text-cyber-accent"
-                    }`}
-                  >
-                    {formatTime(remainingTime)}
+            {/* Timer and Give Up Button */}
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="bg-cyber-surface border-2 border-cyber-accent rounded-lg p-2 md:p-3 flex-shrink-0">
+                <div className="flex items-center gap-2">
+                  <Clock className="text-cyber-accent" size={18} />
+                  <div>
+                    <div className="text-xs text-white text-opacity-70">
+                      TIME LEFT
+                    </div>
+                    <div
+                      className={`text-lg md:text-2xl font-bold ${
+                        remainingTime < 60000
+                          ? "text-cyber-danger animate-pulse"
+                          : "text-cyber-accent"
+                      }`}
+                    >
+                      {formatTime(remainingTime)}
+                    </div>
                   </div>
                 </div>
               </div>
+              {isSolo && !isAdmin && isGameActive && (
+                <button
+                  type="button"
+                  onClick={handleGiveUp}
+                  className="inline-flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 md:py-2 bg-cyber-danger bg-opacity-20 border border-cyber-danger rounded-lg hover:bg-opacity-30 transition-all duration-300 text-[10px] md:text-xs"
+                  title="Give up and save current progress"
+                >
+                  <Flag size={12} />
+                  GIVE UP
+                </button>
+              )}
             </div>
           </div>
 
