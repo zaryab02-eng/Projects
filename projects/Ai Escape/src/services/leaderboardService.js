@@ -89,18 +89,24 @@ export async function getGlobalLeaderboard(difficulty, totalLevels, userId = nul
 
     const topPlayers = allResults.slice(0, 20);
     
-    // Find player's rank if userId provided
+    // Find player's rank and data if userId provided
     let playerRank = null;
+    let playerData = null;
     if (userId) {
       const playerIndex = allResults.findIndex((r) => r.userId === userId);
       if (playerIndex !== -1) {
         playerRank = playerIndex + 1;
+        // If player is below top 20, include their data
+        if (playerRank > 20) {
+          playerData = allResults[playerIndex];
+        }
       }
     }
 
     return {
       topPlayers,
       playerRank: playerRank && playerRank > 20 ? playerRank : null,
+      playerData: playerData || null,
       totalPlayers: allResults.length,
     };
   } catch (error) {
