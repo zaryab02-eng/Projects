@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Settings, Play, Pencil, X, Check, LogOut } from "lucide-react";
 import { createGameRoom, joinGameRoom, setGameConfig, startGame } from "../services/gameService";
 import GameRoom from "../components/GameRoom";
 import SoloLogin from "../components/SoloLogin";
 import { updateSoloDisplayNameEverywhere } from "../services/leaderboardService";
-import { signOutUser } from "../services/authService";
+import { signOutUser, getCurrentUser, onAuthChange } from "../services/authService";
 
 /**
  * Solo Game Page - for single player to play alone
@@ -26,6 +26,7 @@ function getSoloDurationMinutes(difficulty, levels) {
 export default function SoloGamePage() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [authInitialized, setAuthInitialized] = useState(false);
   const [difficulty, setDifficulty] = useState("Medium");
   const [totalLevels, setTotalLevels] = useState(5);
   const [loading, setLoading] = useState(false);
@@ -35,6 +36,43 @@ export default function SoloGamePage() {
   const [gameStarted, setGameStarted] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
+
+  // Wait for Firebase auth to initialize before showing login
+  useEffect(() => {
+    // Check initial auth state
+    const currentUser = getCurrentUser();
+    if (currentUser) {
+      const savedDisplayName = localStorage.getItem(`solo_displayName_${currentUser.uid}`);
+      if (savedDisplayName) {
+        setUser({
+          uid: currentUser.uid,
+          displayName: savedDisplayName,
+        });
+        setNameDraft(savedDisplayName);
+      }
+    }
+
+    // Listen for auth state changes (this will fire once when auth initializes)
+    const unsubscribe = onAuthChange((authUser) => {
+      if (authUser) {
+        const savedDisplayName = localStorage.getItem(`solo_displayName_${authUser.uid}`);
+        if (savedDisplayName) {
+          setUser({
+            uid: authUser.uid,
+            displayName: savedDisplayName,
+          });
+          setNameDraft(savedDisplayName);
+        }
+      } else {
+        setUser(null);
+        setNameDraft("");
+      }
+      // Mark auth as initialized after first callback
+      setAuthInitialized(true);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const handleLoginComplete = (userData) => {
     setUser(userData);
@@ -136,7 +174,19 @@ export default function SoloGamePage() {
     }
   };
 
-  // Show login if not logged in
+  // Show loading spinner while auth initializes (prevents flash of login page)
+  if (!authInitialized) {
+    return (
+      <div className="viewport-container flex items-center justify-center cyber-grid">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-cyber-accent mb-4"></div>
+          <p className="text-white text-opacity-70 text-sm">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login if not logged in (only after auth has initialized)
   if (!user) {
     return <SoloLogin onLoginComplete={handleLoginComplete} />;
   }
