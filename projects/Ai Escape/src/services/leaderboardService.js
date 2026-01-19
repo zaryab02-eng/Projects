@@ -1,5 +1,5 @@
 import { database } from "./firebase";
-import { ref, set, get, query, orderByChild, limitToFirst, startAt, equalTo } from "firebase/database";
+import { ref, set, get, update, query, orderByChild, limitToFirst, startAt, equalTo } from "firebase/database";
 
 /**
  * Get leaderboard key from difficulty and level count
@@ -125,4 +125,34 @@ export function getLeaderboardCategories() {
     { difficulty: "Hard", totalLevels: 5 },
     { difficulty: "Hard", totalLevels: 10 },
   ];
+}
+
+/**
+ * Update a solo user's display name everywhere it appears:
+ * - local players directory: players/solo-${userId}
+ * - all solo leaderboard categories where the user already has an entry
+ */
+export async function updateSoloDisplayNameEverywhere(userId, newDisplayName) {
+  const trimmed = (newDisplayName || "").trim();
+  if (!userId) throw new Error("Missing userId");
+  if (!trimmed) throw new Error("Display name cannot be empty");
+
+  // Update global player profile (used for tracking across games)
+  const playerIdentifier = `solo-${userId}`;
+  const globalPlayerRef = ref(database, `players/${playerIdentifier}`);
+  await update(globalPlayerRef, {
+    name: trimmed,
+    lastPlayed: Date.now(),
+  });
+
+  // Update existing leaderboard entries across all categories
+  const categories = getLeaderboardCategories();
+  for (const cat of categories) {
+    const leaderboardKey = getLeaderboardKey(cat.difficulty, cat.totalLevels);
+    const entryRef = ref(database, `soloLeaderboards/${leaderboardKey}/${userId}`);
+    const snap = await get(entryRef);
+    if (snap.exists()) {
+      await update(entryRef, { displayName: trimmed });
+    }
+  }
 }

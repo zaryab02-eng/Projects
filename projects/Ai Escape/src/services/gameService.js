@@ -124,6 +124,19 @@ export async function joinGameRoom(roomCode, playerIdentifier, playerName) {
 }
 
 /**
+ * Update a player's name inside a specific room (e.g. after renaming in solo mode)
+ */
+export async function updatePlayerNameInRoom(roomCode, playerId, playerName) {
+  const trimmed = (playerName || "").trim();
+  if (!roomCode) throw new Error("Missing roomCode");
+  if (!playerId) throw new Error("Missing playerId");
+  if (!trimmed) throw new Error("Display name cannot be empty");
+
+  const playerRef = ref(database, `rooms/${roomCode}/players/${playerId}`);
+  await update(playerRef, { name: trimmed });
+}
+
+/**
  * Toggle player ready status
  */
 export async function togglePlayerReady(roomCode, playerId) {

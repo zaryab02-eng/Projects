@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
  * Shows full-screen video with player name overlay
  * ✅ Safari-compatible with defensive error handling
  */
-export default function Cinematic({ levelNumber, playerName, totalLevels, isSolo, onComplete }) {
+export default function Cinematic({ levelNumber, playerName, totalLevels, isSolo, rankInfo, onComplete }) {
   const navigate = useNavigate();
   const [canSkip, setCanSkip] = useState(false);
   const [fadeOut, setFadeOut] = useState(false);
@@ -143,9 +143,24 @@ export default function Cinematic({ levelNumber, playerName, totalLevels, isSolo
               <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 md:mb-8">
                 CONGRATULATIONS!
               </h2>
-              <p className="text-xl sm:text-2xl md:text-3xl lg:text-4xl text-cyber-accent">
+              <p className="text-xl sm:text-2xl md:text-3xl lg:text-4xl text-cyber-accent mb-4">
                 {playerName}
               </p>
+              {isSolo && rankInfo && (
+                <div className="mt-4 md:mt-6">
+                  <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white glow-text">
+                    {rankInfo.totalPlayers && rankInfo.totalPlayers <= 1 ? (
+                      <>🏆 You are #1! 🏆</>
+                    ) : rankInfo.before && rankInfo.after && rankInfo.before !== rankInfo.after ? (
+                      <>🎉 You jumped from #{rankInfo.before} to #{rankInfo.after}! 🎉</>
+                    ) : rankInfo.after ? (
+                      <>Your Rank: #{rankInfo.after}</>
+                    ) : (
+                      <>Calculating rank...</>
+                    )}
+                  </p>
+                </div>
+              )}
             </>
           ) : (
             <>

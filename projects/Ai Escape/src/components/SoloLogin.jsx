@@ -12,6 +12,8 @@ export default function SoloLogin({ onLoginComplete }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [user, setUser] = useState(null);
+  const [hasSavedDisplayName, setHasSavedDisplayName] = useState(false);
+  const [autoLoginTriggered, setAutoLoginTriggered] = useState(false);
 
   useEffect(() => {
     // Check if user is already logged in
@@ -22,6 +24,9 @@ export default function SoloLogin({ onLoginComplete }) {
       const savedDisplayName = localStorage.getItem(`solo_displayName_${currentUser.uid}`);
       if (savedDisplayName) {
         setDisplayName(savedDisplayName);
+        setHasSavedDisplayName(true);
+      } else {
+        setHasSavedDisplayName(false);
       }
     }
 
@@ -32,15 +37,36 @@ export default function SoloLogin({ onLoginComplete }) {
         const savedDisplayName = localStorage.getItem(`solo_displayName_${authUser.uid}`);
         if (savedDisplayName) {
           setDisplayName(savedDisplayName);
+          setHasSavedDisplayName(true);
+        } else {
+          setHasSavedDisplayName(false);
         }
       } else {
         setUser(null);
         setDisplayName("");
+        setHasSavedDisplayName(false);
+        setAutoLoginTriggered(false);
       }
     });
 
     return () => unsubscribe();
   }, []);
+
+  // Auto-complete login when we already know the player and their saved name
+  useEffect(() => {
+    if (
+      user &&
+      hasSavedDisplayName &&
+      displayName.trim() &&
+      !autoLoginTriggered
+    ) {
+      onLoginComplete({
+        uid: user.uid,
+        displayName: displayName.trim(),
+      });
+      setAutoLoginTriggered(true);
+    }
+  }, [user, hasSavedDisplayName, displayName, autoLoginTriggered, onLoginComplete]);
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
@@ -54,6 +80,7 @@ export default function SoloLogin({ onLoginComplete }) {
       const savedDisplayName = localStorage.getItem(`solo_displayName_${result.user.uid}`);
       if (savedDisplayName) {
         setDisplayName(savedDisplayName);
+        setHasSavedDisplayName(true);
       }
     } catch (err) {
       setError(err.message || "Failed to sign in with Google");
@@ -75,6 +102,8 @@ export default function SoloLogin({ onLoginComplete }) {
 
     // Save display name for this user
     localStorage.setItem(`solo_displayName_${user.uid}`, displayName.trim());
+    setHasSavedDisplayName(true);
+    setAutoLoginTriggered(true); // Prevent double-calling when manually continuing
     
     // Call callback with user info
     onLoginComplete({

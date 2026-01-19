@@ -109,8 +109,9 @@ function HomePage() {
         </div>
 
         {/* Footer */}
-        <div className="hidden md:block mt-4 md:mt-5 text-center text-white text-opacity-50 text-xs">
-          <p>PWA Enabled • Install on your device for best experience</p>
+        <div className="mt-4 md:mt-5 text-center text-white text-opacity-50 text-[10px] md:text-xs">
+          <p className="hidden md:block">PWA Enabled • Install on your device for best experience</p>
+          <p className="mt-1">Made by Zaryab</p>
         </div>
       </div>
     </div>

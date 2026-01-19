@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clock, AlertTriangle } from "lucide-react";
+import { Clock, AlertTriangle, Pencil, X, Check, LogOut } from "lucide-react";
 import { useGameState, formatTime } from "../hooks/useGameState";
 import { useAntiCheat } from "../hooks/useAntiCheat";
 import { useTabVisibility } from "../hooks/useTabVisibility";
-import { getLeaderboard, endGame } from "../services/gameService";
-import { submitSoloResult } from "../services/leaderboardService";
+import { getLeaderboard, endGame, updatePlayerNameInRoom } from "../services/gameService";
+import { submitSoloResult, getGlobalLeaderboard, updateSoloDisplayNameEverywhere } from "../services/leaderboardService";
+import { signOutUser } from "../services/authService";
 import Question from "./Question";
 import Cinematic from "./Cinematic";
 import Leaderboard from "./Leaderboard";
@@ -18,7 +19,12 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
   const { roomData, remainingTime } = useGameState(roomCode);
   const [showCinematic, setShowCinematic] = useState(false);
   const [completedLevel, setCompletedLevel] = useState(null);
+  const [rankInfo, setRankInfo] = useState(null);
   const isSolo = sessionStorage.getItem("isSolo") === "true";
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState(playerName || "");
+  const [renameLoading, setRenameLoading] = useState(false);
+  const [renameError, setRenameError] = useState("");
 
   // NEW: State for wrong answer video
   const [showWrongVideo, setShowWrongVideo] = useState(false);
@@ -33,6 +39,60 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
   const currentQuestion = roomData?.questions?.[player?.currentLevel - 1];
   const leaderboard = roomData ? getLeaderboard(roomData) : [];
   const playerRank = leaderboard.findIndex((p) => p.id === playerId) + 1 || 0;
+  const effectivePlayerName = player?.name || playerName;
+
+  const handleSaveName = async () => {
+    const soloUserId = sessionStorage.getItem("soloUserId");
+    const trimmed = (nameDraft || "").trim();
+    if (!isSolo || !soloUserId) return;
+    if (!trimmed) {
+      setRenameError("Name cannot be empty");
+      return;
+    }
+
+    setRenameLoading(true);
+    setRenameError("");
+    try {
+      // Persist locally for next time
+      localStorage.setItem(`solo_displayName_${soloUserId}`, trimmed);
+
+      // Update current room player name (so in-room UI/leaderboard updates immediately)
+      await updatePlayerNameInRoom(roomCode, playerId, trimmed);
+
+      // Update global solo leaderboards + global player profile
+      await updateSoloDisplayNameEverywhere(soloUserId, trimmed);
+
+      // Keep session name consistent for any later submissions in this run
+      sessionStorage.setItem("playerName", trimmed);
+
+      setIsEditingName(false);
+    } catch (err) {
+      setRenameError(err.message || "Failed to update name");
+    } finally {
+      setRenameLoading(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    // Solo-only sign out: end the room (best-effort), clear state, sign out, go home
+    try {
+      if (isSolo) {
+        await endGame(roomCode);
+      }
+    } catch (err) {
+      // Non-blocking
+      console.error("Error ending game during sign out:", err);
+    }
+
+    try {
+      sessionStorage.clear();
+      await signOutUser();
+    } catch (err) {
+      console.error("Error signing out:", err);
+    } finally {
+      navigate("/");
+    }
+  };
 
   // Solo mode: Tab visibility detection with grace timer
   const handleTabLeave = async () => {
@@ -46,7 +106,7 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
         try {
           await submitSoloResult(
             soloUserId,
-            playerName,
+            effectivePlayerName,
             soloDifficulty,
             soloTotalLevels,
             player.completedLevels || 0,
@@ -73,29 +133,54 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
 
   useTabVisibility(handleTabLeave, 7500); // 7.5 second grace period
 
-  // Submit solo result to global leaderboard when game finishes
+  // Submit solo result to global leaderboard when game finishes and compute rank change
   useEffect(() => {
-    if (isSolo && roomData?.status === "finished" && player) {
-      const soloUserId = sessionStorage.getItem("soloUserId");
-      const soloDifficulty = sessionStorage.getItem("soloDifficulty");
-      const soloTotalLevels = parseInt(sessionStorage.getItem("soloTotalLevels") || "5");
+    if (!(isSolo && roomData?.status === "finished" && player)) return;
 
-      if (soloUserId && soloDifficulty && player.completedLevels !== undefined) {
-        submitSoloResult(
+    const soloUserId = sessionStorage.getItem("soloUserId");
+    const difficulty = roomData?.difficulty;
+    const totalLevels = roomData?.totalLevels;
+
+    if (!soloUserId || !difficulty || !totalLevels) return;
+
+    const computeRank = (data) => {
+      if (!data) return null;
+      const inTop = data.topPlayers.findIndex((p) => p.userId === soloUserId);
+      if (inTop >= 0) return inTop + 1;
+      if (data.playerRank) return data.playerRank;
+      return null;
+    };
+
+    const syncLeaderboard = async () => {
+      try {
+        const before = await getGlobalLeaderboard(difficulty, totalLevels, soloUserId);
+        const rankBefore = computeRank(before);
+
+        await submitSoloResult(
           soloUserId,
-          playerName,
-          soloDifficulty,
-          soloTotalLevels,
+          effectivePlayerName,
+          difficulty,
+          totalLevels,
           player.completedLevels || 0,
           player.totalTime || 0,
           player.totalWrongAnswers || 0
-        ).catch((err) => {
-          console.error("Error submitting to leaderboard:", err);
-          // Don't show error to user - leaderboard submission is non-critical
+        );
+
+        const after = await getGlobalLeaderboard(difficulty, totalLevels, soloUserId);
+        const rankAfter = computeRank(after);
+
+        setRankInfo({
+          before: rankBefore,
+          after: rankAfter,
+          totalPlayers: after?.totalPlayers || null,
         });
+      } catch (err) {
+        console.error("Error syncing leaderboard:", err);
       }
-    }
-  }, [isSolo, roomData?.status, player, playerName]);
+    };
+
+    syncLeaderboard();
+  }, [isSolo, roomData?.status, player, effectivePlayerName, roomData?.difficulty, roomData?.totalLevels]);
 
   // Initialize background video for Safari
   useEffect(() => {
@@ -169,9 +254,10 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
     return (
       <Cinematic
         levelNumber={completedLevel}
-        playerName={playerName}
+        playerName={effectivePlayerName}
         totalLevels={totalLevels}
         isSolo={isSolo}
+        rankInfo={rankInfo}
         onComplete={() => {
           const totalLevelsValue = roomData?.totalLevels || 0;
           const isFinal = completedLevel >= totalLevelsValue;
@@ -247,6 +333,19 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
             <p className="text-xs md:text-sm text-white">
               Thank you for playing!
             </p>
+            {rankInfo && (
+              <div className="mt-2 text-sm md:text-base text-cyber-accent font-bold">
+                {rankInfo.totalPlayers && rankInfo.totalPlayers <= 1 ? (
+                  <>You are #1</>
+                ) : rankInfo.before && rankInfo.after && rankInfo.before !== rankInfo.after ? (
+                  <>You jumped from #{rankInfo.before} to #{rankInfo.after}!</>
+                ) : rankInfo.after ? (
+                  <>Your rank: #{rankInfo.after}</>
+                ) : (
+                  <>Ranking will update shortly...</>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-2 md:gap-3 mb-2 md:mb-3 overflow-hidden max-w-full">
@@ -389,9 +488,77 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-cyber-accent glow-text">
                 ESCAPE ROOM
               </h1>
-              <p className="text-xs text-white text-opacity-70">
-                Room: {roomCode} | Player: {playerName}
-              </p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-xs text-white text-opacity-70">
+                  Room: {roomCode} | Player: {player?.name || playerName}
+                </p>
+                {isSolo && !isAdmin && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleSignOut}
+                      className="inline-flex items-center gap-1.5 px-2 py-1 bg-cyber-surface border border-cyber-border rounded-lg hover:border-cyber-accent transition-all duration-300 text-[10px]"
+                      title="Sign out"
+                    >
+                      <LogOut size={12} />
+                      SIGN OUT
+                    </button>
+                    {!isEditingName ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNameDraft(player?.name || playerName || "");
+                          setIsEditingName(true);
+                          setRenameError("");
+                        }}
+                        className="inline-flex items-center gap-1.5 px-2 py-1 bg-cyber-surface border border-cyber-accent rounded-lg hover:bg-cyber-accent hover:bg-opacity-20 transition-all duration-300 text-[10px]"
+                        disabled={renameLoading}
+                        title="Edit your display name (updates leaderboard too)"
+                      >
+                        <Pencil size={12} />
+                        EDIT NAME
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="text"
+                          value={nameDraft}
+                          onChange={(e) => setNameDraft(e.target.value)}
+                          className="input text-[10px] py-1 px-2 w-32"
+                          maxLength={30}
+                          disabled={renameLoading}
+                          autoFocus
+                        />
+                        <button
+                          type="button"
+                          onClick={handleSaveName}
+                          className="inline-flex items-center justify-center w-7 h-7 bg-cyber-surface border border-cyber-accent rounded-lg hover:bg-cyber-accent hover:bg-opacity-20 transition-all duration-300"
+                          disabled={renameLoading || !(nameDraft || "").trim()}
+                          title="Save"
+                        >
+                          <Check size={12} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsEditingName(false);
+                            setNameDraft(player?.name || playerName || "");
+                            setRenameError("");
+                          }}
+                          className="inline-flex items-center justify-center w-7 h-7 bg-cyber-surface border border-cyber-border rounded-lg hover:border-cyber-accent transition-all duration-300"
+                          disabled={renameLoading}
+                          title="Cancel"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+              {renameError && (
+                <p className="text-[10px] text-cyber-danger mt-1">{renameError}</p>
+              )}
             </div>
 
             {/* Timer */}
