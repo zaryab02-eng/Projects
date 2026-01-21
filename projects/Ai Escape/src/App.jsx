@@ -46,7 +46,7 @@ function HomePage() {
           <div className="absolute top-0 left-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-500/70 bg-emerald-900/40 text-[11px] md:text-xs font-medium text-emerald-200 shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             <span>{onlinePlayers}</span>
-            <span className="hidden sm:inline">online</span>
+            <span className="hidden sm:inline">Players Online</span>
           </div>
 
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-cyber-accent glow-text mb-1.5 md:mb-2 leading-tight tracking-tight">
