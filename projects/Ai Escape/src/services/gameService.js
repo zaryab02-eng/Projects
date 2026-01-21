@@ -591,13 +591,20 @@ export async function disqualifyPlayer(roomCode, playerId) {
 
 /**
  * End game (Admin or automatic when timer expires)
+ * Can optionally mark as abandoned by admin
  */
-export async function endGame(roomCode) {
+export async function endGame(roomCode, abandonedByAdmin = false) {
   const roomRef = ref(database, `rooms/${roomCode}`);
-  await update(roomRef, {
+  const updates = {
     status: "finished",
     actualEndTime: Date.now(),
-  });
+  };
+  
+  if (abandonedByAdmin) {
+    updates.abandonedByAdmin = true;
+  }
+  
+  await update(roomRef, updates);
 }
 
 /**

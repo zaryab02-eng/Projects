@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGameState, formatTime } from "../hooks/useGameState";
+import { useAdminActivity } from "../hooks/useAdminActivity";
 import { getLeaderboard, endGame } from "../services/gameService";
 import LobbyWaiting from "../components/LobbyWaiting";
 import GameRoom from "../components/GameRoom";
 import AdminPanel from "../components/AdminPanel";
 import RoomLeaderboard from "../components/RoomLeaderboard";
-import { Clock } from "lucide-react";
+import { Clock, AlertTriangle } from "lucide-react";
+import { notify } from "../utils/notify";
 
 /**
  * Game Page - main game orchestrator
@@ -20,6 +22,13 @@ export default function GamePage() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   const { roomData, loading, error, remainingTime } = useGameState(roomCode);
+  
+  // Detect if this is multiplayer (not solo)
+  const isMultiplayer = roomData && !(roomData.adminName && roomData.adminName.startsWith("Solo-")) && 
+                        Object.keys(roomData.players || {}).length > 1;
+  
+  // Track admin activity in multiplayer mode
+  useAdminActivity(roomCode, isAdmin, isMultiplayer);
 
   useEffect(() => {
     // Restore session data
@@ -87,6 +96,68 @@ export default function GamePage() {
     roomData?.players,
     roomData?.totalLevels,
   ]);
+
+  // Check for admin inactivity in multiplayer mode
+  useEffect(() => {
+    if (!isMultiplayer || !roomData || roomData.status === "finished") {
+      return;
+    }
+
+    const checkAdminActivity = () => {
+      const adminLastActivity = roomData.adminLastActivityMs || roomData.adminLastActivity;
+      if (!adminLastActivity) {
+        // Admin activity not tracked yet, skip check
+        return;
+      }
+
+      const now = Date.now();
+      const timeSinceActivity = now - Number(adminLastActivity);
+      const MAX_INACTIVITY_MS = 3 * 60 * 1000; // 3 minutes
+
+      if (timeSinceActivity > MAX_INACTIVITY_MS) {
+        // Admin has been inactive for 3+ minutes - end the game
+        endGame(roomCode, true).then(() => {
+          if (!isAdmin) {
+            notify.error("Game abandoned: Admin left the game.", { duration: 8000 });
+          }
+        }).catch((err) => {
+          console.error("Error ending game due to admin inactivity:", err);
+        });
+      }
+    };
+
+    // Check every 30 seconds
+    const interval = setInterval(checkAdminActivity, 30000);
+    
+    // Also check immediately
+    checkAdminActivity();
+
+    return () => clearInterval(interval);
+  }, [roomCode, roomData, isMultiplayer]);
+
+  // Show admin left message to players
+  useEffect(() => {
+    if (!isMultiplayer || isAdmin || !roomData) {
+      return;
+    }
+
+    const adminLastActivity = roomData.adminLastActivityMs || roomData.adminLastActivity;
+    if (!adminLastActivity) {
+      return;
+    }
+
+    const now = Date.now();
+    const timeSinceActivity = now - Number(adminLastActivity);
+    const MAX_INACTIVITY_MS = 3 * 60 * 1000; // 3 minutes
+
+    if (timeSinceActivity > MAX_INACTIVITY_MS && roomData.status !== "finished") {
+      // Admin has been inactive - show warning
+      notify.warning("Admin appears to be inactive. Game may be abandoned soon.", { 
+        duration: 10000,
+        id: "admin-inactive-warning"
+      });
+    }
+  }, [roomData, isAdmin, isMultiplayer]);
 
   if (loading) {
     return (
@@ -223,6 +294,49 @@ export default function GamePage() {
                 )}
               </div>
             )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show admin left message if game was abandoned
+  if (roomData.status === "finished" && roomData.abandonedByAdmin && !isAdmin) {
+    const leaderboard = getLeaderboard(roomData);
+    return (
+      <div className="viewport-container flex items-center justify-center cyber-grid">
+        <div className="card max-w-2xl mx-4 w-full">
+          <div className="text-center mb-6">
+            <AlertTriangle
+              className="text-cyber-warning mx-auto mb-4"
+              size={48}
+            />
+            <h2 className="text-2xl md:text-4xl font-bold text-cyber-warning mb-4">
+              GAME ABANDONED
+            </h2>
+            <p className="text-base md:text-xl text-white mb-4">
+              The admin left the game.
+            </p>
+            <p className="text-sm md:text-base text-white text-opacity-70 mb-6">
+              Your progress has been saved. You can view the final leaderboard below.
+            </p>
+          </div>
+          <div className="mb-6 max-h-96 overflow-y-auto">
+            <RoomLeaderboard 
+              leaderboard={leaderboard} 
+              totalLevels={roomData?.totalLevels || 0} 
+            />
+          </div>
+          <div className="text-center">
+            <button
+              onClick={() => {
+                sessionStorage.clear();
+                navigate("/");
+              }}
+              className="btn-primary text-sm md:text-base"
+            >
+              BACK TO HOME
+            </button>
           </div>
         </div>
       </div>

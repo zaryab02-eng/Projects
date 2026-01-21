@@ -44,21 +44,10 @@ export function subscribeToOnlinePlayers(callback) {
         return; // Skip this room
       }
       
-      // Status is "waiting" or "playing" - but check if room is stale/old
-      // Exclude rooms that are older than 2 hours (likely abandoned/stale)
+      // Status is "waiting" or "playing" - check for REAL-TIME activity
       const now = Date.now();
-      const createdAt = roomData.createdAt || 0;
-      const lastActivity = roomData.lastProgressAt || roomData.startTime || createdAt;
-      const roomAge = now - Math.max(createdAt, lastActivity);
       
-      // If room is older than 2 hours (7200000 ms), consider it stale and exclude
-      const MAX_ROOM_AGE_MS = 2 * 60 * 60 * 1000; // 2 hours
-      if (roomAge > MAX_ROOM_AGE_MS) {
-        debugInfo.otherStatus++; // Count as stale
-        return; // Skip stale rooms
-      }
-      
-      // For "playing" rooms, also check if game has ended (endTime passed)
+      // For "playing" rooms, check if game has ended (endTime passed)
       if (status === "playing" && roomData.endTime) {
         const endTime = Number(roomData.endTime);
         if (endTime > 0 && now > endTime) {
@@ -68,8 +57,7 @@ export function subscribeToOnlinePlayers(callback) {
         }
       }
       
-      // Status is "waiting" or "playing" and room is recent - count players
-      debugInfo.activeRooms++;
+      // Check players for REAL-TIME activity
       const players = roomSnap.child("players");
       
       if (!players.exists()) {
@@ -88,19 +76,45 @@ export function subscribeToOnlinePlayers(callback) {
         return; // Empty players object
       }
       
-      // Filter out any null/undefined/invalid player entries
-      const validPlayerCount = playerKeys.filter(key => {
-        const player = playersObj[key];
-        // Player must be an object with an id property
-        return player && 
-               typeof player === "object" && 
-               !Array.isArray(player) &&
-               player.id &&
-               typeof player.id === "string";
-      }).length;
+      // REAL-TIME: Only count players with recent activity (within last 3 minutes)
+      // A player is "online" only if they've had activity in the last 3 minutes
+      const MAX_INACTIVITY_MS = 3 * 60 * 1000; // 3 minutes
       
-      if (validPlayerCount > 0) {
-        count += validPlayerCount;
+      let activePlayerCount = 0;
+      playerKeys.forEach(key => {
+        const player = playersObj[key];
+        
+        // Player must be valid object with id
+        if (!player || 
+            typeof player !== "object" || 
+            Array.isArray(player) ||
+            !player.id ||
+            typeof player.id !== "string") {
+          return; // Skip invalid player
+        }
+        
+        // Check if player has recent activity
+        // Use lastProgressAt, joinedAt, or levelStartTime to determine activity
+        const lastActivity = player.lastProgressAt || 
+                            player.levelStartTime || 
+                            player.joinedAt || 
+                            0;
+        
+        const timeSinceActivity = now - Number(lastActivity);
+        
+        // Player is "online" if they've had activity in the last 3 minutes
+        if (timeSinceActivity <= MAX_INACTIVITY_MS) {
+          activePlayerCount++;
+        }
+      });
+      
+      // Only count this room if it has at least one active player
+      if (activePlayerCount > 0) {
+        debugInfo.activeRooms++;
+        count += activePlayerCount;
+      } else {
+        // Room has no active players - consider it stale
+        debugInfo.otherStatus++;
       }
     });
 
