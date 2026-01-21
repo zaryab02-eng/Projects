@@ -47,6 +47,17 @@ export function subscribeToOnlinePlayers(callback) {
       // Status is "waiting" or "playing" - check for REAL-TIME activity
       const now = Date.now();
       
+      // For "waiting" rooms, check if room is too old (stale waiting rooms)
+      // If a room has been waiting for more than 15 minutes, it's likely abandoned
+      if (status === "waiting") {
+        const createdAt = Number(roomData.createdAt || 0);
+        const MAX_WAITING_AGE_MS = 15 * 60 * 1000; // 15 minutes
+        if (createdAt > 0 && (now - createdAt) > MAX_WAITING_AGE_MS) {
+          debugInfo.otherStatus++; // Stale waiting room
+          return; // Skip stale waiting rooms
+        }
+      }
+      
       // For "playing" rooms, check if game has ended (endTime passed)
       if (status === "playing" && roomData.endTime) {
         const endTime = Number(roomData.endTime);
@@ -76,9 +87,10 @@ export function subscribeToOnlinePlayers(callback) {
         return; // Empty players object
       }
       
-      // REAL-TIME: Only count players with recent activity (within last 3 minutes)
-      // A player is "online" only if they've had activity in the last 3 minutes
-      const MAX_INACTIVITY_MS = 3 * 60 * 1000; // 3 minutes
+      // REAL-TIME: Only count players with VERY recent activity (within last 90 seconds)
+      // A player is "online" only if they've had activity in the last 90 seconds
+      // This ensures truly real-time counting without glitches
+      const MAX_INACTIVITY_MS = 90 * 1000; // 90 seconds (1.5 minutes) - STRICT real-time
       
       let activePlayerCount = 0;
       playerKeys.forEach(key => {
@@ -93,16 +105,32 @@ export function subscribeToOnlinePlayers(callback) {
           return; // Skip invalid player
         }
         
+        // Skip disqualified players (they're not really "online")
+        if (player.disqualified) {
+          return;
+        }
+        
         // Check if player has recent activity
-        // Use lastProgressAt, joinedAt, or levelStartTime to determine activity
-        const lastActivity = player.lastProgressAt || 
-                            player.levelStartTime || 
-                            player.joinedAt || 
-                            0;
+        // Priority: lastProgressAt > levelStartTime > joinedAt
+        // lastProgressAt is updated on every answer submission, so it's most accurate
+        let lastActivity = 0;
         
-        const timeSinceActivity = now - Number(lastActivity);
+        if (player.lastProgressAt) {
+          lastActivity = Number(player.lastProgressAt);
+        } else if (player.levelStartTime) {
+          lastActivity = Number(player.levelStartTime);
+        } else if (player.joinedAt) {
+          lastActivity = Number(player.joinedAt);
+        }
         
-        // Player is "online" if they've had activity in the last 3 minutes
+        // Validate timestamp is reasonable (not in future, not too old)
+        if (lastActivity <= 0 || lastActivity > now) {
+          return; // Invalid timestamp
+        }
+        
+        const timeSinceActivity = now - lastActivity;
+        
+        // Player is "online" if they've had activity in the last 90 seconds
         if (timeSinceActivity <= MAX_INACTIVITY_MS) {
           activePlayerCount++;
         }
