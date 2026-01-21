@@ -10,11 +10,13 @@ import { database } from "../services/firebase";
 import { submitSoloResult, getGlobalLeaderboard, updateSoloDisplayNameEverywhere } from "../services/leaderboardService";
 import { signOutUser } from "../services/authService";
 import Question from "./Question";
+import MiniGameWrapper from "./MiniGameWrapper";
 import Cinematic from "./Cinematic";
 import Leaderboard from "./Leaderboard";
 import RoomLeaderboard from "./RoomLeaderboard";
 import { notify } from "../utils/notify";
 import { useConfirm } from "./ui/OverlaysProvider";
+import { shouldShowMiniGame, selectMiniGame } from "../utils/miniGameSelector";
 
 /**
  * Game Room - main gameplay area for players
@@ -617,6 +619,34 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
 
   const allLevelsCompleted = player?.completedLevels >= roomData?.totalLevels;
 
+  // Determine if current level should show a mini-game
+  const currentLevel = player?.currentLevel || 1;
+  const showMiniGame = shouldShowMiniGame(currentLevel, totalLevels);
+  
+  // Determine previous mini-game type to avoid consecutive repeats
+  const getPreviousMiniGameType = () => {
+    if (currentLevel <= 1) return null;
+    
+    // Check previous level
+    const prevLevel = currentLevel - 1;
+    if (shouldShowMiniGame(prevLevel, totalLevels)) {
+      return selectMiniGame(prevLevel, null);
+    }
+    
+    // Check level before that if previous was not a mini-game
+    if (currentLevel > 2) {
+      const prevPrevLevel = currentLevel - 2;
+      if (shouldShowMiniGame(prevPrevLevel, totalLevels)) {
+        return selectMiniGame(prevPrevLevel, null);
+      }
+    }
+    
+    return null;
+  };
+  
+  const previousMiniGame = getPreviousMiniGameType();
+  const miniGameType = showMiniGame ? selectMiniGame(currentLevel, previousMiniGame) : null;
+
   return (
     <div className="viewport-container cyber-grid flex flex-col relative">
       {/* 🎬 Background Video - Safari-safe with error handling */}
@@ -672,10 +702,10 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
         <source src="/videos/wrong.mp4" type="video/mp4" />
       </video>
 
-      <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-4 py-3 md:py-6 min-h-0 relative z-0">
+      <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-3 sm:px-4 py-2 sm:py-3 md:py-6 min-h-0 relative z-0">
         {/* Header - Fixed */}
-        <div className="mb-3 md:mb-4 flex-shrink-0">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
+        <div className="mb-2 sm:mb-3 md:mb-4 flex-shrink-0">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-3 mb-2 md:mb-3">
             <div>
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-cyber-accent glow-text">
                 ESCAPE ROOM
@@ -703,15 +733,15 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
 
             {/* Timer and Give Up Button */}
             <div className="flex items-center gap-2 md:gap-3">
-              <div className="bg-cyber-surface border-2 border-cyber-accent rounded-xl p-3 md:p-4 flex-shrink-0 shadow-lg">
+              <div className="bg-cyber-surface border-2 border-cyber-accent rounded-xl p-2 sm:p-3 md:p-4 flex-shrink-0 shadow-lg">
                 <div className="flex items-center gap-2 md:gap-3">
-                  <Clock className="text-cyber-accent" size={20} />
+                  <Clock className="text-cyber-accent" size={18} />
                   <div>
                     <div className="text-xs md:text-sm text-white text-opacity-70 font-medium">
                       TIME LEFT
                     </div>
                     <div
-                      className={`text-xl md:text-3xl font-bold tracking-tight ${
+                      className={`text-lg sm:text-xl md:text-3xl font-bold tracking-tight ${
                         remainingTime < 60000
                           ? "text-cyber-danger animate-pulse"
                           : "text-cyber-accent"
@@ -726,7 +756,7 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
                 <button
                   type="button"
                   onClick={handleGiveUp}
-                  className="inline-flex items-center gap-1.5 px-3 md:px-4 py-2 md:py-2.5 bg-cyber-danger bg-opacity-20 border border-cyber-danger rounded-xl hover:bg-opacity-30 transition-all duration-300 text-xs md:text-sm shadow-lg hover:shadow-xl"
+                  className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 md:px-4 py-2 md:py-2.5 bg-cyber-danger bg-opacity-20 border border-cyber-danger rounded-xl hover:bg-opacity-30 transition-all duration-300 text-[11px] sm:text-xs md:text-sm shadow-lg hover:shadow-xl"
                   title={isSolo ? "Give up and save current progress to leaderboard" : "Give up and save current progress"}
                 >
                   <Flag size={14} />
@@ -737,13 +767,13 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
           </div>
 
           {/* Progress - Fixed */}
-          <div className="bg-cyber-surface rounded-xl p-3 md:p-4 border border-cyber-border shadow-lg">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-white font-bold text-sm md:text-base">
+          <div className="bg-cyber-surface rounded-xl p-2 sm:p-3 md:p-4 border border-cyber-border shadow-lg">
+            <div className="flex items-center justify-between mb-1.5 md:mb-2">
+              <span className="text-white font-bold text-[11px] sm:text-sm md:text-base">
                 Progress: {player?.completedLevels || 0} /{" "}
                 {roomData?.totalLevels || 0} Levels
               </span>
-              <span className="text-cyber-accent font-bold text-sm md:text-base">
+              <span className="text-cyber-accent font-bold text-[11px] sm:text-sm md:text-base">
                 {Math.floor(
                   ((player?.completedLevels || 0) /
                     (roomData?.totalLevels || 1)) *
@@ -752,7 +782,7 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
                 %
               </span>
             </div>
-            <div className="w-full bg-cyber-bg rounded-full h-2.5 overflow-hidden">
+            <div className="w-full bg-cyber-bg rounded-full h-2 overflow-hidden">
               <div
                 className="bg-cyber-accent h-full transition-all duration-500 rounded-full shadow-lg shadow-cyber-accent/30"
                 style={{
@@ -810,12 +840,23 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
                 </>
               )}
             </div>
+          ) : showMiniGame && miniGameType ? (
+            <MiniGameWrapper
+              roomCode={roomCode}
+              playerId={playerId}
+              gameType={miniGameType}
+              levelNumber={currentLevel}
+              difficulty={roomData?.difficulty || "Medium"}
+              totalLevels={totalLevels}
+              onCorrectAnswer={handleCorrectAnswer}
+              onWrongAnswer={handleWrongAnswer}
+            />
           ) : currentQuestion ? (
             <Question
               roomCode={roomCode}
               playerId={playerId}
               question={currentQuestion}
-              levelNumber={player?.currentLevel || 1}
+              levelNumber={currentLevel}
               onCorrectAnswer={handleCorrectAnswer}
               onWrongAnswer={handleWrongAnswer}
             />

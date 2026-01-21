@@ -29,9 +29,9 @@ html {
 }
 
 body {
-  background: #0a0a0a;
-  color: #ffffff;
-  font-family: "Courier New", monospace;
+  background: radial-gradient(circle at top, #18181b 0, #020617 55%, #000000 100%);
+  color: #e5e7eb;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif;
   overflow: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -74,12 +74,12 @@ body {
   background: #00dd77;
 }
 
-/* Cyber grid background */
+/* Subtle grid background */
 .cyber-grid {
   background-image:
-    linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
-  background-size: 50px 50px;
+    linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
+  background-size: 40px 40px;
   position: relative;
 }
 
@@ -118,48 +118,46 @@ body {
 /* Glow effect - Reduced for premium feel */
 .glow-text {
   text-shadow:
-    0 0 5px rgba(0, 255, 136, 0.5),
-    0 0 10px rgba(0, 255, 136, 0.3),
-    0 0 15px rgba(0, 255, 136, 0.2);
+    0 0 12px rgba(52, 211, 153, 0.32);
 }
 
 /* Button styles - Premium rounded */
 .btn-primary {
-  @apply bg-cyber-accent text-black font-bold py-3 px-6 rounded-xl
+  @apply bg-cyber-accent text-slate-950 font-medium py-2.5 px-4 md:py-3 md:px-5 rounded-lg text-sm md:text-base
          transition-all duration-300 
-         hover:bg-opacity-90 hover:shadow-xl hover:shadow-cyber-accent/30;
+         hover:bg-emerald-400 hover:shadow-lg hover:shadow-emerald-400/30 active:scale-[0.98];
 }
 
 .btn-danger {
-  @apply bg-cyber-danger text-white font-bold py-3 px-6 rounded-xl
+  @apply bg-cyber-danger text-white font-medium py-2.5 px-4 md:py-3 md:px-5 rounded-lg text-sm md:text-base
          hover:bg-opacity-90 transition-all duration-300 
-         hover:shadow-xl hover:shadow-cyber-danger/30;
+         hover:shadow-lg hover:shadow-cyber-danger/40 active:scale-[0.98];
 }
 
 .btn-secondary {
-  @apply bg-cyber-surface text-cyber-accent font-bold py-3 px-6 rounded-xl
+  @apply bg-slate-900/70 text-slate-100 font-medium py-2.5 px-4 md:py-3 md:px-5 rounded-lg text-sm md:text-base
          border-2 border-cyber-accent hover:bg-cyber-accent hover:text-black 
-         transition-all duration-300 hover:shadow-xl;
+         transition-all duration-300 hover:shadow-lg hover:shadow-emerald-400/25 active:scale-[0.98];
 }
 
 /* Card styles - Premium with subtle shadows */
 .card {
-  @apply bg-cyber-surface border border-cyber-border rounded-xl p-6 
-         shadow-lg backdrop-blur-sm;
+  @apply bg-slate-900/80 border border-slate-700/80 rounded-xl p-4 md:p-5 
+         shadow-md backdrop-blur-md;
   max-width: 100%;
   box-sizing: border-box;
   transition: all 0.3s ease;
 }
 
 .card:hover {
-  @apply shadow-xl;
-  border-color: rgba(0, 255, 136, 0.2);
+  @apply shadow-lg;
+  border-color: rgba(52, 211, 153, 0.35);
 }
 
 /* Input styles - Premium rounded */
 .input {
-  @apply w-full bg-cyber-bg border-2 border-cyber-border 
-         text-white px-4 py-3 rounded-xl focus:border-cyber-accent 
+  @apply w-full bg-slate-950/80 border border-slate-700 
+         text-slate-100 px-3.5 py-2.5 md:px-4 md:py-3 rounded-lg text-sm md:text-base focus:border-cyber-accent 
          focus:outline-none transition-all duration-300;
   max-width: 100%;
   box-sizing: border-box;
@@ -213,7 +211,7 @@ body {
 /* Mobile optimizations */
 @media (max-width: 768px) {
   .card {
-    @apply p-4;
+    @apply p-3;
   }
   
   .btn-primary,

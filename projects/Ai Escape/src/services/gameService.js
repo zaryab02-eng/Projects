@@ -48,9 +48,7 @@ export async function createGameRoom(adminName) {
     return roomCode;
   } catch (error) {
     console.error("❌ Firebase error creating room:", error);
-    throw new Error(
-      "Unable to connect to game servers. Please check your internet connection.",
-    );
+    throw new Error("Unable to connect to game servers. Please check your internet connection.");
   }
 }
 
@@ -76,12 +74,9 @@ export async function joinGameRoom(roomCode, playerIdentifier, playerName) {
   for (const playerId in players) {
     if (players[playerId].identifier === playerIdentifier) {
       // Ensure name is updated/stored on reconnection
-      const existingPlayerRef = ref(
-        database,
-        `rooms/${roomCode}/players/${playerId}`,
-      );
+      const existingPlayerRef = ref(database, `rooms/${roomCode}/players/${playerId}`);
       await update(existingPlayerRef, { name: playerName });
-
+      
       // Store player in global players collection for tracking
       const globalPlayerRef = ref(database, `players/${playerIdentifier}`);
       await set(globalPlayerRef, {
@@ -90,7 +85,7 @@ export async function joinGameRoom(roomCode, playerIdentifier, playerName) {
         lastPlayed: Date.now(),
         lastRoom: roomCode,
       });
-
+      
       return playerId; // Return existing player ID for reconnection
     }
   }
@@ -199,24 +194,20 @@ export async function startGame(roomCode) {
   // Check that all players are ready (only for multiplayer mode, not solo)
   const players = roomData.players || {};
   const playerList = Object.values(players);
-
+  
   if (playerList.length === 0) {
     throw new Error("No players in the room");
   }
 
   // Detect solo mode: solo rooms have adminName starting with "Solo-" or only 1 player
-  const isSoloMode =
-    (roomData.adminName && roomData.adminName.startsWith("Solo-")) ||
-    playerList.length === 1;
+  const isSoloMode = (roomData.adminName && roomData.adminName.startsWith("Solo-")) || playerList.length === 1;
 
   // Only require all players to be ready in multiplayer mode
   if (!isSoloMode) {
     const allPlayersReady = playerList.every((p) => p.ready === true);
     if (!allPlayersReady) {
       const readyCount = playerList.filter((p) => p.ready === true).length;
-      throw new Error(
-        `All players must be ready to start. ${readyCount}/${playerList.length} players are ready.`,
-      );
+      throw new Error(`All players must be ready to start. ${readyCount}/${playerList.length} players are ready.`);
     }
   }
 
@@ -284,16 +275,12 @@ export async function submitAnswer(roomCode, playerId, levelNumber, answer) {
   if (isCorrect) {
     const now = Date.now();
     const levelTime = now - (playerData.levelStartTime || roomData.startTime);
-
+    
     // For solo mode: add time penalty for wrong answers in this level
     // Each wrong answer adds 10 seconds penalty (applied when level completes)
-    const levelWrongAnswers =
-      (playerData.levelWrongAnswers &&
-        playerData.levelWrongAnswers[levelNumber]) ||
-      0;
-    const wrongAnswersPenalty = isSolo ? levelWrongAnswers * 10 * 1000 : 0;
-    const newTotalTime =
-      (playerData.totalTime || 0) + levelTime + wrongAnswersPenalty;
+    const levelWrongAnswers = (playerData.levelWrongAnswers && playerData.levelWrongAnswers[levelNumber]) || 0;
+    const wrongAnswersPenalty = isSolo ? (levelWrongAnswers * 10 * 1000) : 0;
+    const newTotalTime = (playerData.totalTime || 0) + levelTime + wrongAnswersPenalty;
 
     const updates = {
       completedLevels: levelNumber,
@@ -325,10 +312,7 @@ export async function submitAnswer(roomCode, playerId, levelNumber, answer) {
   } else {
     // Wrong answer - increment wrong answers count for this level (for both solo and multiplayer)
     const now = Date.now();
-    const currentWrongAnswers =
-      (playerData.levelWrongAnswers &&
-        playerData.levelWrongAnswers[levelNumber]) ||
-      0;
+    const currentWrongAnswers = (playerData.levelWrongAnswers && playerData.levelWrongAnswers[levelNumber]) || 0;
     const levelWrongAnswers = playerData.levelWrongAnswers || {};
     levelWrongAnswers[levelNumber] = currentWrongAnswers + 1;
 
@@ -352,13 +336,7 @@ export async function submitAnswer(roomCode, playerId, levelNumber, answer) {
  * Submit a mini-game result
  * Works similarly to submitAnswer but for mini-games
  */
-export async function submitMiniGameResult(
-  roomCode,
-  playerId,
-  levelNumber,
-  gameType,
-  isCorrect,
-) {
+export async function submitMiniGameResult(roomCode, playerId, levelNumber, gameType, isCorrect) {
   const roomRef = ref(database, `rooms/${roomCode}`);
   const snapshot = await get(roomRef);
 
@@ -381,16 +359,12 @@ export async function submitMiniGameResult(
   if (isCorrect) {
     const now = Date.now();
     const levelTime = now - (playerData.levelStartTime || roomData.startTime);
-
+    
     // For solo mode: add time penalty for wrong answers in this level
     // Each wrong answer adds 10 seconds penalty (applied when level completes)
-    const levelWrongAnswers =
-      (playerData.levelWrongAnswers &&
-        playerData.levelWrongAnswers[levelNumber]) ||
-      0;
-    const wrongAnswersPenalty = isSolo ? levelWrongAnswers * 10 * 1000 : 0;
-    const newTotalTime =
-      (playerData.totalTime || 0) + levelTime + wrongAnswersPenalty;
+    const levelWrongAnswers = (playerData.levelWrongAnswers && playerData.levelWrongAnswers[levelNumber]) || 0;
+    const wrongAnswersPenalty = isSolo ? (levelWrongAnswers * 10 * 1000) : 0;
+    const newTotalTime = (playerData.totalTime || 0) + levelTime + wrongAnswersPenalty;
 
     const updates = {
       completedLevels: levelNumber,
@@ -407,7 +381,7 @@ export async function submitMiniGameResult(
     }
     updates.totalWrongAnswers = totalWrongAnswers;
 
-    // Move to next level if available.
+    // Move to next level if available
     if (levelNumber < roomData.totalLevels) {
       updates.currentLevel = levelNumber + 1;
       updates.levelStartTime = now;
@@ -422,10 +396,7 @@ export async function submitMiniGameResult(
   } else {
     // Wrong attempt - increment wrong answers count for this level (for both solo and multiplayer)
     const now = Date.now();
-    const currentWrongAnswers =
-      (playerData.levelWrongAnswers &&
-        playerData.levelWrongAnswers[levelNumber]) ||
-      0;
+    const currentWrongAnswers = (playerData.levelWrongAnswers && playerData.levelWrongAnswers[levelNumber]) || 0;
     const levelWrongAnswers = playerData.levelWrongAnswers || {};
     levelWrongAnswers[levelNumber] = currentWrongAnswers + 1;
 
@@ -515,7 +486,7 @@ export function getLeaderboard(roomData) {
     .map((p) => ({
       id: p.id,
       name: p.name,
-      identifier: p.identifier || "",
+      identifier: p.identifier || '',
       completedLevels: p.completedLevels || 0,
       totalTime: p.totalTime || 0,
       totalWrongAnswers: p.totalWrongAnswers ?? 0,
@@ -550,7 +521,7 @@ export function exportResultsCSV(roomData) {
 export async function exportResultsPDF(roomData) {
   try {
     // Dynamically import jsPDF to avoid bundling issues
-    const module = await import("jspdf");
+    const module = await import('jspdf');
     const jsPDF = module.default || module.jsPDF;
     const leaderboard = getLeaderboard(roomData);
     const doc = new jsPDF();
@@ -558,18 +529,18 @@ export async function exportResultsPDF(roomData) {
     // PDF Title
     doc.setFontSize(20);
     doc.setTextColor(0, 150, 200); // Cyan color
-    doc.text("ESCAPE ROOM - GAME RESULTS", 105, 20, { align: "center" });
+    doc.text('ESCAPE ROOM - GAME RESULTS', 105, 20, { align: 'center' });
 
     // Room Code
     doc.setFontSize(12);
     doc.setTextColor(50, 50, 50); // Dark gray
-    doc.text(`Room Code: ${roomData.roomCode}`, 105, 30, { align: "center" });
+    doc.text(`Room Code: ${roomData.roomCode}`, 105, 30, { align: 'center' });
 
     // Game Info
     let yPos = 45;
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100); // Gray
-
+    
     if (roomData.difficulty) {
       doc.text(`Difficulty: ${roomData.difficulty}`, 20, yPos);
       yPos += 7;
@@ -583,55 +554,48 @@ export async function exportResultsPDF(roomData) {
       yPos += 7;
     }
     if (roomData.players) {
-      doc.text(
-        `Total Players: ${Object.keys(roomData.players).length}`,
-        20,
-        yPos,
-      );
+      doc.text(`Total Players: ${Object.keys(roomData.players).length}`, 20, yPos);
       yPos += 10;
     }
 
     // Table Header
     doc.setFillColor(0, 100, 200);
-    doc.rect(20, yPos, 170, 8, "F");
+    doc.rect(20, yPos, 170, 8, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(10);
-    doc.setFont(undefined, "bold");
-    doc.text("Rank", 22, yPos + 6);
-    doc.text("Name", 35, yPos + 6);
-    doc.text("Identifier", 85, yPos + 6);
-    doc.text("Lvls", 125, yPos + 6);
-    doc.text("Time", 150, yPos + 6);
+    doc.setFont(undefined, 'bold');
+    doc.text('Rank', 22, yPos + 6);
+    doc.text('Name', 35, yPos + 6);
+    doc.text('Identifier', 85, yPos + 6);
+    doc.text('Lvls', 125, yPos + 6);
+    doc.text('Time', 150, yPos + 6);
 
     yPos += 8;
 
     // Table Rows
-    doc.setFont(undefined, "normal");
+    doc.setFont(undefined, 'normal');
     doc.setFontSize(10);
-
+    
     leaderboard.forEach((player, index) => {
       const rank = index + 1;
       const timeInSeconds = Math.floor(player.totalTime / 1000);
       const minutes = Math.floor(timeInSeconds / 60);
       const seconds = timeInSeconds % 60;
-      const timeString = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+      const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
       // Alternate row colors
       if (index % 2 === 0) {
         doc.setFillColor(240, 240, 240); // Light gray background
-        doc.rect(20, yPos, 170, 7, "F");
+        doc.rect(20, yPos, 170, 7, 'F');
       }
 
       doc.setTextColor(0, 0, 0); // Black text
       doc.setFontSize(9);
       doc.text(rank.toString(), 22, yPos + 5);
       // Truncate name if too long
-      const displayName =
-        player.name.length > 12
-          ? player.name.substring(0, 10) + "..."
-          : player.name;
+      const displayName = player.name.length > 12 ? player.name.substring(0, 10) + '...' : player.name;
       doc.text(displayName, 35, yPos + 5);
-      doc.text(player.identifier || "N/A", 85, yPos + 5);
+      doc.text(player.identifier || 'N/A', 85, yPos + 5);
       doc.text(player.completedLevels.toString(), 125, yPos + 5);
       doc.text(timeString, 150, yPos + 5);
 
@@ -647,12 +611,8 @@ export async function exportResultsPDF(roomData) {
     // Save PDF
     doc.save(`escape-room-results-${roomData.roomCode}.pdf`);
   } catch (error) {
-    console.error("Error generating PDF:", error);
-    notify.error(
-      error.message
-        ? `PDF export failed: ${error.message}`
-        : "PDF export failed. Please try again.",
-    );
+    console.error('Error generating PDF:', error);
+    notify.error(error.message ? `PDF export failed: ${error.message}` : "PDF export failed. Please try again.");
   }
 }
 
