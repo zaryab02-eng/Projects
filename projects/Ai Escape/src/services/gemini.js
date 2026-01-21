@@ -807,11 +807,19 @@ function getQuestionBank(difficulty) {
  * Check if answer matches (handles arrays of acceptable answers)
  */
 export function checkAnswer(userAnswer, correctAnswers) {
-  const normalized = userAnswer.toLowerCase().trim();
+  const normalized = String(userAnswer ?? "")
+    .toLowerCase()
+    .trim();
+
   const answers = Array.isArray(correctAnswers)
     ? correctAnswers
     : [correctAnswers];
-  return answers.some((ans) => ans.toLowerCase().trim() === normalized);
+
+  return answers.some((ans) =>
+    String(ans ?? "")
+      .toLowerCase()
+      .trim() === normalized,
+  );
 }
 
 /**
