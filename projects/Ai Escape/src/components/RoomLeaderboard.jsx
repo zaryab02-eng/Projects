@@ -21,6 +21,7 @@ export default function RoomLeaderboard({ leaderboard, totalLevels = 0, currentP
       <>
         {name}
         {you && <span className="text-[#00ff88] ml-1.5 text-xs">(You)</span>}
+        {p.disqualified && <span className="text-red-400 ml-1.5 text-xs">(Disqualified)</span>}
         {p.gaveUp && <span className="text-white/50 ml-1.5 text-xs">(Gave up)</span>}
       </>
     );

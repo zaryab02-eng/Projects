@@ -417,8 +417,17 @@ export async function submitMiniGameResult(roomCode, playerId, levelNumber, game
 
 /**
  * Add warning to player (anti-cheat)
+ * For solo games, saves progress to global leaderboard when auto-disqualifying
  */
 export async function addPlayerWarning(roomCode, playerId, reason) {
+  const roomRef = ref(database, `rooms/${roomCode}`);
+  const roomSnapshot = await get(roomRef);
+  
+  if (!roomSnapshot.exists()) {
+    throw new Error("Room not found");
+  }
+  
+  const roomData = roomSnapshot.val();
   const playerRef = ref(database, `rooms/${roomCode}/players/${playerId}`);
   const snapshot = await get(playerRef);
 
@@ -433,6 +442,62 @@ export async function addPlayerWarning(roomCode, playerId, reason) {
     // Auto disqualify after 2 warnings
     if (newWarnings >= 2) {
       updates.disqualified = true;
+      
+      // For solo games, save progress to global leaderboard before disqualifying
+      const isSolo = (roomData.adminName && roomData.adminName.startsWith("Solo-")) || 
+                     (Object.keys(roomData.players || {}).length === 1);
+      
+      if (isSolo && playerData.identifier) {
+        // Extract userId from identifier (format: "solo-${userId}")
+        const userId = playerData.identifier.replace(/^solo-/, "");
+        
+        if (userId && roomData.difficulty && roomData.totalLevels) {
+          try {
+            // Dynamically import to avoid circular dependencies
+            const { submitSoloResult } = await import("./leaderboardService");
+            
+            // Calculate total wrong answers correctly
+            let totalWrongAnswers = 0;
+            if (playerData.levelWrongAnswers && typeof playerData.levelWrongAnswers === "object") {
+              for (const level in playerData.levelWrongAnswers) {
+                totalWrongAnswers += Number(playerData.levelWrongAnswers[level] || 0);
+              }
+            } else {
+              totalWrongAnswers = Number(playerData.totalWrongAnswers || 0);
+            }
+            
+            // Calculate total time including current level progress
+            let totalTime = Number(playerData.totalTime || 0);
+            if (roomData.status === "playing" && playerData.currentLevel && playerData.levelStartTime) {
+              const now = Date.now();
+              const levelStartTime = Number(playerData.levelStartTime || roomData.startTime || 0);
+              const elapsed = Math.max(0, now - levelStartTime);
+              
+              // Add penalty for wrong answers in current level (solo mode)
+              const currentLevel = Number(playerData.currentLevel || 0);
+              const levelWrongAnswers = playerData.levelWrongAnswers || {};
+              const currentWrong = Number(levelWrongAnswers[currentLevel] || 0);
+              const penalty = currentWrong * 10 * 1000;
+              
+              totalTime = totalTime + elapsed + penalty;
+            }
+            
+            // Submit progress to global leaderboard
+            await submitSoloResult(
+              userId,
+              playerData.name || "Unknown",
+              roomData.difficulty,
+              roomData.totalLevels,
+              playerData.completedLevels || 0,
+              totalTime,
+              totalWrongAnswers
+            );
+          } catch (err) {
+            console.error("Error submitting auto-disqualified solo player progress:", err);
+            // Continue with disqualification even if leaderboard submission fails
+          }
+        }
+      }
     }
 
     await update(playerRef, updates);
@@ -443,9 +508,84 @@ export async function addPlayerWarning(roomCode, playerId, reason) {
 
 /**
  * Disqualify player (Admin)
+ * For solo games, also saves progress to global leaderboard before disqualifying
  */
 export async function disqualifyPlayer(roomCode, playerId) {
+  const roomRef = ref(database, `rooms/${roomCode}`);
+  const roomSnapshot = await get(roomRef);
+  
+  if (!roomSnapshot.exists()) {
+    throw new Error("Room not found");
+  }
+  
+  const roomData = roomSnapshot.val();
   const playerRef = ref(database, `rooms/${roomCode}/players/${playerId}`);
+  const playerSnapshot = await get(playerRef);
+  
+  if (!playerSnapshot.exists()) {
+    throw new Error("Player not found");
+  }
+  
+  const playerData = playerSnapshot.val();
+  
+  // Check if this is a solo game
+  const isSolo = (roomData.adminName && roomData.adminName.startsWith("Solo-")) || 
+                 (Object.keys(roomData.players || {}).length === 1);
+  
+  // For solo games, save progress to global leaderboard before disqualifying
+  if (isSolo && playerData.identifier) {
+    // Extract userId from identifier (format: "solo-${userId}")
+    const userId = playerData.identifier.replace(/^solo-/, "");
+    
+    if (userId && roomData.difficulty && roomData.totalLevels) {
+      try {
+        // Dynamically import to avoid circular dependencies
+        const { submitSoloResult } = await import("./leaderboardService");
+        
+        // Calculate total wrong answers correctly
+        let totalWrongAnswers = 0;
+        if (playerData.levelWrongAnswers && typeof playerData.levelWrongAnswers === "object") {
+          for (const level in playerData.levelWrongAnswers) {
+            totalWrongAnswers += Number(playerData.levelWrongAnswers[level] || 0);
+          }
+        } else {
+          totalWrongAnswers = Number(playerData.totalWrongAnswers || 0);
+        }
+        
+        // Calculate total time including current level progress
+        let totalTime = Number(playerData.totalTime || 0);
+        if (roomData.status === "playing" && playerData.currentLevel && playerData.levelStartTime) {
+          const now = Date.now();
+          const levelStartTime = Number(playerData.levelStartTime || roomData.startTime || 0);
+          const elapsed = Math.max(0, now - levelStartTime);
+          
+          // Add penalty for wrong answers in current level (solo mode)
+          const currentLevel = Number(playerData.currentLevel || 0);
+          const levelWrongAnswers = playerData.levelWrongAnswers || {};
+          const currentWrong = Number(levelWrongAnswers[currentLevel] || 0);
+          const penalty = currentWrong * 10 * 1000;
+          
+          totalTime = totalTime + elapsed + penalty;
+        }
+        
+        // Submit progress to global leaderboard
+        await submitSoloResult(
+          userId,
+          playerData.name || "Unknown",
+          roomData.difficulty,
+          roomData.totalLevels,
+          playerData.completedLevels || 0,
+          totalTime,
+          totalWrongAnswers
+        );
+      } catch (err) {
+        console.error("Error submitting disqualified solo player progress:", err);
+        // Continue with disqualification even if leaderboard submission fails
+      }
+    }
+  }
+  
+  // Update player as disqualified
   await update(playerRef, { disqualified: true });
 }
 
@@ -477,12 +617,12 @@ export function subscribeToRoom(roomCode, callback) {
 /**
  * Get leaderboard data
  * Uses same ranking logic as solo mode: levels, time, wrong attempts
+ * Includes all players (disqualified, gave up, etc.) so their progress is visible
  */
 export function getLeaderboard(roomData) {
   const players = roomData.players || {};
 
   const leaderboard = Object.values(players)
-    .filter((p) => !p.disqualified)
     .map((p) => ({
       id: p.id,
       name: p.name,
@@ -492,6 +632,7 @@ export function getLeaderboard(roomData) {
       totalWrongAnswers: p.totalWrongAnswers ?? 0,
       timestamp: p.lastProgressAt || p.joinedAt || 0,
       gaveUp: !!p.gaveUp,
+      disqualified: !!p.disqualified,
     }))
     .sort(compareEscapeRanking);
 
