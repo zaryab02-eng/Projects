@@ -32,21 +32,38 @@ function HomePage() {
       <div className="w-full max-w-3xl px-4 py-4 md:py-6">
         {/* Title */}
         <div className="text-center mb-5 md:mb-6 relative">
-          {/* Leaderboard Button - Top Right */}
+          {/* Mobile: Badges row above title */}
+          <div className="flex items-center justify-between mb-3 sm:hidden">
+            {/* Online Players Badge - Mobile */}
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-emerald-500/70 bg-emerald-900/40 text-[10px] font-medium text-emerald-200 shadow-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
+              <span className="font-semibold">{onlinePlayers}</span>
+              <span className="whitespace-nowrap">Players Online</span>
+            </div>
+            
+            {/* Leaderboard Button - Mobile */}
+            <Link
+              to="/leaderboard"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-600 bg-slate-900/80 hover:bg-slate-800 hover:border-emerald-400 text-[10px] font-medium text-slate-100 transition-all duration-200 shadow-sm hover:shadow-md"
+            >
+              <Trophy size={14} />
+              <span>LEADERBOARD</span>
+            </Link>
+          </div>
+
+          {/* Desktop: Badges in corners */}
           <Link
             to="/leaderboard"
-            className="absolute top-0 right-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-600 bg-slate-900/80 hover:bg-slate-800 hover:border-emerald-400 text-[11px] md:text-xs font-medium text-slate-100 transition-all duration-200 shadow-sm hover:shadow-md"
+            className="hidden sm:absolute sm:inline-flex sm:top-0 sm:right-0 items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-600 bg-slate-900/80 hover:bg-slate-800 hover:border-emerald-400 text-xs font-medium text-slate-100 transition-all duration-200 shadow-sm hover:shadow-md"
           >
-            <Trophy size={14} className="md:hidden" />
-            <Trophy size={18} className="hidden md:block" />
-            <span className="hidden sm:inline">LEADERBOARD</span>
+            <Trophy size={18} />
+            <span>LEADERBOARD</span>
           </Link>
 
-          {/* Online Players Badge - Top Left */}
-          <div className="absolute top-0 left-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-500/70 bg-emerald-900/40 text-[11px] md:text-xs font-medium text-emerald-200 shadow-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>{onlinePlayers}</span>
-            <span className="hidden sm:inline">Players Online</span>
+          <div className="hidden sm:absolute sm:inline-flex sm:top-0 sm:left-0 items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-emerald-500/70 bg-emerald-900/40 text-xs font-medium text-emerald-200 shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
+            <span className="font-semibold">{onlinePlayers}</span>
+            <span className="whitespace-nowrap">Players Online</span>
           </div>
 
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-cyber-accent glow-text mb-1.5 md:mb-2 leading-tight tracking-tight">
