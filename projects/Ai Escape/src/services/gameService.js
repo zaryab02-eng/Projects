@@ -377,7 +377,7 @@ export async function submitMiniGameResult(roomCode, playerId, levelNumber, game
     const allLevelWrongAnswers = playerData.levelWrongAnswers || {};
     let totalWrongAnswers = 0;
     for (const level in allLevelWrongAnswers) {
-      totalWrongAnswers += allLevelWrongAnswers[level];
+      totalWrongAnswers += Number(allLevelWrongAnswers[level] || 0);
     }
     updates.totalWrongAnswers = totalWrongAnswers;
 

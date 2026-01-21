@@ -5,7 +5,7 @@ import { useGameState, formatTime } from "../hooks/useGameState";
 import { useAntiCheat } from "../hooks/useAntiCheat";
 import { useTabVisibility } from "../hooks/useTabVisibility";
 import { getLeaderboard, endGame, updatePlayerNameInRoom } from "../services/gameService";
-import { ref, update } from "firebase/database";
+import { ref, update, get } from "firebase/database";
 import { database } from "../services/firebase";
 import { submitSoloResult, getGlobalLeaderboard, updateSoloDisplayNameEverywhere } from "../services/leaderboardService";
 import { signOutUser } from "../services/authService";
@@ -107,21 +107,56 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
   };
 
   // Helper function to calculate total wrong answers from levelWrongAnswers object
+  // IMPORTANT: This must include wrong answers from ALL levels, including the current incomplete level
   const calculateTotalWrongAnswers = (playerData) => {
-    if (!playerData) return 0;
+    if (!playerData) {
+      console.warn("[calculateTotalWrongAnswers] No playerData provided");
+      return 0;
+    }
 
     // Prefer summing per-level counters because `totalWrongAnswers` can be stale
     // (it was previously only recalculated when a level was completed).
     if (playerData.levelWrongAnswers && typeof playerData.levelWrongAnswers === "object") {
       const levelWrongAnswers = playerData.levelWrongAnswers || {};
       let total = 0;
+      
+      // Sum ALL levels including current incomplete level
+      // This includes wrong answers from level 1 even if player hasn't completed it
       for (const level in levelWrongAnswers) {
-        total += Number(levelWrongAnswers[level] || 0);
+        const count = Number(levelWrongAnswers[level] || 0);
+        if (!isNaN(count) && count > 0) {
+          total += count;
+        }
       }
+      
+      // Debug logging to verify calculation
+      if (total > 0) {
+        console.log("[calculateTotalWrongAnswers] Calculated:", {
+          levelWrongAnswers,
+          calculatedTotal: total,
+          dbTotal: Number(playerData.totalWrongAnswers || 0),
+          currentLevel: playerData.currentLevel
+        });
+      }
+      
+      // Double-check: if totalWrongAnswers exists and is higher, use that (safety fallback)
+      // This handles edge cases where database might have more recent updates
+      const dbTotal = Number(playerData.totalWrongAnswers || 0);
+      if (dbTotal > total) {
+        console.warn("[calculateTotalWrongAnswers] Database totalWrongAnswers is higher, using database value:", {
+          calculated: total,
+          database: dbTotal
+        });
+        return dbTotal;
+      }
+      
       return total;
     }
 
-    return Number(playerData.totalWrongAnswers || 0);
+    // Fallback to database value if levelWrongAnswers doesn't exist
+    const fallback = Number(playerData.totalWrongAnswers || 0);
+    console.log("[calculateTotalWrongAnswers] Using fallback (no levelWrongAnswers object):", fallback);
+    return fallback;
   };
 
   const calculateTotalTimeForSubmission = (playerData) => {
@@ -165,9 +200,23 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
     isSavingProgressRef.current = true;
 
     try {
-      // Calculate total wrong answers correctly
-      const totalWrongAnswers = calculateTotalWrongAnswers(player);
-      const totalTimeForSubmission = calculateTotalTimeForSubmission(player);
+      // CRITICAL: Fetch latest player data to ensure we have all wrong answers
+      // The player object might be stale
+      let latestPlayerData = player;
+      try {
+        const playerRef = ref(database, `rooms/${roomCode}/players/${playerId}`);
+        const playerSnapshot = await get(playerRef);
+        if (playerSnapshot.exists()) {
+          latestPlayerData = playerSnapshot.val();
+        }
+      } catch (err) {
+        console.error("Error fetching latest player data in saveSoloProgress:", err);
+        // Continue with existing player data as fallback
+      }
+
+      // Calculate total wrong answers correctly using latest data
+      const totalWrongAnswers = calculateTotalWrongAnswers(latestPlayerData);
+      const totalTimeForSubmission = calculateTotalTimeForSubmission(latestPlayerData);
 
       // Submit current progress to leaderboard
       const soloUserId = sessionStorage.getItem("soloUserId");
@@ -181,7 +230,7 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
             effectivePlayerName,
             soloDifficulty,
             soloTotalLevels,
-            player.completedLevels || 0,
+            latestPlayerData.completedLevels || 0,
             totalTimeForSubmission,
             totalWrongAnswers
           );
@@ -216,9 +265,35 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
     });
     if (!confirmed) return;
 
-    // Calculate total wrong answers correctly
-    const totalWrongAnswers = calculateTotalWrongAnswers(player);
-    const totalTimeForSubmission = calculateTotalTimeForSubmission(player);
+    // CRITICAL: Fetch latest player data from database to ensure we have ALL wrong answers
+    // The player object from roomData might be stale and missing recent wrong attempts
+    let latestPlayerData = player;
+    try {
+      const playerRef = ref(database, `rooms/${roomCode}/players/${playerId}`);
+      const playerSnapshot = await get(playerRef);
+      if (playerSnapshot.exists()) {
+        latestPlayerData = playerSnapshot.val();
+        console.log("[Give Up] Fetched latest player data:", {
+          levelWrongAnswers: latestPlayerData.levelWrongAnswers,
+          totalWrongAnswers: latestPlayerData.totalWrongAnswers,
+          currentLevel: latestPlayerData.currentLevel
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching latest player data:", err);
+      // Continue with existing player data as fallback
+    }
+
+    // Calculate total wrong answers correctly using latest data
+    // This ensures we include wrong answers from the current incomplete level
+    const totalWrongAnswers = calculateTotalWrongAnswers(latestPlayerData);
+    const totalTimeForSubmission = calculateTotalTimeForSubmission(latestPlayerData);
+
+    console.log("[Give Up] Calculated stats:", {
+      totalWrongAnswers,
+      totalTime: totalTimeForSubmission,
+      completedLevels: latestPlayerData.completedLevels || 0
+    });
 
     // Always keep the room player record consistent (realtime leaderboard accuracy).
     // Also mark multiplayer players as "gaveUp" without ending the room for everyone.
@@ -234,10 +309,39 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
       console.error("Error updating give up stats:", err);
     }
 
-    // For solo mode, submit to global leaderboard
+    // For solo mode, submit to global leaderboard with latest data
     if (isSolo) {
-      await saveSoloProgress(false);
-      progressSavedRef.current = true; // Mark as saved
+      const soloUserId = sessionStorage.getItem("soloUserId");
+      const soloDifficulty = sessionStorage.getItem("soloDifficulty");
+      const soloTotalLevels = parseInt(sessionStorage.getItem("soloTotalLevels") || "5");
+
+      if (soloUserId && soloDifficulty) {
+        try {
+          // Submit with latest data to ensure wrong answers are included
+          await submitSoloResult(
+            soloUserId,
+            effectivePlayerName,
+            soloDifficulty,
+            soloTotalLevels,
+            latestPlayerData.completedLevels || 0,
+            totalTimeForSubmission,
+            totalWrongAnswers
+          );
+          progressSavedRef.current = true;
+          console.log("[Give Up] Solo progress submitted:", {
+            wrongAnswers: totalWrongAnswers,
+            completedLevels: latestPlayerData.completedLevels || 0
+          });
+        } catch (err) {
+          console.error("Error submitting to leaderboard:", err);
+        }
+      }
+      
+      try {
+        await endGame(roomCode);
+      } catch (err) {
+        console.error("Error ending game:", err);
+      }
       
       sessionStorage.clear();
       navigate("/");
@@ -296,16 +400,29 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
         const before = await getGlobalLeaderboard(difficulty, totalLevels, soloUserId);
         const rankBefore = computeRank(before);
 
-        // Calculate total wrong answers correctly
-        const totalWrongAnswers = calculateTotalWrongAnswers(player);
+        // CRITICAL: Fetch latest player data to ensure wrong answers are included
+        let latestPlayerData = player;
+        try {
+          const playerRef = ref(database, `rooms/${roomCode}/players/${playerId}`);
+          const playerSnapshot = await get(playerRef);
+          if (playerSnapshot.exists()) {
+            latestPlayerData = playerSnapshot.val();
+          }
+        } catch (err) {
+          console.error("Error fetching latest player data on finish:", err);
+        }
+
+        // Calculate total wrong answers correctly using latest data
+        const totalWrongAnswers = calculateTotalWrongAnswers(latestPlayerData);
+        const totalTime = calculateTotalTimeForSubmission(latestPlayerData);
 
         await submitSoloResult(
           soloUserId,
           effectivePlayerName,
           difficulty,
           totalLevels,
-          player.completedLevels || 0,
-          player.totalTime || 0,
+          latestPlayerData.completedLevels || 0,
+          totalTime,
           totalWrongAnswers
         );
 
