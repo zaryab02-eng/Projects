@@ -48,6 +48,10 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
   const playerRank = leaderboard.findIndex((p) => p.id === playerId) + 1 || 0;
   const effectivePlayerName = player?.name || playerName;
   const { confirm } = useConfirm();
+  
+  // Ref to track if progress has been saved (prevents duplicate saves)
+  const progressSavedRef = useRef(false);
+  const isSavingProgressRef = useRef(false);
 
   const handleSaveName = async () => {
     const soloUserId = sessionStorage.getItem("soloUserId");
@@ -145,6 +149,61 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
     return base + elapsed + penalty;
   };
 
+  // Reliable progress saving function for solo mode
+  // Can be called multiple times safely (idempotent)
+  // Must be defined before handleGiveUp and other handlers that use it
+  const saveSoloProgress = async (skipEndGame = false) => {
+    // Prevent duplicate saves
+    if (progressSavedRef.current || isSavingProgressRef.current) {
+      return;
+    }
+    
+    if (!isSolo || !isGameActive || !player) {
+      return;
+    }
+
+    isSavingProgressRef.current = true;
+
+    try {
+      // Calculate total wrong answers correctly
+      const totalWrongAnswers = calculateTotalWrongAnswers(player);
+      const totalTimeForSubmission = calculateTotalTimeForSubmission(player);
+
+      // Submit current progress to leaderboard
+      const soloUserId = sessionStorage.getItem("soloUserId");
+      const soloDifficulty = sessionStorage.getItem("soloDifficulty");
+      const soloTotalLevels = parseInt(sessionStorage.getItem("soloTotalLevels") || "5");
+
+      if (soloUserId && soloDifficulty) {
+        try {
+          await submitSoloResult(
+            soloUserId,
+            effectivePlayerName,
+            soloDifficulty,
+            soloTotalLevels,
+            player.completedLevels || 0,
+            totalTimeForSubmission,
+            totalWrongAnswers
+          );
+          progressSavedRef.current = true;
+        } catch (err) {
+          console.error("Error submitting to leaderboard:", err);
+        }
+      }
+
+      // End the game if requested
+      if (!skipEndGame) {
+        try {
+          await endGame(roomCode);
+        } catch (err) {
+          console.error("Error ending game:", err);
+        }
+      }
+    } finally {
+      isSavingProgressRef.current = false;
+    }
+  };
+
   const handleGiveUp = async () => {
     if (!isGameActive || !player) return;
 
@@ -177,33 +236,9 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
 
     // For solo mode, submit to global leaderboard
     if (isSolo) {
-      const soloUserId = sessionStorage.getItem("soloUserId");
-      const soloDifficulty = sessionStorage.getItem("soloDifficulty");
-      const soloTotalLevels = parseInt(sessionStorage.getItem("soloTotalLevels") || "5");
-
-      if (soloUserId && soloDifficulty) {
-        try {
-          // Submit current progress to leaderboard
-          await submitSoloResult(
-            soloUserId,
-            effectivePlayerName,
-            soloDifficulty,
-            soloTotalLevels,
-            player.completedLevels || 0,
-            totalTimeForSubmission,
-            totalWrongAnswers
-          );
-        } catch (err) {
-          console.error("Error submitting to leaderboard:", err);
-        }
-      }
-      // End the solo room immediately after saving
-      try {
-        await endGame(roomCode);
-      } catch (err) {
-        console.error("Error ending game:", err);
-      }
-
+      await saveSoloProgress(false);
+      progressSavedRef.current = true; // Mark as saved
+      
       sessionStorage.clear();
       navigate("/");
     } else {
@@ -214,37 +249,7 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
   // Solo mode: Tab visibility detection with grace timer
   const handleTabLeave = async () => {
     if (isSolo && isGameActive && player) {
-      // Calculate total wrong answers correctly
-      const totalWrongAnswers = calculateTotalWrongAnswers(player);
-      const totalTimeForSubmission = calculateTotalTimeForSubmission(player);
-
-      // Submit current progress to leaderboard before terminating
-      const soloUserId = sessionStorage.getItem("soloUserId");
-      const soloDifficulty = sessionStorage.getItem("soloDifficulty");
-      const soloTotalLevels = parseInt(sessionStorage.getItem("soloTotalLevels") || "5");
-
-      if (soloUserId && soloDifficulty) {
-        try {
-          await submitSoloResult(
-            soloUserId,
-            effectivePlayerName,
-            soloDifficulty,
-            soloTotalLevels,
-            player.completedLevels || 0,
-            totalTimeForSubmission,
-            totalWrongAnswers
-          );
-        } catch (err) {
-          console.error("Error submitting to leaderboard:", err);
-        }
-      }
-
-      // Terminate solo game if player leaves tab/app
-      try {
-        await endGame(roomCode);
-      } catch (err) {
-        console.error("Error ending game:", err);
-      }
+      await saveSoloProgress(false);
       
       sessionStorage.clear();
       navigate("/");
@@ -254,6 +259,19 @@ export default function GameRoom({ roomCode, playerId, playerName, isAdmin }) {
 
   // Solo mode: immediate termination (no grace period)
   useTabVisibility(handleTabLeave, isSolo ? 0 : 7500);
+  
+  // Save progress when component unmounts (cleanup effect)
+  useEffect(() => {
+    return () => {
+      // Save progress on unmount (e.g., when navigating away)
+      if (isSolo && isGameActive && player && !progressSavedRef.current) {
+        // Fire and forget - try to save progress
+        saveSoloProgress(true).catch(err => {
+          console.error("Error saving progress on unmount:", err);
+        });
+      }
+    };
+  }, [isSolo, isGameActive, player]);
 
   // Submit solo result to global leaderboard when game finishes and compute rank change
   useEffect(() => {

@@ -49,18 +49,30 @@ export function useTabVisibility(onTerminate, gracePeriodMs = 7500) {
     // Listen for visibility changes
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    // Also listen for page unload (browser close/refresh)
+    // Use pagehide instead of beforeunload - more reliable and gives more time
+    // pagehide fires reliably when the page is being unloaded (close, refresh, navigate)
+    const handlePageHide = (event) => {
+      // Try to save progress - pagehide gives more time than beforeunload
+      if (onTerminate) {
+        // Fire synchronously - the handler should handle async operations
+        onTerminate();
+      }
+    };
+
+    window.addEventListener("pagehide", handlePageHide);
+    
+    // Also keep beforeunload as fallback for older browsers
     const handleBeforeUnload = () => {
       if (onTerminate) {
         onTerminate();
       }
     };
-
     window.addEventListener("beforeunload", handleBeforeUnload);
 
     // Cleanup
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("pagehide", handlePageHide);
       window.removeEventListener("beforeunload", handleBeforeUnload);
       
       if (graceTimerRef.current) {

@@ -2,8 +2,9 @@ import { database } from "./firebase";
 import { ref, onValue } from "firebase/database";
 
 /**
- * Subscribe to total online players across all rooms.
- * A player is considered "online" if they exist under any rooms/<code>/players node.
+ * Subscribe to total online players across all ACTIVE rooms.
+ * A player is considered "online" only if they're in a room with status "waiting" or "playing".
+ * Finished games are excluded from the count.
  */
 export function subscribeToOnlinePlayers(callback) {
   const roomsRef = ref(database, "rooms");
@@ -16,9 +17,17 @@ export function subscribeToOnlinePlayers(callback) {
 
     let count = 0;
     snapshot.forEach((roomSnap) => {
-      const players = roomSnap.child("players");
-      if (players.exists()) {
-        count += Object.keys(players.val() || {}).length;
+      const roomData = roomSnap.val();
+      const status = roomData?.status;
+      
+      // Only count players in active rooms (waiting or playing)
+      // Exclude finished games
+      if (status === "waiting" || status === "playing") {
+        const players = roomSnap.child("players");
+        if (players.exists()) {
+          const playersObj = players.val() || {};
+          count += Object.keys(playersObj).length;
+        }
       }
     });
 
