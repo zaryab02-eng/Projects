@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { Shield, Users, User, Trophy } from "lucide-react";
+import { useEffect, useState } from "react";
+import { subscribeToOnlinePlayers } from "./services/onlineService";
 import AdminPage from "./pages/AdminPage";
 import JoinPage from "./pages/JoinPage";
 import GamePage from "./pages/GamePage";
@@ -11,6 +13,20 @@ import DiagnosticPage from "./components/DiagnosticPage";
  * Main App Component - Landing page and routing
  */
 function HomePage() {
+  const [onlinePlayers, setOnlinePlayers] = useState(0);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToOnlinePlayers((count) => {
+      setOnlinePlayers(count || 0);
+    });
+
+    return () => {
+      if (typeof unsubscribe === "function") {
+        unsubscribe();
+      }
+    };
+  }, []);
+
   return (
     <div className="viewport-container flex items-center justify-center cyber-grid overflow-y-auto">
       <div className="w-full max-w-3xl px-4 py-4 md:py-6">
@@ -25,6 +41,13 @@ function HomePage() {
             <Trophy size={18} className="hidden md:block" />
             <span className="hidden sm:inline">LEADERBOARD</span>
           </Link>
+
+          {/* Online Players Badge - Top Left */}
+          <div className="absolute top-0 left-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-500/70 bg-emerald-900/40 text-[11px] md:text-xs font-medium text-emerald-200 shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>{onlinePlayers}</span>
+            <span className="hidden sm:inline">online</span>
+          </div>
 
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-cyber-accent glow-text mb-1.5 md:mb-2 leading-tight tracking-tight">
             ESCAPE ROOM
