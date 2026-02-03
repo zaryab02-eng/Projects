@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { Shield, Users, User, Trophy } from "lucide-react";
 import { useEffect, useState } from "react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import { subscribeToOnlinePlayers } from "./services/onlineService";
 import AdminPage from "./pages/AdminPage";
 import JoinPage from "./pages/JoinPage";
@@ -40,7 +41,7 @@ function HomePage() {
               <span className="font-semibold">{onlinePlayers}</span>
               <span className="whitespace-nowrap">Players Online</span>
             </div>
-            
+
             {/* Leaderboard Button - Mobile */}
             <Link
               to="/leaderboard"
@@ -162,7 +163,9 @@ function HomePage() {
 
         {/* Footer */}
         <div className="mt-5 md:mt-6 text-center text-slate-500 text-[10px] md:text-[11px] space-y-0.5">
-          <p className="hidden md:block">Install as app for the smoothest experience.</p>
+          <p className="hidden md:block">
+            Install as app for the smoothest experience.
+          </p>
           <p>Made by Zaryab</p>
         </div>
       </div>
@@ -173,6 +176,7 @@ function HomePage() {
 export default function App() {
   return (
     <BrowserRouter>
+      <SpeedInsights />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/admin" element={<AdminPage />} />
