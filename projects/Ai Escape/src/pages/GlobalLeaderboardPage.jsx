@@ -139,7 +139,7 @@ export default function GlobalLeaderboardPage() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-4 pb-24 md:pb-6">
+      <div className="flex-1 px-4 pb-24 md:pb-6 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-16 md:py-24">
             <div className="animate-spin rounded-full h-8 w-8 md:h-12 md:w-12 border-b-2 border-[#00ff88]"></div>
