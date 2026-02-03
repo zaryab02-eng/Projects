@@ -135,7 +135,7 @@ export default function GlobalLeaderboardPage() {
           </div>
         ) : leaderboardData ? (
           <>
-            {/* Mobile Layout - Keep existing podium design */}
+            {/* Mobile Layout - Podium + scrollable rankings list */}
             <div className="md:hidden">
               {/* Total Players Count */}
               {leaderboardData.totalPlayers > 0 && (
@@ -217,9 +217,9 @@ export default function GlobalLeaderboardPage() {
                 </div>
               )}
 
-              {/* Rank List #4-20 */}
+              {/* Rank List #4-20 - scrollable list below podium on mobile */}
               {remainingPlayers.length > 0 && (
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 max-h-[45vh] overflow-y-auto pr-1 pb-2">
                   {remainingPlayers.map((player, index) => {
                     const rank = index + 4;
                     const isCurrentUser = currentUser && player.userId === currentUser.uid;
