@@ -98,9 +98,9 @@ export default function GlobalLeaderboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white overflow-y-auto">
+    <div className="min-h-screen max-h-screen bg-[#0a0a0a] text-white overflow-hidden flex flex-col">
       {/* Header - Mobile & Desktop */}
-      <div className="sticky top-0 z-20 bg-[#0a0a0a]/95 backdrop-blur-sm border-b border-[#1a1a1a] px-4 py-3 md:py-4">
+      <div className="flex-shrink-0 bg-[#0a0a0a]/95 backdrop-blur-sm border-b border-[#1a1a1a] px-4 py-3 md:py-4">
         <div className="flex items-center justify-between mb-3 md:mb-4">
           <h1 className="text-xl md:text-2xl font-bold text-[#00ff88]">
             LEADERBOARD
@@ -139,7 +139,7 @@ export default function GlobalLeaderboardPage() {
       </div>
 
       {/* Content */}
-      <div className="px-4 pb-24 md:pb-6">
+      <div className="flex-1 overflow-y-auto px-4 pb-24 md:pb-6">
         {loading ? (
           <div className="flex items-center justify-center py-16 md:py-24">
             <div className="animate-spin rounded-full h-8 w-8 md:h-12 md:w-12 border-b-2 border-[#00ff88]"></div>
@@ -151,10 +151,10 @@ export default function GlobalLeaderboardPage() {
         ) : leaderboardData ? (
           <>
             {/* Mobile Layout - Podium + scrollable rankings list */}
-            <div className="md:hidden">
+            <div className="md:hidden flex flex-col h-full">
               {/* Total Players Count */}
               {leaderboardData.totalPlayers > 0 && (
-                <div className="text-center py-3 text-xs text-white/50">
+                <div className="flex-shrink-0 text-center py-3 text-xs text-white/50">
                   {formatPlayerCount(leaderboardData.totalPlayers)} players
                   competing
                 </div>
@@ -162,7 +162,7 @@ export default function GlobalLeaderboardPage() {
 
               {/* Podium - Top 3 */}
               {top3Players.length > 0 && (
-                <div className="mb-6">
+                <div className="flex-shrink-0 mb-6">
                   <div className="flex items-end justify-center gap-2 px-2">
                     {/* 2nd Place */}
                     {top3Players[1] && (
@@ -256,7 +256,7 @@ export default function GlobalLeaderboardPage() {
 
               {/* Rank List #4-20 - scrollable list below podium on mobile */}
               {remainingPlayers.length > 0 && (
-                <div className="h-[400px] overflow-y-auto pr-1 pb-2 -webkit-overflow-scrolling-touch">
+                <div className="flex-1 min-h-0 overflow-y-auto pr-1 pb-2 -webkit-overflow-scrolling-touch">
                   <div className="space-y-1.5">
                     {remainingPlayers.map((player, index) => {
                       const rank = index + 4;

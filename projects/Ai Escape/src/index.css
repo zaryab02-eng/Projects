@@ -9,13 +9,21 @@
 }
 
 /* Prevent horizontal overflow globally */
-html, body, #root {
+html,
+body,
+#root {
   max-width: 100%;
   overflow-x: hidden;
 }
 
 /* Ensure all containers respect boundaries */
-div, section, article, main, aside, header, footer {
+div,
+section,
+article,
+main,
+aside,
+header,
+footer {
   max-width: 100%;
   box-sizing: border-box;
 }
@@ -29,9 +37,20 @@ html {
 }
 
 body {
-  background: radial-gradient(circle at top, #18181b 0, #020617 55%, #000000 100%);
+  background: radial-gradient(
+    circle at top,
+    #18181b 0,
+    #020617 55%,
+    #000000 100%
+  );
   color: #e5e7eb;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Text",
+    "Inter",
+    sans-serif;
   overflow: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -52,7 +71,8 @@ body {
   height: 100%;
   height: -webkit-fill-available;
   width: 100%;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   position: relative;
 }
 
@@ -117,8 +137,7 @@ body {
 
 /* Glow effect - Reduced for premium feel */
 .glow-text {
-  text-shadow:
-    0 0 12px rgba(52, 211, 153, 0.32);
+  text-shadow: 0 0 12px rgba(52, 211, 153, 0.32);
 }
 
 /* Button styles - Premium rounded */
@@ -213,17 +232,17 @@ body {
   .card {
     @apply p-3;
   }
-  
+
   .btn-primary,
   .btn-secondary,
   .btn-danger {
     @apply py-2.5 px-4 text-sm;
   }
-  
+
   .input {
     @apply py-2.5 px-3 text-base;
   }
-  
+
   /* Better touch targets on mobile */
   button,
   a {
