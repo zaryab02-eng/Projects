@@ -36,8 +36,14 @@ export default function Leaderboard({ leaderboard, isAdmin, isGameFinished }) {
     }
   };
 
+  const shouldScroll = leaderboard.length > 5;
+
   return (
-    <div className="w-full max-w-full mx-auto overflow-x-hidden">
+    <div
+      className={`w-full max-w-full mx-auto overflow-x-hidden ${
+        shouldScroll ? "max-h-[60vh] overflow-y-auto pr-1" : ""
+      }`}
+    >
       {!isGameFinished && (
         <div className="text-center mb-3 md:mb-4">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-cyber-accent glow-text mb-1 tracking-tight">
