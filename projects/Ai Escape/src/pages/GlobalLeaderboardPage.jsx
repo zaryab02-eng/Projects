@@ -73,8 +73,9 @@ export default function GlobalLeaderboardPage() {
     return count.toString();
   };
 
+  const TOP_N = 10;
   const top3Players = leaderboardData?.topPlayers.slice(0, 3) || [];
-  const remainingPlayers = leaderboardData?.topPlayers.slice(3) || [];
+  const remainingPlayers = leaderboardData?.topPlayers.slice(3, TOP_N) || [];
   const currentUser = getCurrentUser();
 
   // Player data is either in topPlayers (if in top 20) or in playerData (if below top 20)
@@ -98,7 +99,7 @@ export default function GlobalLeaderboardPage() {
   }
 
   return (
-    <div className="min-h-screen max-h-screen bg-[#0a0a0a] text-white overflow-hidden flex flex-col">
+    <div className="viewport-container bg-[#0a0a0a] text-white overflow-hidden flex flex-col">
       {/* Header - Mobile & Desktop */}
       <div className="flex-shrink-0 bg-[#0a0a0a]/95 backdrop-blur-sm border-b border-[#1a1a1a] px-4 py-3 md:py-4">
         <div className="flex items-center justify-between mb-3 md:mb-4">
@@ -139,7 +140,7 @@ export default function GlobalLeaderboardPage() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-4 pb-24 md:pb-6 overflow-hidden">
+      <div className="flex-1 min-h-0 px-4 pb-6 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-16 md:py-24">
             <div className="animate-spin rounded-full h-8 w-8 md:h-12 md:w-12 border-b-2 border-[#00ff88]"></div>
@@ -150,8 +151,8 @@ export default function GlobalLeaderboardPage() {
           </div>
         ) : leaderboardData ? (
           <>
-            {/* Mobile Layout - Podium + scrollable rankings list */}
-            <div className="md:hidden flex flex-col h-full">
+            {/* Mobile Layout - Podium + scrollable list (no page scroll) */}
+            <div className="md:hidden flex flex-col h-full min-h-0">
               {/* Total Players Count */}
               {leaderboardData.totalPlayers > 0 && (
                 <div className="flex-shrink-0 text-center py-3 text-xs text-white/50">
@@ -162,7 +163,7 @@ export default function GlobalLeaderboardPage() {
 
               {/* Podium - Top 3 */}
               {top3Players.length > 0 && (
-                <div className="flex-shrink-0 mb-6">
+                <div className="mb-6">
                   <div className="flex items-end justify-center gap-2 px-2">
                     {/* 2nd Place */}
                     {top3Players[1] && (
@@ -254,9 +255,9 @@ export default function GlobalLeaderboardPage() {
                 </div>
               )}
 
-              {/* Rank List #4-20 - scrollable list below podium on mobile */}
+              {/* Rank List #4-10 - scrolls inside available space */}
               {remainingPlayers.length > 0 && (
-                <div className="flex-1 min-h-0 overflow-y-auto pr-1 pb-2 -webkit-overflow-scrolling-touch">
+                <div className="flex-1 min-h-0 overflow-y-auto pr-1 overscroll-contain touch-pan-y">
                   <div className="space-y-1.5">
                     {remainingPlayers.map((player, index) => {
                       const rank = index + 4;
@@ -304,6 +305,14 @@ export default function GlobalLeaderboardPage() {
                       );
                     })}
                   </div>
+
+                  {/* Message moved inside scrollable area at the bottom */}
+                  {leaderboardData.totalPlayers > TOP_N && (
+                    <div className="text-center text-[10px] text-white/40 py-3 mt-2">
+                      Showing top {TOP_N}. Your rank is shown separately if
+                      below.
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -318,201 +327,204 @@ export default function GlobalLeaderboardPage() {
             </div>
 
             {/* Desktop/Laptop Layout - Two Column */}
-            <div className="hidden md:block max-w-7xl mx-auto">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-                {/* Left Column: Leaderboard (2/3 width) */}
-                <div className="lg:col-span-2 space-y-6">
-                  {/* Top 3 Players - Premium Cards */}
-                  {top3Players.length > 0 && (
-                    <div className="space-y-4">
-                      <h2 className="text-lg font-semibold text-white/90 tracking-wide">
-                        TOP 3
-                      </h2>
-                      <div className="grid grid-cols-3 gap-4">
-                        {/* 1st Place */}
-                        {top3Players[0] && (
-                          <div className="bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] rounded-xl border-2 border-[#ffd700]/40 p-5 shadow-xl shadow-[#ffd700]/10 hover:shadow-[#ffd700]/20 transition-all duration-300">
-                            <div className="text-center mb-3">
-                              <Trophy
-                                className="text-[#ffd700] mx-auto mb-2"
-                                size={32}
-                              />
-                              <div className="text-[#ffd700] font-bold text-lg mb-1">
-                                #1
+            <div className="hidden md:block max-w-7xl mx-auto h-full min-h-0">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 h-full min-h-0">
+                {/* Left Column: Leaderboard (2/3 width) - scrollable */}
+                <div className="lg:col-span-2 flex flex-col min-h-0">
+                  <div className="flex-1 min-h-0 overflow-y-auto pr-2">
+                    {/* Top 3 Players - Premium Cards */}
+                    {top3Players.length > 0 && (
+                      <div className="space-y-4">
+                        <h2 className="text-lg font-semibold text-white/90 tracking-wide">
+                          TOP 3
+                        </h2>
+                        <div className="grid grid-cols-3 gap-4">
+                          {/* 1st Place */}
+                          {top3Players[0] && (
+                            <div className="bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] rounded-xl border-2 border-[#ffd700]/40 p-5 shadow-xl shadow-[#ffd700]/10 hover:shadow-[#ffd700]/20 transition-all duration-300">
+                              <div className="text-center mb-3">
+                                <Trophy
+                                  className="text-[#ffd700] mx-auto mb-2"
+                                  size={32}
+                                />
+                                <div className="text-[#ffd700] font-bold text-lg mb-1">
+                                  #1
+                                </div>
+                              </div>
+                              <div className="text-white font-bold text-base mb-2 truncate">
+                                {top3Players[0].displayName}
+                              </div>
+                              <div className="space-y-1.5 text-xs">
+                                <div className="flex items-center justify-between text-white/70">
+                                  <span>Time</span>
+                                  <span className="text-[#00ff88] font-semibold">
+                                    {formatTime(top3Players[0].totalTime)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between text-white/70">
+                                  <span>Levels</span>
+                                  <span className="text-white">
+                                    {top3Players[0].completedLevels}/
+                                    {top3Players[0].totalLevels}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between text-white/70">
+                                  <span>Wrong</span>
+                                  <span className="text-white">
+                                    {top3Players[0].totalWrongAnswers || 0}
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                            <div className="text-white font-bold text-base mb-2 truncate">
-                              {top3Players[0].displayName}
-                            </div>
-                            <div className="space-y-1.5 text-xs">
-                              <div className="flex items-center justify-between text-white/70">
-                                <span>Time</span>
-                                <span className="text-[#00ff88] font-semibold">
-                                  {formatTime(top3Players[0].totalTime)}
-                                </span>
-                              </div>
-                              <div className="flex items-center justify-between text-white/70">
-                                <span>Levels</span>
-                                <span className="text-white">
-                                  {top3Players[0].completedLevels}/
-                                  {top3Players[0].totalLevels}
-                                </span>
-                              </div>
-                              <div className="flex items-center justify-between text-white/70">
-                                <span>Wrong</span>
-                                <span className="text-white">
-                                  {top3Players[0].totalWrongAnswers || 0}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
+                          )}
 
-                        {/* 2nd Place */}
-                        {top3Players[1] && (
-                          <div className="bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] rounded-xl border-2 border-[#c0c0c0]/40 p-5 shadow-lg hover:shadow-xl transition-all duration-300">
-                            <div className="text-center mb-3">
-                              <Medal
-                                className="text-[#c0c0c0] mx-auto mb-2"
-                                size={28}
-                              />
-                              <div className="text-[#c0c0c0] font-bold text-base mb-1">
-                                #2
+                          {/* 2nd Place */}
+                          {top3Players[1] && (
+                            <div className="bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] rounded-xl border-2 border-[#c0c0c0]/40 p-5 shadow-lg hover:shadow-xl transition-all duration-300">
+                              <div className="text-center mb-3">
+                                <Medal
+                                  className="text-[#c0c0c0] mx-auto mb-2"
+                                  size={28}
+                                />
+                                <div className="text-[#c0c0c0] font-bold text-base mb-1">
+                                  #2
+                                </div>
+                              </div>
+                              <div className="text-white font-bold text-sm mb-2 truncate">
+                                {top3Players[1].displayName}
+                              </div>
+                              <div className="space-y-1.5 text-xs">
+                                <div className="flex items-center justify-between text-white/70">
+                                  <span>Time</span>
+                                  <span className="text-[#00ff88] font-semibold">
+                                    {formatTime(top3Players[1].totalTime)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between text-white/70">
+                                  <span>Levels</span>
+                                  <span className="text-white">
+                                    {top3Players[1].completedLevels}/
+                                    {top3Players[1].totalLevels}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between text-white/70">
+                                  <span>Wrong</span>
+                                  <span className="text-white">
+                                    {top3Players[1].totalWrongAnswers || 0}
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                            <div className="text-white font-bold text-sm mb-2 truncate">
-                              {top3Players[1].displayName}
-                            </div>
-                            <div className="space-y-1.5 text-xs">
-                              <div className="flex items-center justify-between text-white/70">
-                                <span>Time</span>
-                                <span className="text-[#00ff88] font-semibold">
-                                  {formatTime(top3Players[1].totalTime)}
-                                </span>
-                              </div>
-                              <div className="flex items-center justify-between text-white/70">
-                                <span>Levels</span>
-                                <span className="text-white">
-                                  {top3Players[1].completedLevels}/
-                                  {top3Players[1].totalLevels}
-                                </span>
-                              </div>
-                              <div className="flex items-center justify-between text-white/70">
-                                <span>Wrong</span>
-                                <span className="text-white">
-                                  {top3Players[1].totalWrongAnswers || 0}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
+                          )}
 
-                        {/* 3rd Place */}
-                        {top3Players[2] && (
-                          <div className="bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] rounded-xl border-2 border-[#cd7f32]/40 p-5 shadow-lg hover:shadow-xl transition-all duration-300">
-                            <div className="text-center mb-3">
-                              <Medal
-                                className="text-[#cd7f32] mx-auto mb-2"
-                                size={28}
-                              />
-                              <div className="text-[#cd7f32] font-bold text-base mb-1">
-                                #3
+                          {/* 3rd Place */}
+                          {top3Players[2] && (
+                            <div className="bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] rounded-xl border-2 border-[#cd7f32]/40 p-5 shadow-lg hover:shadow-xl transition-all duration-300">
+                              <div className="text-center mb-3">
+                                <Medal
+                                  className="text-[#cd7f32] mx-auto mb-2"
+                                  size={28}
+                                />
+                                <div className="text-[#cd7f32] font-bold text-base mb-1">
+                                  #3
+                                </div>
+                              </div>
+                              <div className="text-white font-bold text-sm mb-2 truncate">
+                                {top3Players[2].displayName}
+                              </div>
+                              <div className="space-y-1.5 text-xs">
+                                <div className="flex items-center justify-between text-white/70">
+                                  <span>Time</span>
+                                  <span className="text-[#00ff88] font-semibold">
+                                    {formatTime(top3Players[2].totalTime)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between text-white/70">
+                                  <span>Levels</span>
+                                  <span className="text-white">
+                                    {top3Players[2].completedLevels}/
+                                    {top3Players[2].totalLevels}
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between text-white/70">
+                                  <span>Wrong</span>
+                                  <span className="text-white">
+                                    {top3Players[2].totalWrongAnswers || 0}
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                            <div className="text-white font-bold text-sm mb-2 truncate">
-                              {top3Players[2].displayName}
-                            </div>
-                            <div className="space-y-1.5 text-xs">
-                              <div className="flex items-center justify-between text-white/70">
-                                <span>Time</span>
-                                <span className="text-[#00ff88] font-semibold">
-                                  {formatTime(top3Players[2].totalTime)}
-                                </span>
-                              </div>
-                              <div className="flex items-center justify-between text-white/70">
-                                <span>Levels</span>
-                                <span className="text-white">
-                                  {top3Players[2].completedLevels}/
-                                  {top3Players[2].totalLevels}
-                                </span>
-                              </div>
-                              <div className="flex items-center justify-between text-white/70">
-                                <span>Wrong</span>
-                                <span className="text-white">
-                                  {top3Players[2].totalWrongAnswers || 0}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Rank List #4-20 */}
-                  {remainingPlayers.length > 0 && (
-                    <div className="space-y-3">
-                      <h2 className="text-lg font-semibold text-white/90 tracking-wide">
-                        RANKINGS
-                      </h2>
-                      <div className="bg-[#1a1a1a] rounded-xl border border-[#2a2a2a] overflow-hidden">
-                        <div className="divide-y divide-[#2a2a2a]">
-                          {remainingPlayers.map((player, index) => {
-                            const rank = index + 4;
-                            const isCurrentUser =
-                              currentUser && player.userId === currentUser.uid;
-                            return (
-                              <div
-                                key={player.id}
-                                className={`px-5 py-4 hover:bg-[#1f1f1f] transition-colors ${
-                                  isCurrentUser
-                                    ? "bg-[#1a2a1a]/50 border-l-2 border-l-[#00ff88]"
-                                    : ""
-                                }`}
-                              >
-                                <div className="flex items-center justify-between gap-4">
-                                  <div className="flex items-center gap-4 flex-1 min-w-0">
-                                    <div className="text-white/40 font-bold text-sm w-8 flex-shrink-0">
-                                      #{rank}
-                                    </div>
-                                    <div className="min-w-0 flex-1">
-                                      <div className="text-white font-semibold text-base truncate">
-                                        {player.displayName}
-                                        {isCurrentUser && (
-                                          <span className="text-[#00ff88] ml-2 text-sm">
-                                            (You)
-                                          </span>
-                                        )}
+                    {/* Rank List #4-10 */}
+                    {remainingPlayers.length > 0 && (
+                      <div className="space-y-3 mt-6">
+                        <h2 className="text-lg font-semibold text-white/90 tracking-wide">
+                          RANKINGS
+                        </h2>
+                        <div className="bg-[#1a1a1a] rounded-xl border border-[#2a2a2a] overflow-hidden">
+                          <div className="divide-y divide-[#2a2a2a]">
+                            {remainingPlayers.map((player, index) => {
+                              const rank = index + 4;
+                              const isCurrentUser =
+                                currentUser &&
+                                player.userId === currentUser.uid;
+                              return (
+                                <div
+                                  key={player.id}
+                                  className={`px-5 py-4 hover:bg-[#1f1f1f] transition-colors ${
+                                    isCurrentUser
+                                      ? "bg-[#1a2a1a]/50 border-l-2 border-l-[#00ff88]"
+                                      : ""
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                                      <div className="text-white/40 font-bold text-sm w-8 flex-shrink-0">
+                                        #{rank}
                                       </div>
-                                      <div className="text-white/50 text-xs mt-0.5">
-                                        {player.completedLevels}/
-                                        {player.totalLevels} levels •{" "}
-                                        {player.totalWrongAnswers || 0} wrong
+                                      <div className="min-w-0 flex-1">
+                                        <div className="text-white font-semibold text-base truncate">
+                                          {player.displayName}
+                                          {isCurrentUser && (
+                                            <span className="text-[#00ff88] ml-2 text-sm">
+                                              (You)
+                                            </span>
+                                          )}
+                                        </div>
+                                        <div className="text-white/50 text-xs mt-0.5">
+                                          {player.completedLevels}/
+                                          {player.totalLevels} levels •{" "}
+                                          {player.totalWrongAnswers || 0} wrong
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
-                                  <div className="text-right flex-shrink-0">
-                                    <div className="text-[#00ff88] font-semibold text-base">
-                                      {formatTime(player.totalTime)}
+                                    <div className="text-right flex-shrink-0">
+                                      <div className="text-[#00ff88] font-semibold text-base">
+                                        {formatTime(player.totalTime)}
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
-                              </div>
-                            );
-                          })}
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Empty State */}
-                  {leaderboardData.topPlayers.length === 0 && (
-                    <div className="text-center py-16">
-                      <p className="text-white/50 text-base">
-                        No players yet. Be the first!
-                      </p>
-                    </div>
-                  )}
+                    {/* Empty State */}
+                    {leaderboardData.topPlayers.length === 0 && (
+                      <div className="text-center py-16">
+                        <p className="text-white/50 text-base">
+                          No players yet. Be the first!
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Right Column: Category Selector + Stats (1/3 width) */}
@@ -634,8 +646,8 @@ export default function GlobalLeaderboardPage() {
         ) : null}
       </div>
 
-      {/* Mobile: Sticky Your Rank Card (if below top 20) */}
-      {playerRank && playerRank > 20 && playerData && (
+      {/* Mobile: Sticky Your Rank Card (if below top 10) */}
+      {playerRank && playerRank > TOP_N && playerData && (
         <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#0a0a0a] border-t border-[#00ff88]/30 shadow-lg shadow-[#00ff88]/10">
           <div className="px-4 py-3">
             <div className="bg-gradient-to-r from-[#1a2a1a] to-[#1a1a1a] rounded-lg border border-[#00ff88]/50 p-3">
