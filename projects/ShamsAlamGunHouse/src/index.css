@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  ::selection {
+    background-color: theme('colors.brass.DEFAULT');
+    color: theme('colors.iron');
+  }
+
+  /* Slim, brass-toned scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: theme('colors.iron');
+  }
+  ::-webkit-scrollbar-thumb {
+    background: theme('colors.gunmetal');
+    border-radius: 999px;
+    border: 2px solid theme('colors.iron');
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: theme('colors.brass.dark');
+  }
+
+  /* Always-visible, accessible focus ring */
+  :focus-visible {
+    outline: 2px solid theme('colors.brass.light');
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display;
+  }
+}
+
+@layer components {
+  .container-px {
+    @apply px-6 sm:px-8 lg:px-12 xl:px-20;
+  }
+
+  .eyebrow {
+    @apply font-mono text-xs sm:text-sm tracking-widest2 uppercase text-brass-light;
+  }
+
+  .section-heading {
+    @apply font-display text-3xl sm:text-4xl lg:text-5xl font-medium text-ivory;
+  }
+
+  .body-copy {
+    @apply text-ash leading-relaxed;
+  }
+
+  .rule {
+    @apply h-px w-16 bg-gradient-to-r from-brass to-transparent;
+  }
+
+  .glass-panel {
+    @apply bg-charcoal/60 backdrop-blur-md border border-white/5;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-sm bg-brass-gradient
+      px-8 py-3.5 font-mono text-xs uppercase tracking-widest2 text-iron
+      shadow-brass transition-transform duration-300 hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-sm border border-brass/50
+      px-8 py-3.5 font-mono text-xs uppercase tracking-widest2 text-ivory
+      transition-colors duration-300 hover:border-brass hover:bg-brass/10;
+  }
+
+  .card-surface {
+    @apply rounded-sm border border-white/5 bg-charcoal/80 transition-all duration-500
+      hover:border-brass/30 hover:shadow-soft;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .mask-fade-bottom {
+    mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+  }
+}
+
+/* Respect users who've asked the OS to minimize motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
