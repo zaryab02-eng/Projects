@@ -8,7 +8,7 @@ import Footer from "../components/layout/Footer.jsx";
 import Card from "../components/ui/Card.jsx";
 import Input from "../components/ui/Input.jsx";
 import Button from "../components/ui/Button.jsx";
-import { sendOtp, confirmOtp } from "../firebase/auth.js";
+import { sendOtp, confirmOtp, getPhoneAuthErrorMessage } from "../firebase/auth.js";
 import { createGymDoc } from "../firebase/firestore.js";
 import { updateProfile } from "firebase/auth";
 import { auth } from "../firebase/config.js";
@@ -57,13 +57,7 @@ export default function CreateGym() {
       setStep(STEPS.OTP);
     } catch (err) {
       console.error("OTP send failed:", err);
-      const message =
-        err?.code === "auth/invalid-phone-number"
-          ? "Please use a valid international number such as +91XXXXXXXXXX."
-          : err?.code === "auth/operation-not-allowed"
-            ? "Firebase is blocking SMS for this project. In the Firebase Console, enable Phone Authentication and make sure your project region allows SMS sending."
-            : "Could not send OTP. Check the phone number and make sure phone auth is enabled in Firebase.";
-      setError(message);
+      setError(getPhoneAuthErrorMessage(err));
     } finally {
       setLoading(false);
     }

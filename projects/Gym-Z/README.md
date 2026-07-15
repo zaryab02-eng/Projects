@@ -194,7 +194,7 @@ If OTP sending fails with a `400 Bad Request`, check the following in Firebase C
 1. Authentication → Sign-in method → Phone must be enabled.
 2. Authentication → Settings → Authorized domains should include both `localhost` and your deployed host, such as your Vercel domain (for example `your-app.vercel.app`).
 3. The phone number must be entered in international format, for example `+91XXXXXXXXXX`.
-4. The app now loads a Google reCAPTCHA Enterprise script before Firebase Phone Auth is initialized, so the OTP flow has the required browser-side challenge support.
+4. Do **not** hardcode a reCAPTCHA site key in `index.html`. Firebase Phone Auth fetches the correct key automatically via `initializeRecaptchaConfig()` in `src/firebase/auth.js`. A mismatched key causes `400 Bad Request` / `CAPTCHA_CHECK_FAILED : SITE_MISMATCH` in the browser console.
 5. The web app must use the correct Firebase project values from `.env` or from the Vercel Environment Variables for the deployed site. The app will now surface a clearer error if the `VITE_FIREBASE_*` values are missing or if the Firebase project is rejecting the request.
 6. If you see `auth/operation-not-allowed` or `SMS unable to be sent until this region enabled by the app developer`, enable Phone Authentication for the project and confirm the project region supports SMS. This is a Firebase project/region setting, not an app-code issue.
 7. For development, Firebase also allows you to add test phone numbers in Authentication → Sign-in method → Phone numbers for testing, which avoids real SMS usage while you are building.

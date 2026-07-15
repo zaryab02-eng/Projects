@@ -5,7 +5,7 @@ import Footer from "../components/layout/Footer.jsx";
 import Card from "../components/ui/Card.jsx";
 import Input from "../components/ui/Input.jsx";
 import Button from "../components/ui/Button.jsx";
-import { sendOtp, confirmOtp } from "../firebase/auth.js";
+import { sendOtp, confirmOtp, getPhoneAuthErrorMessage } from "../firebase/auth.js";
 import { getOwnerPrimaryGym } from "../firebase/firestore.js";
 import { auth } from "../firebase/config.js";
 
@@ -37,14 +37,8 @@ export default function Login() {
       setConfirmationResult(result);
       setOtp("");
     } catch (err) {
-      const message =
-        err?.code === "auth/invalid-phone-number"
-          ? "Please use a valid international number such as +91XXXXXXXXXX."
-          : err?.message?.includes("API key") ||
-              err?.message?.includes("Bad Request")
-            ? "OTP sending is being blocked by your Firebase project settings. In Firebase, enable Phone Authentication, add your deployed domain under Authorized domains, and confirm the project region allows SMS."
-            : "Could not send OTP. Check the phone number and Firebase phone-auth settings.";
-      setError(message);
+      console.error("OTP send failed:", err);
+      setError(getPhoneAuthErrorMessage(err));
     } finally {
       setLoading(false);
     }
