@@ -1,7 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY ?? "",
@@ -16,7 +15,6 @@ export const isFirebaseConfigured = Boolean(
   firebaseConfig.apiKey &&
   firebaseConfig.authDomain &&
   firebaseConfig.projectId &&
-  firebaseConfig.storageBucket &&
   firebaseConfig.messagingSenderId &&
   firebaseConfig.appId,
 );
@@ -30,19 +28,16 @@ if (!isFirebaseConfigured) {
 let app;
 let auth;
 let db;
-let storage;
 
 try {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   db = getFirestore(app);
-  storage = getStorage(app);
 } catch (error) {
   console.error("Firebase initialization failed:", error);
   app = null;
   auth = null;
   db = null;
-  storage = null;
 }
 
-export { app, auth, db, storage };
+export { app, auth, db };

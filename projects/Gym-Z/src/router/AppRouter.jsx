@@ -1,5 +1,8 @@
 import { Routes, Route } from "react-router-dom";
-import ProtectedRoute from "./ProtectedRoute.jsx";
+import ProtectedRoute, {
+  OnboardingRoute,
+  GuestRoute,
+} from "./ProtectedRoute.jsx";
 
 import Landing from "../pages/Landing.jsx";
 import Login from "../pages/Login.jsx";
@@ -16,13 +19,25 @@ import NotFound from "../pages/NotFound.jsx";
 export default function AppRouter() {
   return (
     <Routes>
-      {/* Public routes — accessible without login */}
       <Route path="/" element={<Landing />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/create-gym" element={<CreateGym />} />
+      <Route
+        path="/login"
+        element={
+          <GuestRoute>
+            <Login />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/create-gym"
+        element={
+          <OnboardingRoute>
+            <CreateGym />
+          </OnboardingRoute>
+        }
+      />
       <Route path="/rankings" element={<GymRankings />} />
 
-      {/* Protected — require a logged-in gym owner */}
       <Route
         path="/dashboard"
         element={

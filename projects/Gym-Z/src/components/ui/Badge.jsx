@@ -1,5 +1,4 @@
 const VARIANTS = {
-  verified: 'bg-steel-500/15 text-steel-300 border-steel-500/30',
   neutral: 'bg-ink-700 text-ink-50 border-ink-600',
   warn: 'bg-vitality-warn/15 text-vitality-warn border-vitality-warn/30',
   critical: 'bg-vitality-critical/15 text-vitality-critical border-vitality-critical/30',

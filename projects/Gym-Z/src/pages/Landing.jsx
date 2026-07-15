@@ -1,9 +1,29 @@
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/layout/Navbar.jsx";
 import Footer from "../components/layout/Footer.jsx";
 import Button from "../components/ui/Button.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
+import Spinner from "../components/ui/Spinner.jsx";
 
 export default function Landing() {
+  const navigate = useNavigate();
+  const { user, gym, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate(gym ? "/dashboard" : "/create-gym", { replace: true });
+    }
+  }, [loading, user, gym, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-ink-900">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-ink-900">
       <Navbar />

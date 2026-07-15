@@ -32,7 +32,6 @@ export async function createGymDoc(uid, gymData) {
   await setDoc(ref, {
     ...gymData,
     ownerUid: uid,
-    verified: false,
     createdAt: serverTimestamp(),
   });
   await setDoc(

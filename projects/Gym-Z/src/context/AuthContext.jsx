@@ -2,7 +2,7 @@
 // gym's private workspace) to the whole app. Every protected page reads
 // `gymId` from here to scope its Firestore queries to gyms/{gymId}/...
 import { createContext, useContext, useEffect, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
+import { getRedirectResult, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebase/config.js";
 import { getOwnerPrimaryGym } from "../firebase/firestore.js";
 
@@ -29,6 +29,12 @@ export function AuthProvider({ children }) {
       return;
     }
 
+    let active = true;
+
+    getRedirectResult(auth).catch((error) => {
+      console.warn("Google redirect sign-in failed:", error);
+    });
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
@@ -44,17 +50,26 @@ export function AuthProvider({ children }) {
       }
       setLoading(false);
     });
-    return unsubscribe;
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }, []);
 
   const refreshGym = async () => {
     if (user) {
       try {
-        setGym(await getOwnerPrimaryGym(user.uid));
+        const gymDoc = await getOwnerPrimaryGym(user.uid);
+        setGym(gymDoc);
+        return gymDoc;
       } catch (error) {
         console.warn("Unable to refresh gym data:", error);
+        setGym(null);
+        return null;
       }
     }
+    setGym(null);
+    return null;
   };
 
   return (

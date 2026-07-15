@@ -2,7 +2,7 @@
 
 A premium, mobile-first Progressive Web App for gym owners to manage members, renewals, expiries and membership streaks — without spreadsheets.
 
-Built with React, Vite, Tailwind CSS and Firebase (Authentication, Firestore, Storage).
+Built with React, Vite, Tailwind CSS and Firebase (Authentication + Firestore).
 
 ---
 
@@ -19,16 +19,15 @@ Built with React, Vite, Tailwind CSS and Firebase (Authentication, Firestore, St
 9. [Firebase Project Setup From Scratch](#firebase-project-setup-from-scratch)
 10. [Environment Variables (.env)](#environment-variables-env)
 11. [Firestore Security Rules](#firestore-security-rules)
-12. [Firebase Storage Security Rules](#firebase-storage-security-rules)
-13. [Database Structure](#database-structure)
-14. [Reusable Components](#reusable-components)
-15. [Modifying Pages](#modifying-pages)
-16. [Modifying Components](#modifying-components)
-17. [Adding New Features](#adding-new-features)
-18. [Changing Business Logic](#changing-business-logic)
-19. [Customizing the UI](#customizing-the-ui)
-20. [Deploying Updates](#deploying-updates)
-21. [Suggested Future Improvements](#suggested-future-improvements)
+12. [Database Structure](#database-structure)
+13. [Reusable Components](#reusable-components)
+14. [Modifying Pages](#modifying-pages)
+15. [Modifying Components](#modifying-components)
+16. [Adding New Features](#adding-new-features)
+17. [Changing Business Logic](#changing-business-logic)
+18. [Customizing the UI](#customizing-the-ui)
+19. [Deploying Updates](#deploying-updates)
+20. [Suggested Future Improvements](#suggested-future-improvements)
 
 ---
 
@@ -36,7 +35,7 @@ Built with React, Vite, Tailwind CSS and Firebase (Authentication, Firestore, St
 
 Gym-Z gives a gym owner a private, isolated workspace where they can:
 
-- Sign in with Google, create a gym workspace, and manage a private gym dashboard
+- Sign in with Google and land in the right place automatically: first-time owners are guided to create a gym workspace, while returning owners go straight to their dashboard
 - Create custom membership plans (7/15/30/45/90/180/365 days, or anything else) with their own fees
 - Add members with duplicate detection by phone number (prevents double entries, surfaces history + a one-tap **Renew Membership** action instead)
 - See a dashboard prioritizing who needs attention first: expired, expiring today, tomorrow, within 3 days, within 7 days
@@ -44,7 +43,7 @@ Gym-Z gives a gym owner a private, isolated workspace where they can:
 - Maintain a permanent, append-only member profile: personal info, current membership, full renewal history, lifetime amount paid, blacklist history
 - Blacklist/un-blacklist members while retaining their full history
 - Instantly search members by name or phone, fast even with thousands of records
-- Appear on a public, no-login **Gym Rankings** leaderboard once verified
+- Appear on a public, no-login **Gym Rankings** leaderboard ranked by active member count
 
 The app installs as a standalone PWA on Android and works offline for previously loaded data via a service worker.
 
@@ -58,8 +57,7 @@ The app installs as a standalone PWA on Android and works offline for previously
 | Routing            | React Router v6                                      |
 | Auth               | Firebase Authentication (Google sign-in)             |
 | Database           | Firebase Firestore                                   |
-| File storage       | Firebase Storage                                     |
-| Hosting (optional) | Firebase Hosting                                     |
+| Hosting (optional) | Firebase Hosting or Vercel                           |
 | PWA                | `vite-plugin-pwa` (Workbox-generated service worker) |
 
 ## Folder Structure
@@ -131,7 +129,7 @@ gym-z/
 │   ├── main.jsx                  # React root, wraps providers + router
 │   └── index.css                 # Tailwind entry + base styles
 ├── firestore.rules               # Security rules (see below)
-├── storage.rules                 # Security rules (see below)
+├── vercel.json                   # Vercel headers (optional)
 ├── index.html
 ├── vite.config.js                # Includes vite-plugin-pwa configuration
 ├── tailwind.config.js            # Color tokens, fonts, animations
@@ -142,11 +140,11 @@ gym-z/
 
 ### What each important file does
 
-- **`src/firebase/config.js`** — the only place `initializeApp` is called. All other modules import `auth`, `db`, `storage` from here.
+- **`src/firebase/config.js`** — the only place `initializeApp` is called. All other modules import `auth` and `db` from here.
 - **`src/firebase/auth.js`** — every auth operation (Google sign-in, logout) as a plain async function, so pages never talk to the Firebase SDK directly.
 - **`src/firebase/firestore.js`** — every Firestore read/write. This is the single source of truth for the database shape; if you're adding a new field or collection, start here.
 - **`src/context/AuthContext.jsx`** — exposes `{ user, gym, gymId, loading }` app-wide via `useAuth()`. `gymId` (the Firebase Auth uid) is what every page uses to scope its Firestore queries to that gym's private subtree.
-- **`src/router/ProtectedRoute.jsx`** — the gatekeeper for the original auth flow. For local demo/testing, the app now also allows direct access to the main pages from `AppRouter.jsx` so you can review the UI without authenticating.
+- **`src/router/ProtectedRoute.jsx`** — the gatekeeper for authenticated routes. It redirects signed-in users to the right workspace screen and sends first-time users to `/create-gym` until a gym exists.
 - **`src/utils/membershipUtils.js`** — turns an expiry date into an urgency bucket (expired / today / tomorrow / 3 days / 7 days) and into the validity bar's color + percentage. This is the file to edit if you want to change the color thresholds.
 - **`src/utils/streakUtils.js`** — computes the next streak count on renewal and resets it if the grace period was exceeded. This is NOT attendance-based, by design.
 
@@ -178,8 +176,9 @@ Vite will start on `http://localhost:5173`. Hot module reload is enabled — edi
 
 1. Configure Firebase with Google sign-in enabled (see [Firebase Project Setup](#firebase-project-setup-from-scratch)).
 2. Open `http://localhost:5173/login` and click **Continue with Google**.
-3. New users are redirected to `/create-gym` to set up their gym workspace.
+3. After sign-in, the app automatically routes you to `/dashboard` if your gym already exists, or `/create-gym` if you are setting up your first gym.
 4. Once a gym exists, the dashboard, members, plans, and blacklist screens load from the authenticated gym workspace.
+5. Inside the main app, the navbar shows the current gym name plus **Delete Gym** and **Logout** actions for the active workspace.
 
 > Google sign-in uses a full-page redirect to Google and back. Your domain must be listed under Firebase → Authentication → Settings → Authorized domains (`localhost` is included by default).
 
@@ -266,14 +265,7 @@ firebase deploy --only hosting
 3. Pick a Cloud Firestore location close to your users (e.g. `asia-south1` for India) — this cannot be changed later.
 4. Once created, go to the **Rules** tab and replace the default rules with the contents of `firestore.rules` in this repo, then **Publish**.
 
-### 4. Configuring Firebase Storage
-
-1. Go to **Build → Storage → Get started**.
-2. Choose the same production-mode + location settings as Firestore.
-3. In the **Rules** tab, replace the default rules with the contents of `storage.rules` in this repo, then **Publish**.
-4. Storage is used for the gym's verification photo (`gyms/{gymId}/photo.jpg`) — wiring up an upload UI is one of the [suggested future improvements](#suggested-future-improvements); the security rules are ready for it.
-
-### 5. Where to place Firebase configuration keys
+### 4. Where to place Firebase configuration keys
 
 Never hardcode Firebase keys into source files. They belong in `.env` at the project root (already git-ignored):
 
@@ -301,7 +293,7 @@ Vite only exposes env vars prefixed with `VITE_` to client code (see `src/fireba
 | `VITE_FIREBASE_API_KEY`             | Firebase Console → Project Settings → General → Web app config |
 | `VITE_FIREBASE_AUTH_DOMAIN`         | same location                                                  |
 | `VITE_FIREBASE_PROJECT_ID`          | same location                                                  |
-| `VITE_FIREBASE_STORAGE_BUCKET`      | same location                                                  |
+| `VITE_FIREBASE_STORAGE_BUCKET`      | same location (optional — not required by the app)             |
 | `VITE_FIREBASE_MESSAGING_SENDER_ID` | same location                                                  |
 | `VITE_FIREBASE_APP_ID`              | same location                                                  |
 
@@ -319,14 +311,6 @@ To publish updated rules after editing `firestore.rules`:
 firebase deploy --only firestore:rules
 ```
 
-## Firebase Storage Security Rules
-
-See [`storage.rules`](./storage.rules). Gym verification photos at `gyms/{gymId}/**` are publicly readable (so they can appear on the rankings page) but only uploadable by the matching authenticated gym owner, capped at 5MB and restricted to image content types.
-
-```bash
-firebase deploy --only storage
-```
-
 ## Database Structure
 
 ```
@@ -336,9 +320,9 @@ users (collection)
 
 gyms (collection)
 └── {gymId}                      # auto-generated Firestore document id
-    ├── ownerUid, gymName, ownerName, ownerEmail, phone, phoneVerified
+    ├── ownerUid, gymName, ownerName, ownerEmail, phone
     ├── city, state, shortAddress
-    ├── verified (bool), activeMemberCount (number, kept in sync on add/renew)
+    ├── activeMemberCount (number, kept in sync on add/renew)
     ├── createdAt
     │
     ├── membershipPlans (subcollection)
@@ -373,7 +357,7 @@ All components under `src/components/ui/` are intentionally generic (no Firebase
 - **`Card`** — the base surface for every panel.
 - **`Input` / `Select`** — labeled form fields with built-in error display.
 - **`Modal`** — bottom-sheet on mobile, centered dialog on desktop.
-- **`Badge`** — small status pill (`verified`, `warn`, `critical`, `success`, `neutral`).
+- **`Badge`** — small status pill (`warn`, `critical`, `success`, `neutral`).
 - **`ValidityBar`** — the signature horizontal membership-validity gradient bar, driven entirely by `utils/membershipUtils.js`.
 
 Feature-specific components (`components/members/*`, `components/plans/*`, etc.) compose these primitives with Firestore calls and are the layer to extend when adding member/plan/blacklist features.
@@ -423,18 +407,16 @@ npm run build
 firebase deploy --only hosting   # or push to your static host's connected branch
 ```
 
-If you changed `firestore.rules` or `storage.rules`, deploy those too:
+If you changed `firestore.rules`, deploy those too:
 
 ```bash
-firebase deploy --only firestore:rules,storage
+firebase deploy --only firestore:rules
 ```
 
 The service worker (via `vite-plugin-pwa`, `registerType: 'autoUpdate'`) automatically fetches and activates new builds for users who already have the PWA installed, typically on their next app open.
 
 ## Suggested Future Improvements
 
-- Gym photo upload UI wired to Firebase Storage (`storage.rules` already supports it) for the Verified Gym profile.
-- An admin/verification workflow (even a manual one via the Firebase Console) for approving gyms and flipping `verified: true`.
 - SMS/WhatsApp renewal reminders (e.g. via a Cloud Function triggered on a schedule, cross-referencing `expiryDate`).
 - Role-based staff accounts per gym (currently one owner account per gym).
 - Exporting member lists / financial summaries to CSV or PDF.

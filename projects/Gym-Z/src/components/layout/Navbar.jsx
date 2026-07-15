@@ -5,14 +5,25 @@ import { logout } from "../../firebase/auth.js";
 import { deleteGym } from "../../firebase/firestore.js";
 import Button from "../ui/Button.jsx";
 
+const PUBLIC_PATHS = new Set(["/", "/login", "/create-gym", "/rankings"]);
+
+function isAppRoute(pathname) {
+  return (
+    pathname === "/dashboard" ||
+    pathname.startsWith("/members") ||
+    pathname === "/plans" ||
+    pathname === "/blacklist"
+  );
+}
+
 export default function Navbar() {
-  const { user, gym } = useAuth();
+  const { user, gym, setGym } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const showBack = ["/login", "/create-gym"].includes(
-    location.pathname,
-  );
+  const isPublicPage = PUBLIC_PATHS.has(location.pathname);
+  const showGymActions = Boolean(user && gym && isAppRoute(location.pathname));
+  const showBack = ["/login", "/create-gym"].includes(location.pathname);
 
   const handleLogout = async () => {
     await logout();
@@ -21,15 +32,20 @@ export default function Navbar() {
 
   const handleDeleteGym = async () => {
     if (!user?.uid || !gym?.id) return;
+    const confirmed = window.confirm(
+      `Delete "${gym.gymName}" and all its data? This cannot be undone.`,
+    );
+    if (!confirmed) return;
     await deleteGym(gym.id, user.uid);
-    navigate("/");
+    setGym(null);
+    navigate("/create-gym");
   };
 
   return (
     <nav className="sticky top-0 z-40 backdrop-blur-md bg-ink-900/85 border-b border-ink-800">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         <Link
-          to={user ? "/dashboard" : "/"}
+          to={gym ? "/dashboard" : isPublicPage ? "/" : "/login"}
           className="flex items-center gap-2"
         >
           <span className="h-8 w-8 rounded-lg bg-copper-500 flex items-center justify-center font-display font-bold text-white">
@@ -63,10 +79,10 @@ export default function Navbar() {
           >
             {theme === "dark" ? "☀️" : "🌙"}
           </button>
-          {user ? (
+          {showGymActions ? (
             <>
               <span className="hidden md:inline text-sm text-ink-500 truncate max-w-[140px]">
-                {gym?.gymName}
+                {gym.gymName}
               </span>
               <Button variant="ghost" size="sm" onClick={handleDeleteGym}>
                 Delete Gym

@@ -1,5 +1,4 @@
-import Card from '../ui/Card.jsx'
-import Badge from '../ui/Badge.jsx'
+import Card from "../ui/Card.jsx";
 
 export default function GymRankCard({ gym, rank }) {
   return (
@@ -8,16 +7,18 @@ export default function GymRankCard({ gym, rank }) {
         #{rank}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <h4 className="font-display text-base truncate">{gym.gymName}</h4>
-          {gym.verified && <Badge variant="verified" icon="✓">Verified</Badge>}
-        </div>
-        <p className="text-xs text-ink-500 mt-0.5">{gym.shortAddress ? `${gym.shortAddress}, ` : ''}{gym.city}, {gym.state}</p>
+        <h4 className="font-display text-base truncate">{gym.gymName}</h4>
+        <p className="text-xs text-ink-500 mt-0.5">
+          {gym.shortAddress ? `${gym.shortAddress}, ` : ""}
+          {gym.city}, {gym.state}
+        </p>
       </div>
       <div className="text-right shrink-0">
-        <p className="font-mono text-xl font-semibold text-copper-400">{gym.activeMemberCount || 0}</p>
+        <p className="font-mono text-xl font-semibold text-copper-400">
+          {gym.activeMemberCount || 0}
+        </p>
         <p className="text-[11px] text-ink-500 uppercase">Active</p>
       </div>
     </Card>
-  )
+  );
 }

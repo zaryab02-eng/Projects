@@ -4,40 +4,24 @@ import Navbar from "../components/layout/Navbar.jsx";
 import Footer from "../components/layout/Footer.jsx";
 import Card from "../components/ui/Card.jsx";
 import Button from "../components/ui/Button.jsx";
+import Spinner from "../components/ui/Spinner.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 import {
   signInWithGoogle,
-  completeGoogleRedirectSignIn,
-  routeAfterGoogleSignIn,
   getGoogleAuthErrorMessage,
 } from "../firebase/auth.js";
 
 export default function Login() {
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { user, gym, loading: authLoading } = useAuth();
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const result = await completeGoogleRedirectSignIn();
-        if (cancelled || !result?.user) return;
-        await routeAfterGoogleSignIn(result.user, navigate);
-      } catch (err) {
-        if (!cancelled) {
-          console.error("Google redirect sign-in failed:", err);
-          setError(getGoogleAuthErrorMessage(err));
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [navigate]);
+    if (!authLoading && user) {
+      navigate(gym ? "/dashboard" : "/create-gym", { replace: true });
+    }
+  }, [authLoading, user, gym, navigate]);
 
   const handleGoogleSignIn = async () => {
     setError("");
@@ -50,6 +34,14 @@ export default function Login() {
       setLoading(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-ink-900">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-ink-900">
@@ -88,9 +80,7 @@ export default function Login() {
               </svg>
               Continue with Google
             </Button>
-            {error && (
-              <p className="text-xs text-vitality-critical">{error}</p>
-            )}
+            {error && <p className="text-xs text-vitality-critical">{error}</p>}
           </div>
         </Card>
       </main>
