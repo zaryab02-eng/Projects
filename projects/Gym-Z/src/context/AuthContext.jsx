@@ -29,30 +29,58 @@ export function AuthProvider({ children }) {
       return;
     }
 
-    let active = true;
+    let isMounted = true;
+    let unsubscribe = null;
 
-    getRedirectResult(auth).catch((error) => {
-      console.warn("Google redirect sign-in failed:", error);
-    });
+    const finalizeAuth = async (firebaseUser) => {
+      if (!isMounted) return;
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
         try {
           const gymDoc = await getOwnerPrimaryGym(firebaseUser.uid);
-          setGym(gymDoc);
+          if (isMounted) {
+            setGym(gymDoc);
+          }
         } catch (error) {
           console.warn("Unable to load gym data:", error);
-          setGym(null);
+          if (isMounted) {
+            setGym(null);
+          }
         }
       } else {
-        setGym(null);
+        if (isMounted) {
+          setGym(null);
+        }
       }
-      setLoading(false);
-    });
+
+      if (isMounted) {
+        setLoading(false);
+      }
+    };
+
+    const initializeAuth = async () => {
+      try {
+        const redirectResult = await getRedirectResult(auth);
+        const redirectUser = redirectResult?.user ?? null;
+        if (redirectUser) {
+          await finalizeAuth(redirectUser);
+          return;
+        }
+      } catch (error) {
+        console.warn("Google redirect sign-in failed:", error);
+      }
+
+      unsubscribe = onAuthStateChanged(auth, finalizeAuth);
+    };
+
+    initializeAuth();
+
     return () => {
-      active = false;
-      unsubscribe();
+      isMounted = false;
+      if (unsubscribe) {
+        unsubscribe();
+      }
     };
   }, []);
 
