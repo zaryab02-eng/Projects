@@ -94,9 +94,9 @@ export default function CreateGym() {
       // back to a phone-derived pseudo-email (not shown to the user) so the
       // owner can still log in with just their phone + password if they
       // skip the email field. A real email is always preferred when given.
-      const ownerUid = auth.currentUser?.uid || phone.replace(/[^0-9]/g, "")
+      const ownerUid = auth.currentUser?.uid || phone.replace(/[^0-9]/g, "");
       if (auth.currentUser) {
-        await updateProfile(auth.currentUser, { displayName: form.ownerName })
+        await updateProfile(auth.currentUser, { displayName: form.ownerName });
       }
       await createGymDoc(ownerUid, {
         gymName: form.gymName,
@@ -151,7 +151,8 @@ export default function CreateGym() {
                 />
                 <p className="text-[11px] text-ink-500">
                   Use an international format like +91XXXXXXXXXX for the OTP
-                  test. If Firebase blocks SMS, you may need to enable Phone Authentication and set the SMS region policy for your project.
+                  test. If Firebase blocks SMS, you may need to enable Phone
+                  Authentication and set the SMS region policy for your project.
                 </p>
                 {error && (
                   <p className="text-xs text-vitality-critical">{error}</p>

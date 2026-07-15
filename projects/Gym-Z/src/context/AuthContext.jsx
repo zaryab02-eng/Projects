@@ -4,7 +4,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebase/config.js";
-import { getOwnerPrimaryGym } from '../firebase/firestore.js'
+import { getOwnerPrimaryGym } from "../firebase/firestore.js";
 
 const AuthContext = createContext(null);
 
@@ -35,7 +35,7 @@ export function AuthProvider({ children }) {
   const refreshGym = async () => {
     if (user) {
       try {
-        setGym(await getOwnerPrimaryGym(user.uid))
+        setGym(await getOwnerPrimaryGym(user.uid));
       } catch (error) {
         console.warn("Unable to refresh gym data:", error);
       }

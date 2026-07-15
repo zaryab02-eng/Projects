@@ -56,7 +56,7 @@ The app installs as a standalone PWA on Android and works offline for previously
 | Build tool         | Vite 5                                               |
 | Styling            | Tailwind CSS 3                                       |
 | Routing            | React Router v6                                      |
-| Auth               | Firebase Authentication (Phone OTP only) |
+| Auth               | Firebase Authentication (Phone OTP only)             |
 | Database           | Firebase Firestore                                   |
 | File storage       | Firebase Storage                                     |
 | Hosting (optional) | Firebase Hosting                                     |

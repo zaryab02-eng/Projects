@@ -35,9 +35,11 @@ export default function Login() {
       setConfirmationResult(result);
       setOtp("");
     } catch (err) {
-      setError(err?.code === "auth/invalid-phone-number"
-        ? "Please use a valid international number such as +91XXXXXXXXXX."
-        : "Could not send OTP. Check the phone number and Firebase phone-auth settings.");
+      setError(
+        err?.code === "auth/invalid-phone-number"
+          ? "Please use a valid international number such as +91XXXXXXXXXX."
+          : "Could not send OTP. Check the phone number and Firebase phone-auth settings.",
+      );
     } finally {
       setLoading(false);
     }
@@ -75,7 +77,9 @@ export default function Login() {
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+91XXXXXXXXXX"
               />
-              {error && <p className="text-xs text-vitality-critical">{error}</p>}
+              {error && (
+                <p className="text-xs text-vitality-critical">{error}</p>
+              )}
               <div id="recaptcha-container" />
               <Button type="submit" loading={loading} className="w-full">
                 Send OTP
@@ -91,7 +95,9 @@ export default function Login() {
                 placeholder="123456"
                 maxLength={6}
               />
-              {error && <p className="text-xs text-vitality-critical">{error}</p>}
+              {error && (
+                <p className="text-xs text-vitality-critical">{error}</p>
+              )}
               <Button type="submit" loading={loading} className="w-full">
                 Verify OTP
               </Button>
@@ -107,7 +113,7 @@ export default function Login() {
             </button>
             <button
               type="button"
-              onClick={() => navigate('/create-gym')}
+              onClick={() => navigate("/create-gym")}
               className="text-copper-400 hover:text-copper-300"
             >
               Create gym
