@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-ink-900 text-ink-50 font-body antialiased;
+    color: #F2F1ED;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display tracking-wide;
+  }
+  ::selection {
+    background: rgba(193, 98, 43, 0.35);
+  }
+  /* Visible keyboard focus everywhere — accessibility floor */
+  :focus-visible {
+    outline: 2px solid #C1622B;
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+
+@layer components {
+  .light .surface {
+    background-color: #ffffff;
+    color: #12141a;
+  }
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html.light {
+  color-scheme: light;
+}
+
+html.light body {
+  background-color: #f4f3ef;
+  color: #12141a;
+}
+
+html.light .bg-ink-950 { background-color: #f4f3ef !important; }
+html.light .bg-ink-900 { background-color: #f7f5f0 !important; }
+html.light .bg-ink-800 { background-color: #efece4 !important; }
+html.light .bg-ink-700 { background-color: #e5dfd2 !important; }
+html.light .border-ink-800 { border-color: #d9d3c7 !important; }
+html.light .border-ink-700 { border-color: #d1c8b7 !important; }
+html.light .border-ink-600 { border-color: #c5bcae !important; }
+html.light .text-ink-50 { color: #1f1d1a !important; }
+html.light .text-ink-500 { color: #5d564f !important; }
+html.light .text-ink-900 { color: #12141a !important; }
+html.light .hover\:bg-ink-700:hover { background-color: #e5dfd2 !important; }
+html.light .hover\:bg-ink-800:hover { background-color: #efece4 !important; }
+
+/* Custom scrollbar to match the ink theme */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #333844; border-radius: 8px; }

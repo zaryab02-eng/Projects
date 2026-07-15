@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // gyms/{gymId} is the root of a gym's private workspace. The document
+    // ID is the gym owner's Firebase Auth uid, so ownership is a direct
+    // uid match — no gym can ever read or write another gym's subtree.
+    match /gyms/{gymId} {
+      // Public read of top-level gym fields powers the unauthenticated
+      // Gym Rankings page (name, city, state, verified, activeMemberCount).
+      allow get, list: if true;
+      allow create: if request.auth != null && request.auth.uid == gymId;
+      allow update: if request.auth != null && request.auth.uid == gymId;
+      allow delete: if false;
+
+      // Every subcollection (members, membershipPlans, blacklist, and each
+      // member's renewals) is private to that gym's own authenticated owner.
+      match /{subcollection}/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == gymId;
+
+        match /{nestedCollection}/{nestedId} {
+          allow read, write: if request.auth != null && request.auth.uid == gymId;
+        }
+      }
+    }
+  }
+}
