@@ -49,17 +49,17 @@ The app installs as a standalone PWA on Android and works offline for previously
 
 ## Technologies Used
 
-| Layer | Choice |
-|---|---|
-| UI library | React 18 (functional components + hooks) |
-| Build tool | Vite 5 |
-| Styling | Tailwind CSS 3 |
-| Routing | React Router v6 |
-| Auth | Firebase Authentication (Email/Password + Phone OTP) |
-| Database | Firebase Firestore |
-| File storage | Firebase Storage |
-| Hosting (optional) | Firebase Hosting |
-| PWA | `vite-plugin-pwa` (Workbox-generated service worker) |
+| Layer              | Choice                                               |
+| ------------------ | ---------------------------------------------------- |
+| UI library         | React 18 (functional components + hooks)             |
+| Build tool         | Vite 5                                               |
+| Styling            | Tailwind CSS 3                                       |
+| Routing            | React Router v6                                      |
+| Auth               | Firebase Authentication (Email/Password + Phone OTP) |
+| Database           | Firebase Firestore                                   |
+| File storage       | Firebase Storage                                     |
+| Hosting (optional) | Firebase Hosting                                     |
+| PWA                | `vite-plugin-pwa` (Workbox-generated service worker) |
 
 ## Folder Structure
 
@@ -303,14 +303,14 @@ Vite only exposes env vars prefixed with `VITE_` to client code (see `src/fireba
 
 ## Environment Variables (.env)
 
-| Variable | Where to find it |
-|---|---|
-| `VITE_FIREBASE_API_KEY` | Firebase Console → Project Settings → General → Web app config |
-| `VITE_FIREBASE_AUTH_DOMAIN` | same location |
-| `VITE_FIREBASE_PROJECT_ID` | same location |
-| `VITE_FIREBASE_STORAGE_BUCKET` | same location |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | same location |
-| `VITE_FIREBASE_APP_ID` | same location |
+| Variable                            | Where to find it                                               |
+| ----------------------------------- | -------------------------------------------------------------- |
+| `VITE_FIREBASE_API_KEY`             | Firebase Console → Project Settings → General → Web app config |
+| `VITE_FIREBASE_AUTH_DOMAIN`         | same location                                                  |
+| `VITE_FIREBASE_PROJECT_ID`          | same location                                                  |
+| `VITE_FIREBASE_STORAGE_BUCKET`      | same location                                                  |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | same location                                                  |
+| `VITE_FIREBASE_APP_ID`              | same location                                                  |
 
 ## Firestore Security Rules
 
