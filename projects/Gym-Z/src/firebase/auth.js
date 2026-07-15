@@ -1,5 +1,15 @@
-import { signOut, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import {
+  signOut,
+  GoogleAuthProvider,
+  signInWithRedirect,
+  getRedirectResult,
+} from "firebase/auth";
 import { auth, isFirebaseConfigured } from "./config.js";
+import { getOwnerPrimaryGym } from "./firestore.js";
+
+function getGoogleProvider() {
+  return new GoogleAuthProvider();
+}
 
 export async function signInWithGoogle() {
   if (!isFirebaseConfigured) {
@@ -7,8 +17,24 @@ export async function signInWithGoogle() {
       "Firebase is not configured. Add your VITE_FIREBASE_* values to .env and restart the dev server.",
     );
   }
-  const provider = new GoogleAuthProvider();
-  return signInWithPopup(auth, provider);
+  await signInWithRedirect(auth, getGoogleProvider());
+}
+
+export async function completeGoogleRedirectSignIn() {
+  if (!isFirebaseConfigured || !auth) {
+    return null;
+  }
+  return getRedirectResult(auth);
+}
+
+export async function routeAfterGoogleSignIn(user, navigate) {
+  try {
+    const gym = await getOwnerPrimaryGym(user.uid);
+    navigate(gym ? "/dashboard" : "/create-gym");
+  } catch (error) {
+    console.warn("Gym lookup failed after sign-in:", error);
+    navigate("/create-gym");
+  }
 }
 
 export async function logout() {

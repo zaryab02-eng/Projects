@@ -7,7 +7,11 @@ import Footer from "../components/layout/Footer.jsx";
 import Card from "../components/ui/Card.jsx";
 import Input from "../components/ui/Input.jsx";
 import Button from "../components/ui/Button.jsx";
-import { signInWithGoogle, getGoogleAuthErrorMessage } from "../firebase/auth.js";
+import {
+  signInWithGoogle,
+  completeGoogleRedirectSignIn,
+  getGoogleAuthErrorMessage,
+} from "../firebase/auth.js";
 import { createGymDoc } from "../firebase/firestore.js";
 import { updateProfile } from "firebase/auth";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -33,6 +37,30 @@ export default function CreateGym() {
     setForm((f) => ({ ...f, [key]: e.target.value }));
 
   useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const result = await completeGoogleRedirectSignIn();
+        if (cancelled || !result?.user) return;
+        setForm((f) => ({
+          ...f,
+          ownerName: f.ownerName || result.user.displayName || "",
+        }));
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Google redirect sign-in failed:", err);
+          setError(getGoogleAuthErrorMessage(err));
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     if (authLoading) return;
     if (user && gym) {
       navigate("/dashboard");
@@ -55,7 +83,6 @@ export default function CreateGym() {
     } catch (err) {
       console.error("Google sign-in failed:", err);
       setError(getGoogleAuthErrorMessage(err));
-    } finally {
       setLoading(false);
     }
   };

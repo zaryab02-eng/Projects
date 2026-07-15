@@ -53,12 +53,15 @@ export async function updateGym(gymId, data) {
 }
 
 export async function getOwnerPrimaryGym(ownerUid) {
-  const userSnap = await getDoc(doc(db, "users", ownerUid));
-  const gymIds = userSnap.exists() ? userSnap.data().gymIds || [] : [];
-
-  if (gymIds.length > 0) {
-    const gymSnap = await getDoc(doc(db, "gyms", gymIds[0]));
-    return gymSnap.exists() ? { id: gymSnap.id, ...gymSnap.data() } : null;
+  const ownedGymsQuery = query(
+    collection(db, "gyms"),
+    where("ownerUid", "==", ownerUid),
+    limit(1),
+  );
+  const ownedGymsSnap = await getDocs(ownedGymsQuery);
+  if (!ownedGymsSnap.empty) {
+    const gymDoc = ownedGymsSnap.docs[0];
+    return { id: gymDoc.id, ...gymDoc.data() };
   }
 
   const fallbackSnap = await getDoc(doc(db, "gyms", ownerUid));
@@ -68,23 +71,22 @@ export async function getOwnerPrimaryGym(ownerUid) {
 }
 
 export async function listOwnerGyms(ownerUid) {
-  const userSnap = await getDoc(doc(db, "users", ownerUid));
-  const gymIds = userSnap.exists() ? userSnap.data().gymIds || [] : [];
-  if (gymIds.length === 0) {
-    const fallbackSnap = await getDoc(doc(db, "gyms", ownerUid));
-    return fallbackSnap.exists()
-      ? [{ id: fallbackSnap.id, ...fallbackSnap.data() }]
-      : [];
+  const ownedGymsQuery = query(
+    collection(db, "gyms"),
+    where("ownerUid", "==", ownerUid),
+  );
+  const ownedGymsSnap = await getDocs(ownedGymsQuery);
+  if (!ownedGymsSnap.empty) {
+    return ownedGymsSnap.docs.map((gymDoc) => ({
+      id: gymDoc.id,
+      ...gymDoc.data(),
+    }));
   }
 
-  const gyms = await Promise.all(
-    gymIds.map(async (gymId) => {
-      const gymSnap = await getDoc(doc(db, "gyms", gymId));
-      return gymSnap.exists() ? { id: gymSnap.id, ...gymSnap.data() } : null;
-    }),
-  );
-
-  return gyms.filter(Boolean);
+  const fallbackSnap = await getDoc(doc(db, "gyms", ownerUid));
+  return fallbackSnap.exists()
+    ? [{ id: fallbackSnap.id, ...fallbackSnap.data() }]
+    : [];
 }
 
 export async function deleteGym(gymId, ownerUid) {

@@ -181,7 +181,7 @@ Vite will start on `http://localhost:5173`. Hot module reload is enabled — edi
 3. New users are redirected to `/create-gym` to set up their gym workspace.
 4. Once a gym exists, the dashboard, members, plans, and blacklist screens load from the authenticated gym workspace.
 
-> Google sign-in uses a pop-up on `localhost` and your deployed domain. Both must be listed under Firebase → Authentication → Settings → Authorized domains (`localhost` is included by default).
+> Google sign-in uses a full-page redirect to Google and back. Your domain must be listed under Firebase → Authentication → Settings → Authorized domains (`localhost` is included by default).
 
 ### Google sign-in troubleshooting
 
@@ -190,8 +190,13 @@ If sign-in fails, check the following in Firebase Console:
 1. **Authentication → Sign-in method → Google** must be enabled with a support email set.
 2. **Authentication → Settings → Authorized domains** should include `localhost` and your deployed host (for example `your-app.vercel.app`).
 3. The `VITE_FIREBASE_*` values in `.env` (or your host's environment variables) must match the Firebase web app you registered.
-4. If the pop-up is blocked, allow pop-ups for the site and try again.
+4. If redirect sign-in fails, confirm your deployed domain is authorized and redeploy after updating `vercel.json` headers if needed.
 5. For Vercel deployments, confirm the deployed site uses the same Firebase project as the configured API key.
+6. Publish the Firestore rules from this repo if you see `Missing or insufficient permissions` after sign-in:
+
+```bash
+firebase deploy --only firestore:rules
+```
 
 ## Building for Production
 
