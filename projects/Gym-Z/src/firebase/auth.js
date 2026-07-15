@@ -1,6 +1,7 @@
 import {
   signOut,
   GoogleAuthProvider,
+  signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
 } from "firebase/auth";
@@ -12,12 +13,21 @@ function getGoogleProvider() {
 }
 
 export async function signInWithGoogle() {
-  if (!isFirebaseConfigured) {
+  if (!isFirebaseConfigured || !auth) {
     throw new Error(
       "Firebase is not configured. Add your VITE_FIREBASE_* values to .env and restart the dev server.",
     );
   }
-  await signInWithRedirect(auth, getGoogleProvider());
+
+  try {
+    return await signInWithPopup(auth, getGoogleProvider());
+  } catch (error) {
+    if (error?.code === "auth/popup-blocked") {
+      await signInWithRedirect(auth, getGoogleProvider());
+      return null;
+    }
+    throw error;
+  }
 }
 
 export async function completeGoogleRedirectSignIn() {
