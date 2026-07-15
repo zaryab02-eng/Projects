@@ -8,14 +8,17 @@ import Footer from "../components/layout/Footer.jsx";
 import Card from "../components/ui/Card.jsx";
 import Input from "../components/ui/Input.jsx";
 import Button from "../components/ui/Button.jsx";
-import { sendOtp, confirmOtp, registerWithEmail } from "../firebase/auth.js";
+import { sendOtp, confirmOtp } from "../firebase/auth.js";
 import { createGymDoc } from "../firebase/firestore.js";
 import { updateProfile } from "firebase/auth";
+import { auth } from "../firebase/config.js";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const STEPS = { PHONE: "phone", OTP: "otp", DETAILS: "details" };
 
 export default function CreateGym() {
   const navigate = useNavigate();
+  const { refreshGym } = useAuth();
   const [step, setStep] = useState(STEPS.PHONE);
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
@@ -26,8 +29,6 @@ export default function CreateGym() {
   const [form, setForm] = useState({
     gymName: "",
     ownerName: "",
-    email: "",
-    password: "",
     city: "",
     state: "",
     shortAddress: "",
@@ -93,29 +94,24 @@ export default function CreateGym() {
       // back to a phone-derived pseudo-email (not shown to the user) so the
       // owner can still log in with just their phone + password if they
       // skip the email field. A real email is always preferred when given.
-      const loginEmail =
-        form.email.trim() || `${phone.replace(/[^0-9]/g, "")}@gymz.app`;
-      const cred = await registerWithEmail(loginEmail, form.password);
-      await updateProfile(cred.user, { displayName: form.ownerName });
-      await createGymDoc(cred.user.uid, {
+      const ownerUid = auth.currentUser?.uid || phone.replace(/[^0-9]/g, "")
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, { displayName: form.ownerName })
+      }
+      await createGymDoc(ownerUid, {
         gymName: form.gymName,
         ownerName: form.ownerName,
         phone,
         phoneVerified: true,
-        email: form.email.trim() || null,
-        loginEmail,
         city: form.city,
         state: form.state,
         shortAddress: form.shortAddress,
         activeMemberCount: 0,
       });
+      await refreshGym();
       navigate("/dashboard");
     } catch (err) {
-      setError(
-        err.code === "auth/email-already-in-use"
-          ? "An account already exists with this email."
-          : "Could not create the gym account. Please try again.",
-      );
+      setError("Could not create the gym account. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -155,7 +151,7 @@ export default function CreateGym() {
                 />
                 <p className="text-[11px] text-ink-500">
                   Use an international format like +91XXXXXXXXXX for the OTP
-                  test.
+                  test. If Firebase blocks SMS, you may need to enable Phone Authentication and set the SMS region policy for your project.
                 </p>
                 {error && (
                   <p className="text-xs text-vitality-critical">{error}</p>
@@ -209,19 +205,6 @@ export default function CreateGym() {
                   required
                   value={form.ownerName}
                   onChange={handleField("ownerName")}
-                />
-                <Input
-                  label="Email (optional)"
-                  type="email"
-                  value={form.email}
-                  onChange={handleField("email")}
-                />
-                <Input
-                  label="Password"
-                  type="password"
-                  required
-                  value={form.password}
-                  onChange={handleField("password")}
                 />
                 <div className="grid grid-cols-2 gap-3">
                   <Input

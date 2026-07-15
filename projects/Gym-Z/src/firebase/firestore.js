@@ -6,20 +6,21 @@
 import {
   collection, doc, addDoc, updateDoc, deleteDoc, getDoc, getDocs,
   query, where, orderBy, limit, onSnapshot, serverTimestamp, setDoc,
-  writeBatch, increment
+  writeBatch, increment, arrayUnion, arrayRemove
 } from 'firebase/firestore'
 import { db } from './config.js'
 
 // ---------- Gyms ----------
 
 export async function createGymDoc(uid, gymData) {
-  const ref = doc(db, 'gyms', uid)
+  const ref = doc(collection(db, 'gyms'))
   await setDoc(ref, {
     ...gymData,
     ownerUid: uid,
     verified: false,
     createdAt: serverTimestamp()
   })
+  await setDoc(doc(db, 'users', uid), { gymIds: arrayUnion(ref.id) }, { merge: true })
   return ref
 }
 
@@ -30,6 +31,40 @@ export async function getGym(gymId) {
 
 export async function updateGym(gymId, data) {
   await updateDoc(doc(db, 'gyms', gymId), data)
+}
+
+export async function getOwnerPrimaryGym(ownerUid) {
+  const userSnap = await getDoc(doc(db, 'users', ownerUid))
+  const gymIds = userSnap.exists() ? userSnap.data().gymIds || [] : []
+
+  if (gymIds.length > 0) {
+    const gymSnap = await getDoc(doc(db, 'gyms', gymIds[0]))
+    return gymSnap.exists() ? { id: gymSnap.id, ...gymSnap.data() } : null
+  }
+
+  const fallbackSnap = await getDoc(doc(db, 'gyms', ownerUid))
+  return fallbackSnap.exists() ? { id: fallbackSnap.id, ...fallbackSnap.data() } : null
+}
+
+export async function listOwnerGyms(ownerUid) {
+  const userSnap = await getDoc(doc(db, 'users', ownerUid))
+  const gymIds = userSnap.exists() ? userSnap.data().gymIds || [] : []
+  if (gymIds.length === 0) {
+    const fallbackSnap = await getDoc(doc(db, 'gyms', ownerUid))
+    return fallbackSnap.exists() ? [{ id: fallbackSnap.id, ...fallbackSnap.data() }] : []
+  }
+
+  const gyms = await Promise.all(gymIds.map(async (gymId) => {
+    const gymSnap = await getDoc(doc(db, 'gyms', gymId))
+    return gymSnap.exists() ? { id: gymSnap.id, ...gymSnap.data() } : null
+  }))
+
+  return gyms.filter(Boolean)
+}
+
+export async function deleteGym(gymId, ownerUid) {
+  await deleteDoc(doc(db, 'gyms', gymId))
+  await updateDoc(doc(db, 'users', ownerUid), { gymIds: arrayRemove(gymId) })
 }
 
 /** Public, unauthenticated read for the Gym Rankings page. */

@@ -20,8 +20,7 @@ export default function Landing() {
             no spreadsheets, no missed follow-ups, just a clear picture of who needs you today.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to="/create-gym"><Button size="lg" className="w-full sm:w-auto">Create Gym</Button></Link>
-            <Link to="/login"><Button variant="ghost" size="lg" className="w-full sm:w-auto">Login</Button></Link>
+            <Link to="/login"><Button size="lg" className="w-full sm:w-auto">Open App</Button></Link>
           </div>
         </div>
       </main>

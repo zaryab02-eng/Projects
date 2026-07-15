@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import { logout } from "../../firebase/auth.js";
+import { deleteGym } from "../../firebase/firestore.js";
 import Button from "../ui/Button.jsx";
 
 export default function Navbar() {
@@ -16,6 +17,12 @@ export default function Navbar() {
   const handleLogout = async () => {
     await logout();
     navigate("/login");
+  };
+
+  const handleDeleteGym = async () => {
+    if (!user?.uid || !gym?.id) return;
+    await deleteGym(gym.id, user.uid);
+    navigate("/");
   };
 
   return (
@@ -61,6 +68,9 @@ export default function Navbar() {
               <span className="hidden md:inline text-sm text-ink-500 truncate max-w-[140px]">
                 {gym?.gymName}
               </span>
+              <Button variant="ghost" size="sm" onClick={handleDeleteGym}>
+                Delete Gym
+              </Button>
               <Button variant="ghost" size="sm" onClick={handleLogout}>
                 Logout
               </Button>

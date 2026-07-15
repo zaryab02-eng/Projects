@@ -36,6 +36,7 @@ Built with React, Vite, Tailwind CSS and Firebase (Authentication, Firestore, St
 
 Gym-Z gives a gym owner a private, isolated workspace where they can:
 
+- Sign in with a phone number and OTP, create a gym after that verification step, and manage a private gym workspace from the dashboard
 - Create custom membership plans (7/15/30/45/90/180/365 days, or anything else) with their own fees
 - Add members with duplicate detection by phone number (prevents double entries, surfaces history + a one-tap **Renew Membership** action instead)
 - See a dashboard prioritizing who needs attention first: expired, expiring today, tomorrow, within 3 days, within 7 days
@@ -55,7 +56,7 @@ The app installs as a standalone PWA on Android and works offline for previously
 | Build tool         | Vite 5                                               |
 | Styling            | Tailwind CSS 3                                       |
 | Routing            | React Router v6                                      |
-| Auth               | Firebase Authentication (Email/Password + Phone OTP) |
+| Auth               | Firebase Authentication (Phone OTP only) |
 | Database           | Firebase Firestore                                   |
 | File storage       | Firebase Storage                                     |
 | Hosting (optional) | Firebase Hosting                                     |
@@ -176,12 +177,14 @@ Vite will start on `http://localhost:5173`. Hot module reload is enabled — edi
 
 ### Demo mode for local testing
 
-You can review the main app experience locally before Firebase auth is fully wired.
+You can review the app locally with the current phone-based flow.
 
-- Open the login page and use the app normally, or
-- Go directly to `/dashboard` in the browser
-- This makes it easy to review the dashboard, members, plans, and blacklist flows while you are still wiring backend services
+- Open the login page and enter a phone number to begin the OTP flow, or
+- Create a new gym from the main onboarding flow once your Firebase Phone Auth project is configured
+- The dashboard, members, plans, and blacklist screens are all wired to the authenticated gym workspace once a gym exists
 
+> The app currently uses a phone-only sign-in experience. There is no email/password login path in the UI.
+>
 > Phone OTP (Firebase Phone Auth) requires the app to run on an origin that's authorized in your Firebase project (Authentication → Settings → Authorized domains). `localhost` is authorized by default.
 
 ### Phone OTP troubleshooting
@@ -193,6 +196,7 @@ If OTP sending fails with a `400 Bad Request`, check the following in Firebase C
 3. The phone number must be entered in international format, for example `+91XXXXXXXXXX`.
 4. The web app must use the correct Firebase project values from `.env`.
 5. If you see `auth/operation-not-allowed` or `SMS unable to be sent until this region enabled by the app developer`, enable Phone Authentication for the project and confirm the project region supports SMS. This is a Firebase project/region setting, not an app-code issue.
+6. For development, Firebase also allows you to add test phone numbers in Authentication → Sign-in method → Phone numbers for testing, which avoids real SMS usage while you are building.
 
 If the manifest error still appears in the browser console, refresh once after the new `public/manifest.webmanifest` file is generated and ensure the app is served from the Vite dev server.
 
@@ -254,7 +258,6 @@ firebase deploy --only hosting
 
 1. In the console sidebar, go to **Build → Authentication → Get started**.
 2. Under **Sign-in method**, enable:
-   - **Email/Password**
    - **Phone**
 3. For Phone Auth in development, you can add test phone numbers under **Sign-in method → Phone → Phone numbers for testing** (avoids using your real SMS quota while building).
 
@@ -316,8 +319,9 @@ Vite only exposes env vars prefixed with `VITE_` to client code (see `src/fireba
 
 The full, ready-to-publish rules live in [`firestore.rules`](./firestore.rules). Summary of the contract they enforce:
 
-- `gyms/{gymId}` — the document ID **is** the gym owner's Firebase Auth uid. Anyone can read the top-level fields (name, city, state, verified, active member count) to power the public Gym Rankings page. Only the matching authenticated uid can create or update it. Deletes are disabled entirely (no data-loss footgun from the client).
-- `gyms/{gymId}/members/*`, `membershipPlans/*`, `blacklist/*`, and each member's nested `renewals/*` — readable/writable **only** by the authenticated owner whose uid matches `gymId`. This is what makes each gym's workspace private and prevents cross-gym data access.
+- `users/{ownerUid}` — stores the owner's personal list of gyms as a `gymIds` array so a single owner can manage multiple gym workspaces.
+- `gyms/{gymId}` — the top-level gym document is readable by everyone for rankings, but only the authenticated owner whose uid matches `ownerUid` can update or delete it. The app also writes the gym's `ownerUid` and a `createdAt` timestamp here.
+- `gyms/{gymId}/members/*`, `membershipPlans/*`, `blacklist/*`, and each member's nested `renewals/*` — readable/writable **only** by the authenticated owner whose uid matches the gym's `ownerUid`. This keeps each gym workspace private and prevents cross-gym data access.
 
 To publish updated rules after editing `firestore.rules`:
 
@@ -336,11 +340,16 @@ firebase deploy --only storage
 ## Database Structure
 
 ```
+users (collection)
+└── {ownerUid}                   # Firebase Auth uid of the gym owner
+    └── gymIds: [gymIdA, gymIdB, ...]
+
 gyms (collection)
-└── {gymId}                       # document ID = Firebase Auth uid of the owner
-    ├── gymName, ownerName, phone, phoneVerified, email, loginEmail
+└── {gymId}                      # auto-generated Firestore document id
+    ├── ownerUid, gymName, ownerName, phone, phoneVerified
     ├── city, state, shortAddress
     ├── verified (bool), activeMemberCount (number, kept in sync on add/renew)
+    ├── createdAt
     │
     ├── membershipPlans (subcollection)
     │   └── {planId} → { name, durationDays, fee, createdAt }

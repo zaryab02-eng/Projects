@@ -1,28 +1,57 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/layout/Navbar.jsx";
 import Footer from "../components/layout/Footer.jsx";
 import Card from "../components/ui/Card.jsx";
 import Input from "../components/ui/Input.jsx";
 import Button from "../components/ui/Button.jsx";
-import { loginWithEmail } from "../firebase/auth.js";
+import { sendOtp, confirmOtp } from "../firebase/auth.js";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [confirmationResult, setConfirmationResult] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const normalizePhoneNumber = (value) => {
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+    if (/^\+/.test(trimmed)) return trimmed;
+    if (/^0[0-9]{10}$/.test(trimmed)) return `+91${trimmed.slice(1)}`;
+    if (/^[0-9]{10}$/.test(trimmed)) return `+91${trimmed}`;
+    return trimmed;
+  };
+
+  const handleSendOtp = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      await loginWithEmail(email, password);
-      navigate("/dashboard");
+      const normalizedPhone = normalizePhoneNumber(phone);
+      setPhone(normalizedPhone);
+      const result = await sendOtp(normalizedPhone, "recaptcha-container");
+      setConfirmationResult(result);
+      setOtp("");
     } catch (err) {
-      setError("Invalid email or password. Please try again.");
+      setError(err?.code === "auth/invalid-phone-number"
+        ? "Please use a valid international number such as +91XXXXXXXXXX."
+        : "Could not send OTP. Check the phone number and Firebase phone-auth settings.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      await confirmOtp(confirmationResult, otp);
+      navigate("/dashboard");
+    } catch {
+      setError("Incorrect OTP. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -35,43 +64,54 @@ export default function Login() {
         <Card className="w-full max-w-sm p-6 sm:p-8">
           <h1 className="font-display text-2xl mb-1">Welcome back</h1>
           <p className="text-ink-500 text-sm mb-6">
-            Log in to your gym's workspace.
+            Sign in with your phone number and OTP.
           </p>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              label="Email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="owner@gym.com"
-            />
-            <Input
-              label="Password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-            />
-            {error && <p className="text-xs text-vitality-critical">{error}</p>}
-            <Button type="submit" loading={loading} className="w-full">
-              Login
-            </Button>
-          </form>
+          {!confirmationResult ? (
+            <form onSubmit={handleSendOtp} className="space-y-4">
+              <Input
+                label="Phone Number"
+                required
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+91XXXXXXXXXX"
+              />
+              {error && <p className="text-xs text-vitality-critical">{error}</p>}
+              <div id="recaptcha-container" />
+              <Button type="submit" loading={loading} className="w-full">
+                Send OTP
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={handleVerifyOtp} className="space-y-4">
+              <Input
+                label="OTP"
+                required
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                placeholder="123456"
+                maxLength={6}
+              />
+              {error && <p className="text-xs text-vitality-critical">{error}</p>}
+              <Button type="submit" loading={loading} className="w-full">
+                Verify OTP
+              </Button>
+            </form>
+          )}
           <div className="flex justify-between mt-5 text-sm">
-            <Link
-              to="/forgot-password"
+            <button
+              type="button"
+              onClick={() => setConfirmationResult(null)}
               className="text-steel-300 hover:text-steel-200"
             >
-              Forgot password?
-            </Link>
-            <Link
-              to="/create-gym"
+              Use another number
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/create-gym')}
               className="text-copper-400 hover:text-copper-300"
             >
               Create gym
-            </Link>
+            </button>
           </div>
         </Card>
       </main>

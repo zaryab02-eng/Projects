@@ -1,10 +1,10 @@
 import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
   signOut,
-  sendPasswordResetEmail,
   RecaptchaVerifier,
-  signInWithPhoneNumber
+  signInWithPhoneNumber,
+  signInWithCredential,
+  PhoneAuthProvider,
+  linkWithCredential
 } from 'firebase/auth'
 import { auth } from './config.js'
 
@@ -26,18 +26,22 @@ export async function confirmOtp(confirmationResult, code) {
   return confirmationResult.confirm(code)
 }
 
-export async function registerWithEmail(email, password) {
-  return createUserWithEmailAndPassword(auth, email, password)
+export async function signInWithPhoneCode(confirmationResult, code) {
+  return confirmationResult.confirm(code)
 }
 
-export async function loginWithEmail(email, password) {
-  return signInWithEmailAndPassword(auth, email, password)
+export async function signInWithPhoneCredential(credential) {
+  return signInWithCredential(auth, credential)
+}
+
+export async function linkPhoneCredential(user, credential) {
+  return linkWithCredential(user, credential)
 }
 
 export async function logout() {
   return signOut(auth)
 }
 
-export async function resetPassword(email) {
-  return sendPasswordResetEmail(auth, email)
+export async function resetPassword() {
+  return Promise.resolve()
 }
