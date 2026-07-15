@@ -6,6 +6,8 @@ import Card from "../components/ui/Card.jsx";
 import Input from "../components/ui/Input.jsx";
 import Button from "../components/ui/Button.jsx";
 import { sendOtp, confirmOtp } from "../firebase/auth.js";
+import { getOwnerPrimaryGym } from "../firebase/firestore.js";
+import { auth } from "../firebase/config.js";
 
 export default function Login() {
   const [phone, setPhone] = useState("");
@@ -51,7 +53,13 @@ export default function Login() {
     setLoading(true);
     try {
       await confirmOtp(confirmationResult, otp);
-      navigate("/dashboard");
+      const user = auth.currentUser;
+      if (user) {
+        const gym = await getOwnerPrimaryGym(user.uid);
+        navigate(gym ? "/dashboard" : "/create-gym");
+      } else {
+        navigate("/create-gym");
+      }
     } catch {
       setError("Incorrect OTP. Please try again.");
     } finally {
@@ -103,22 +111,6 @@ export default function Login() {
               </Button>
             </form>
           )}
-          <div className="flex justify-between mt-5 text-sm">
-            <button
-              type="button"
-              onClick={() => setConfirmationResult(null)}
-              className="text-steel-300 hover:text-steel-200"
-            >
-              Use another number
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate("/create-gym")}
-              className="text-copper-400 hover:text-copper-300"
-            >
-              Create gym
-            </button>
-          </div>
         </Card>
       </main>
       <Footer />

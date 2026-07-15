@@ -6,9 +6,15 @@ import {
   PhoneAuthProvider,
   linkWithCredential,
 } from "firebase/auth";
-import { auth } from "./config.js";
+import { auth, isFirebaseConfigured } from "./config.js";
 
 export function getRecaptchaVerifier(containerId = "recaptcha-container") {
+  if (!isFirebaseConfigured) {
+    throw new Error(
+      "Firebase is not configured. Add your VITE_FIREBASE_* values to .env and restart the dev server.",
+    );
+  }
+
   if (!window.recaptchaVerifier) {
     window.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
       size: "invisible",
