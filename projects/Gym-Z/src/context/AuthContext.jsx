@@ -6,6 +6,13 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebase/config.js";
 import { getOwnerPrimaryGym } from "../firebase/firestore.js";
 
+function getSafeAuthState() {
+  if (!auth) {
+    return { user: null, loading: false };
+  }
+  return null;
+}
+
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
@@ -14,6 +21,14 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const safeAuth = getSafeAuthState();
+    if (safeAuth) {
+      setUser(null);
+      setGym(null);
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {

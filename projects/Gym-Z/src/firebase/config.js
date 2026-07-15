@@ -27,7 +27,22 @@ if (!isFirebaseConfigured) {
   );
 }
 
-export const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+let app;
+let auth;
+let db;
+let storage;
+
+try {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+  storage = getStorage(app);
+} catch (error) {
+  console.error("Firebase initialization failed:", error);
+  app = null;
+  auth = null;
+  db = null;
+  storage = null;
+}
+
+export { app, auth, db, storage };
