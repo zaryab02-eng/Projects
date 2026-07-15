@@ -14,16 +14,16 @@ const firebaseConfig = {
 
 export const isFirebaseConfigured = Boolean(
   firebaseConfig.apiKey &&
-  firebaseConfig.authDomain &&
-  firebaseConfig.projectId &&
-  firebaseConfig.storageBucket &&
-  firebaseConfig.messagingSenderId &&
-  firebaseConfig.appId,
+    firebaseConfig.authDomain &&
+    firebaseConfig.projectId &&
+    firebaseConfig.storageBucket &&
+    firebaseConfig.messagingSenderId &&
+    firebaseConfig.appId,
 );
 
 if (!isFirebaseConfigured) {
   console.error(
-    "Firebase is not configured yet. Add your VITE_FIREBASE_* values to .env and restart the dev server.",
+    "Firebase environment variables are missing. In Vercel, add the VITE_FIREBASE_* values under Environment Variables and redeploy.",
   );
 }
 
