@@ -192,11 +192,12 @@ You can review the app locally with the current phone-based flow.
 If OTP sending fails with a `400 Bad Request`, check the following in Firebase Console:
 
 1. Authentication → Sign-in method → Phone must be enabled.
-2. Authentication → Settings → Authorized domains should include `localhost`.
+2. Authentication → Settings → Authorized domains should include both `localhost` and your deployed host, such as your Vercel domain (for example `your-app.vercel.app`).
 3. The phone number must be entered in international format, for example `+91XXXXXXXXXX`.
-4. The web app must use the correct Firebase project values from `.env`. The app will now surface a clear error if the `VITE_FIREBASE_*` values are missing instead of silently falling back to demo credentials.
+4. The web app must use the correct Firebase project values from `.env` or from the Vercel Environment Variables for the deployed site. The app will now surface a clearer error if the `VITE_FIREBASE_*` values are missing or if the Firebase project is rejecting the request.
 5. If you see `auth/operation-not-allowed` or `SMS unable to be sent until this region enabled by the app developer`, enable Phone Authentication for the project and confirm the project region supports SMS. This is a Firebase project/region setting, not an app-code issue.
 6. For development, Firebase also allows you to add test phone numbers in Authentication → Sign-in method → Phone numbers for testing, which avoids real SMS usage while you are building.
+7. For Vercel deployments, make sure the site is using the same Firebase project as the one whose API key is configured in the environment variables. A mismatch between the app and the Firebase project causes the `API key not valid` or `Bad Request` errors that appear in the browser console.
 
 If the manifest error still appears in the browser console, refresh once after the new `public/manifest.webmanifest` file is generated and ensure the app is served from the Vite dev server.
 
