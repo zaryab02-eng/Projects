@@ -36,7 +36,7 @@ Built with React, Vite, Tailwind CSS and Firebase (Authentication, Firestore, St
 
 Gym-Z gives a gym owner a private, isolated workspace where they can:
 
-- Sign in with a phone number and OTP, create a gym after that verification step, and manage a private gym workspace from the dashboard
+- Sign in with Google, create a gym workspace, and manage a private gym dashboard
 - Create custom membership plans (7/15/30/45/90/180/365 days, or anything else) with their own fees
 - Add members with duplicate detection by phone number (prevents double entries, surfaces history + a one-tap **Renew Membership** action instead)
 - See a dashboard prioritizing who needs attention first: expired, expiring today, tomorrow, within 3 days, within 7 days
@@ -56,7 +56,7 @@ The app installs as a standalone PWA on Android and works offline for previously
 | Build tool         | Vite 5                                               |
 | Styling            | Tailwind CSS 3                                       |
 | Routing            | React Router v6                                      |
-| Auth               | Firebase Authentication (Phone OTP only)             |
+| Auth               | Firebase Authentication (Google sign-in)             |
 | Database           | Firebase Firestore                                   |
 | File storage       | Firebase Storage                                     |
 | Hosting (optional) | Firebase Hosting                                     |
@@ -104,8 +104,7 @@ gym-z/
 │   ├── pages/                   # One file per route
 │   │   ├── Landing.jsx
 │   │   ├── Login.jsx
-│   │   ├── ForgotPassword.jsx
-│   │   ├── CreateGym.jsx        # Phone OTP + gym profile registration
+│   │   ├── CreateGym.jsx        # Google sign-in + gym profile registration
 │   │   ├── Dashboard.jsx
 │   │   ├── Members.jsx          # List + instant search
 │   │   ├── AddMember.jsx
@@ -119,7 +118,7 @@ gym-z/
 │   │   └── ThemeContext.jsx     # Light/Dark mode
 │   ├── firebase/
 │   │   ├── config.js            # Firebase app initialization
-│   │   ├── auth.js               # Auth + Phone OTP wrapper functions
+│   │   ├── auth.js               # Auth + Google sign-in wrapper functions
 │   │   └── firestore.js          # All Firestore reads/writes live here
 │   ├── router/
 │   │   ├── AppRouter.jsx
@@ -144,7 +143,7 @@ gym-z/
 ### What each important file does
 
 - **`src/firebase/config.js`** — the only place `initializeApp` is called. All other modules import `auth`, `db`, `storage` from here.
-- **`src/firebase/auth.js`** — every auth operation (login, register, logout, password reset, phone OTP send/confirm) as a plain async function, so pages never talk to the Firebase SDK directly.
+- **`src/firebase/auth.js`** — every auth operation (Google sign-in, logout) as a plain async function, so pages never talk to the Firebase SDK directly.
 - **`src/firebase/firestore.js`** — every Firestore read/write. This is the single source of truth for the database shape; if you're adding a new field or collection, start here.
 - **`src/context/AuthContext.jsx`** — exposes `{ user, gym, gymId, loading }` app-wide via `useAuth()`. `gymId` (the Firebase Auth uid) is what every page uses to scope its Firestore queries to that gym's private subtree.
 - **`src/router/ProtectedRoute.jsx`** — the gatekeeper for the original auth flow. For local demo/testing, the app now also allows direct access to the main pages from `AppRouter.jsx` so you can review the UI without authenticating.
@@ -175,32 +174,24 @@ npm run dev
 
 Vite will start on `http://localhost:5173`. Hot module reload is enabled — edits to any file in `src/` reflect instantly.
 
-### Demo mode for local testing
+### Local testing
 
-You can review the app locally with the current phone-based flow.
+1. Configure Firebase with Google sign-in enabled (see [Firebase Project Setup](#firebase-project-setup-from-scratch)).
+2. Open `http://localhost:5173/login` and click **Continue with Google**.
+3. New users are redirected to `/create-gym` to set up their gym workspace.
+4. Once a gym exists, the dashboard, members, plans, and blacklist screens load from the authenticated gym workspace.
 
-- Open the login page and enter a phone number to begin the OTP flow, or
-- Create a new gym from the main onboarding flow once your Firebase Phone Auth project is configured
-- The dashboard, members, plans, and blacklist screens are all wired to the authenticated gym workspace once a gym exists
+> Google sign-in uses a pop-up on `localhost` and your deployed domain. Both must be listed under Firebase → Authentication → Settings → Authorized domains (`localhost` is included by default).
 
-> The app currently uses a phone-only sign-in experience. There is no email/password login path in the UI.
->
-> Phone OTP (Firebase Phone Auth) requires the app to run on an origin that's authorized in your Firebase project (Authentication → Settings → Authorized domains). `localhost` is authorized by default.
+### Google sign-in troubleshooting
 
-### Phone OTP troubleshooting
+If sign-in fails, check the following in Firebase Console:
 
-If OTP sending fails with a `400 Bad Request`, check the following in Firebase Console:
-
-1. Authentication → Sign-in method → Phone must be enabled.
-2. Authentication → Settings → Authorized domains should include both `localhost` and your deployed host, such as your Vercel domain (for example `your-app.vercel.app`).
-3. The phone number must be entered in international format, for example `+91XXXXXXXXXX`.
-4. Do **not** hardcode a reCAPTCHA site key in `index.html`. Firebase Phone Auth fetches the correct key automatically via `initializeRecaptchaConfig()` in `src/firebase/auth.js`. A mismatched key causes `400 Bad Request` / `CAPTCHA_CHECK_FAILED : SITE_MISMATCH` in the browser console.
-5. The web app must use the correct Firebase project values from `.env` or from the Vercel Environment Variables for the deployed site. The app will now surface a clearer error if the `VITE_FIREBASE_*` values are missing or if the Firebase project is rejecting the request.
-6. If you see `auth/operation-not-allowed` or `SMS unable to be sent until this region enabled by the app developer`, enable Phone Authentication for the project and confirm the project region supports SMS. This is a Firebase project/region setting, not an app-code issue.
-7. For development, Firebase also allows you to add test phone numbers in Authentication → Sign-in method → Phone numbers for testing, which avoids real SMS usage while you are building.
-8. For Vercel deployments, make sure the site is using the same Firebase project as the one whose API key is configured in the environment variables. A mismatch between the app and the Firebase project causes the `API key not valid` or `Bad Request` errors that appear in the browser console.
-
-If the manifest error still appears in the browser console, refresh once after the new `public/manifest.webmanifest` file is generated and ensure the app is served from the Vite dev server.
+1. **Authentication → Sign-in method → Google** must be enabled with a support email set.
+2. **Authentication → Settings → Authorized domains** should include `localhost` and your deployed host (for example `your-app.vercel.app`).
+3. The `VITE_FIREBASE_*` values in `.env` (or your host's environment variables) must match the Firebase web app you registered.
+4. If the pop-up is blocked, allow pop-ups for the site and try again.
+5. For Vercel deployments, confirm the deployed site uses the same Firebase project as the configured API key.
 
 ## Building for Production
 
@@ -259,33 +250,25 @@ firebase deploy --only hosting
 ### 2. Enable Firebase Authentication
 
 1. In the console sidebar, go to **Build → Authentication → Get started**.
-2. Under **Sign-in method**, enable:
-   - **Phone**
-3. For Phone Auth in development, you can add test phone numbers under **Sign-in method → Phone → Phone numbers for testing** (avoids using your real SMS quota while building).
+2. Under **Sign-in method**, enable **Google**.
+3. Set a project support email when prompted. Firebase auto-provisions the OAuth client for your web app — no extra env vars are needed beyond the standard `VITE_FIREBASE_*` keys.
+4. Add your deployed domain (and `localhost` for dev) under **Authentication → Settings → Authorized domains**.
 
-### 3. Enabling Phone OTP Authentication (detail)
-
-Phone Auth requires reCAPTCHA verification, which Gym-Z sets up automatically via `getRecaptchaVerifier()` in `src/firebase/auth.js` — no extra code is needed, but:
-
-1. Make sure **Phone** sign-in is enabled (step above).
-2. Add your deployed domain (and `localhost` for dev) under **Authentication → Settings → Authorized domains**.
-3. If testing on a real device/number, standard Firebase phone-auth SMS quotas apply (free tier has a daily cap).
-
-### 4. Creating the Firestore Database
+### 3. Creating the Firestore Database
 
 1. Go to **Build → Firestore Database → Create database**.
 2. Choose **Start in production mode** (the app ships its own rules — see below).
 3. Pick a Cloud Firestore location close to your users (e.g. `asia-south1` for India) — this cannot be changed later.
 4. Once created, go to the **Rules** tab and replace the default rules with the contents of `firestore.rules` in this repo, then **Publish**.
 
-### 5. Configuring Firebase Storage
+### 4. Configuring Firebase Storage
 
 1. Go to **Build → Storage → Get started**.
 2. Choose the same production-mode + location settings as Firestore.
 3. In the **Rules** tab, replace the default rules with the contents of `storage.rules` in this repo, then **Publish**.
 4. Storage is used for the gym's verification photo (`gyms/{gymId}/photo.jpg`) — wiring up an upload UI is one of the [suggested future improvements](#suggested-future-improvements); the security rules are ready for it.
 
-### 6. Where to place Firebase configuration keys
+### 5. Where to place Firebase configuration keys
 
 Never hardcode Firebase keys into source files. They belong in `.env` at the project root (already git-ignored):
 
@@ -348,7 +331,7 @@ users (collection)
 
 gyms (collection)
 └── {gymId}                      # auto-generated Firestore document id
-    ├── ownerUid, gymName, ownerName, phone, phoneVerified
+    ├── ownerUid, gymName, ownerName, ownerEmail, phone, phoneVerified
     ├── city, state, shortAddress
     ├── verified (bool), activeMemberCount (number, kept in sync on add/renew)
     ├── createdAt

@@ -3,7 +3,6 @@ import ProtectedRoute from "./ProtectedRoute.jsx";
 
 import Landing from "../pages/Landing.jsx";
 import Login from "../pages/Login.jsx";
-import ForgotPassword from "../pages/ForgotPassword.jsx";
 import CreateGym from "../pages/CreateGym.jsx";
 import GymRankings from "../pages/GymRankings.jsx";
 import Dashboard from "../pages/Dashboard.jsx";
@@ -20,7 +19,6 @@ export default function AppRouter() {
       {/* Public routes — accessible without login */}
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/create-gym" element={<CreateGym />} />
       <Route path="/rankings" element={<GymRankings />} />
 

@@ -10,7 +10,7 @@ export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const showBack = ["/login", "/forgot-password", "/create-gym"].includes(
+  const showBack = ["/login", "/create-gym"].includes(
     location.pathname,
   );
 
