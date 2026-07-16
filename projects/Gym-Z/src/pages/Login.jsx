@@ -10,6 +10,7 @@ import {
   signInWithGoogle,
   getGoogleAuthErrorMessage,
 } from "../firebase/auth.js";
+import { getOwnerPrimaryGym } from "../firebase/firestore.js";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -27,16 +28,24 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      // This navigates the whole page away to Google and back.
-      // AuthContext picks up the redirect result on return, and the
-      // useEffect above routes to /dashboard or /create-gym once
-      // `user`/`gym` are populated.
-      await signInWithGoogle();
+      const result = await signInWithGoogle();
+      const firebaseUser = result?.user ?? null;
+      if (firebaseUser) {
+        // Popup case: we have the user immediately, route right away.
+        const gymDoc = await getOwnerPrimaryGym(firebaseUser.uid);
+        navigate(gymDoc ? "/dashboard" : "/create-gym", { replace: true });
+        return;
+      }
+      // Redirect fallback case: result is null, page is about to navigate
+      // away to Google. AuthContext picks up the result on return.
     } catch (err) {
       console.error("Google sign-in failed:", err);
       setError(getGoogleAuthErrorMessage(err));
       setLoading(false);
+      return;
     }
+
+    setLoading(false);
   };
 
   if (authLoading) {
