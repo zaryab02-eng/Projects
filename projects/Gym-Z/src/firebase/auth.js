@@ -1,7 +1,6 @@
 import {
   signOut,
   GoogleAuthProvider,
-  signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
 } from "firebase/auth";
@@ -19,15 +18,11 @@ export async function signInWithGoogle() {
     );
   }
 
-  try {
-    return await signInWithPopup(auth, getGoogleProvider());
-  } catch (error) {
-    if (error?.code === "auth/popup-blocked") {
-      await signInWithRedirect(auth, getGoogleProvider());
-      return null;
-    }
-    throw error;
-  }
+  // Always use redirect-based sign-in. signInWithPopup is unreliable inside
+  // a standalone/fullscreen installed PWA (the popup can get stuck on
+  // Google's page and never resolve), so we avoid it entirely here.
+  await signInWithRedirect(auth, getGoogleProvider());
+  return null;
 }
 
 export async function completeGoogleRedirectSignIn() {
@@ -61,6 +56,8 @@ export function getGoogleAuthErrorMessage(error) {
       return "Google sign-in is disabled in Firebase. Enable Google under Authentication → Sign-in method.";
     case "auth/account-exists-with-different-credential":
       return "An account already exists with this email using a different sign-in method.";
+    case "auth/unauthorized-domain":
+      return "This domain isn't authorized for sign-in. Add it under Firebase → Authentication → Settings → Authorized domains.";
     default:
       return "Could not sign in with Google. Please try again.";
   }
