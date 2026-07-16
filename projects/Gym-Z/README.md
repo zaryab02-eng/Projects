@@ -39,7 +39,8 @@ Gym-Z gives a gym owner a private, isolated workspace where they can:
 - Create custom membership plans (7/15/30/45/90/180/365 days, or anything else) with their own fees
 - Add members with duplicate detection by phone number (prevents double entries, surfaces history + a one-tap **Renew Membership** action instead)
 - See a dashboard prioritizing who needs attention first: expired, expiring today, tomorrow, within 3 days, within 7 days
-- Track a **Membership Streak** — a count of continuous, on-time renewals (not attendance) that resets if a membership stays expired past a configurable grace period (default 30 days)
+- Track a **Membership Streak** — a count of continuous, on-time renewals (not attendance). Starts at 0 on join and only appears after the first renewal; resets if a membership stays expired past a configurable grace period (default 30 days)
+- Dashboard stat cards (Total, Active, Expiring Soon, Expired, Blacklisted) are tappable — each navigates straight to a pre-filtered Members or Blacklist view
 - Maintain a permanent, append-only member profile: personal info, current membership, full renewal history, lifetime amount paid, blacklist history
 - Blacklist/un-blacklist members while retaining their full history
 - Instantly search members by name or phone, fast even with thousands of records
@@ -178,7 +179,7 @@ Vite will start on `http://localhost:5173`. Hot module reload is enabled — edi
 2. Open `http://localhost:5173/login` and click **Continue with Google**.
 3. After sign-in, the app automatically routes you to `/dashboard` if your gym already exists, or `/create-gym` if you are setting up your first gym.
 4. Once a gym exists, the dashboard, members, plans, and blacklist screens load from the authenticated gym workspace.
-5. Inside the main app, the navbar shows the current gym name plus **Delete Gym** and **Logout** actions for the active workspace.
+5. Inside the main app, the navbar shows the current gym name (in cursive) plus a **⋮ menu** with **Delete Gym** and **Logout** actions for the active workspace. Logging out returns you to the public landing page (`/`), not the login screen.
 
 > Google sign-in opens as a popup window (falls back to a full-page redirect only if the popup is blocked or unsupported, e.g. in some installed PWA contexts). Your domain must be listed under Firebase → Authentication → Settings → Authorized domains (`localhost` is included by default).
 
@@ -334,7 +335,7 @@ gyms (collection)
     │         fullName, phone, altPhone, address, age, gender,
     │         joiningDate, expiryDate, planName, membershipFee,
     │         notes, status, blacklisted,
-    │         streakCount, streakUnit,
+    │         streakCount (starts at 0; increments only on renewal), streakUnit,
     │         lifetimeAmountPaid, createdAt
     │       }
     │       └── renewals (subcollection)
@@ -391,6 +392,7 @@ Example: adding a "Trainer Assignment" feature to members.
 - **Urgency thresholds / dashboard categories** → `src/utils/membershipUtils.js` (`getUrgencyBucket`).
 - **Validity bar color thresholds** → `src/utils/membershipUtils.js` (`getValidityIndicator`).
 - **Streak calculation + grace period** → `src/utils/streakUtils.js`. Change `DEFAULT_GRACE_PERIOD_DAYS` to adjust the default, or pass a custom value per-gym once you add a settings field for it.
+- **Dashboard stat card destinations** → `src/pages/Dashboard.jsx` passes an `onClick` to each `StatCard` that navigates to `/members?filter=active|expiring|expired` or `/blacklist`. `src/pages/Members.jsx` reads the `filter` query param via `useSearchParams` and applies it on top of the existing search/sort logic.
 - **Duplicate detection key** → currently phone number, enforced in `findMemberByPhone` (`src/firebase/firestore.js`). Changing the unique identifier means updating this query and the Firestore rule assumptions.
 
 ## Guide to Customizing the UI
@@ -398,6 +400,7 @@ Example: adding a "Trainer Assignment" feature to members.
 - **Color palette, fonts, shadows** → `tailwind.config.js`. The current palette is an "ink + forged copper" industrial theme (`ink-*` surfaces, `copper-*` primary accent, `steel-*` secondary accent, `vitality-*` for the validity gradient).
 - **Light/Dark mode** → `src/context/ThemeContext.jsx` toggles a `.light` class on `<html>`; add `.light` variant overrides in `src/index.css` or via Tailwind's `dark:`/custom selector as needed.
 - **Typography** → Google Fonts are loaded in `index.html` (`Oswald` for display/headings, `Manrope` for body text, `IBM Plex Mono` for numeric/data readouts like stats and streak counters). Swap the `<link>` and `fontFamily` values in `tailwind.config.js` to change them.
+- **Navbar branding** → `src/components/layout/Navbar.jsx` shows the italic "Gym-Z" wordmark on public pages and the owner's actual gym name (also italic) once inside the app. Gym actions (Delete Gym, Logout) live in a single **⋮** dropdown menu rather than separate buttons.
 
 ## Guide to Deploying Updates
 
