@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
@@ -27,12 +28,32 @@ export default function Navbar() {
     location.pathname,
   );
 
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handleClickOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [menuOpen]);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
+
   const handleLogout = async () => {
+    setMenuOpen(false);
     await logout();
     navigate("/");
   };
 
   const handleDeleteGym = async () => {
+    setMenuOpen(false);
     if (!user?.uid || !gym?.id) return;
     const confirmed = window.confirm(
       `Delete "${gym.gymName}" and all its data? This cannot be undone.`,
@@ -48,14 +69,17 @@ export default function Navbar() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         <Link
           to={gym ? "/dashboard" : isPublicPage ? "/" : "/login"}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 min-w-0"
         >
-          <span className="h-8 w-8 rounded-lg bg-copper-500 flex items-center justify-center font-display font-bold text-white">
-            Z
-          </span>
-          <span className="font-display text-lg tracking-wide hidden sm:inline">
-            GYM-Z
-          </span>
+          {showGymActions ? (
+            <span className="font-display text-lg tracking-wide truncate max-w-[180px] sm:max-w-xs">
+              {gym.gymName}
+            </span>
+          ) : (
+            <span className="font-display italic text-lg tracking-wide text-copper-400">
+              Gym-Z
+            </span>
+          )}
         </Link>
 
         <div className="flex items-center gap-2 sm:gap-3">
@@ -66,14 +90,14 @@ export default function Navbar() {
             >
               ← Back
             </button>
-          ) : (
+          ) : !showGymActions ? (
             <Link
               to="/rankings"
               className="text-sm font-semibold text-steel-300 hover:text-steel-200 px-3 py-2"
             >
               Rankings
             </Link>
-          )}
+          ) : null}
           <button
             onClick={toggleTheme}
             aria-label="Toggle theme"
@@ -82,17 +106,32 @@ export default function Navbar() {
             {theme === "dark" ? "☀️" : "🌙"}
           </button>
           {showGymActions ? (
-            <>
-              <span className="hidden md:inline text-sm text-ink-500 truncate max-w-[140px]">
-                {gym.gymName}
-              </span>
-              <Button variant="ghost" size="sm" onClick={handleDeleteGym}>
-                Delete Gym
-              </Button>
-              <Button variant="ghost" size="sm" onClick={handleLogout}>
-                Logout
-              </Button>
-            </>
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setMenuOpen((open) => !open)}
+                aria-label="Gym menu"
+                aria-expanded={menuOpen}
+                className="h-9 w-9 rounded-lg border border-ink-700 flex items-center justify-center hover:bg-ink-800 transition-colors"
+              >
+                ⋮
+              </button>
+              {menuOpen ? (
+                <div className="absolute right-0 mt-2 w-44 rounded-lg border border-ink-700 bg-ink-800 shadow-card py-1 overflow-hidden">
+                  <button
+                    onClick={handleDeleteGym}
+                    className="w-full text-left px-4 py-2.5 text-sm text-vitality-critical hover:bg-ink-700 transition-colors"
+                  >
+                    Delete Gym
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2.5 text-sm text-ink-50 hover:bg-ink-700 transition-colors"
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : null}
+            </div>
           ) : null}
         </div>
       </div>
