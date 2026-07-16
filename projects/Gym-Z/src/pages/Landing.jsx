@@ -1,8 +1,5 @@
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Navbar from "../components/layout/Navbar.jsx";
-import Footer from "../components/layout/Footer.jsx";
-import Button from "../components/ui/Button.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import Spinner from "../components/ui/Spinner.jsx";
 
@@ -18,39 +15,36 @@ export default function Landing() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-ink-900">
+      <div className="h-[100dvh] flex items-center justify-center bg-ink-900">
         <Spinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-ink-900">
-      <Navbar />
-      <main className="flex-1 flex items-center">
-        <div className="max-w-3xl mx-auto px-6 py-16 text-center">
-          <span className="inline-block text-xs font-mono uppercase tracking-[0.2em] text-copper-400 mb-4">
-            Built for gym owners
+    <div className="h-[100dvh] w-full overflow-hidden flex flex-col bg-ink-900">
+      <main className="flex-1 flex items-center justify-center px-6">
+        <div className="text-center">
+          <span className="inline-flex h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-copper-500 items-center justify-center font-display font-bold text-white text-3xl sm:text-4xl mb-6">
+            Z
           </span>
-          <h1 className="font-display text-4xl sm:text-6xl leading-[1.05] mb-5">
-            Run your gym like a<br />
-            <span className="text-copper-400">well-loaded barbell.</span>
+          <h1 className="font-display text-4xl sm:text-6xl tracking-wide mb-3">
+            GYM-Z
           </h1>
-          <p className="text-ink-500 text-base sm:text-lg max-w-xl mx-auto mb-9">
-            Gym-Z tracks every member, every renewal and every expiry so nothing
-            slips — no spreadsheets, no missed follow-ups, just a clear picture
-            of who needs you today.
+          <p className="text-ink-500 text-sm sm:text-base font-body mb-10">
+            Every member, every renewal, right on time.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to="/login">
-              <Button size="lg" className="w-full sm:w-auto">
-                Open App
-              </Button>
-            </Link>
-          </div>
+          <Link
+            to="/login"
+            className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-copper-500 hover:bg-copper-600 text-white text-sm font-semibold transition-colors"
+          >
+            Enter App
+          </Link>
         </div>
       </main>
-      <Footer />
+      <p className="text-center text-[11px] text-ink-600 font-mono pb-4">
+        Made by Zaryab
+      </p>
     </div>
   );
 }
