@@ -23,7 +23,9 @@ export default function Navbar() {
   const location = useLocation();
   const isPublicPage = PUBLIC_PATHS.has(location.pathname);
   const showGymActions = Boolean(user && gym && isAppRoute(location.pathname));
-  const showBack = ["/login", "/create-gym"].includes(location.pathname);
+  const showBack = ["/login", "/create-gym", "/rankings"].includes(
+    location.pathname,
+  );
 
   const handleLogout = async () => {
     await logout();
