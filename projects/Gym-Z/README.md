@@ -180,7 +180,7 @@ Vite will start on `http://localhost:5173`. Hot module reload is enabled — edi
 4. Once a gym exists, the dashboard, members, plans, and blacklist screens load from the authenticated gym workspace.
 5. Inside the main app, the navbar shows the current gym name plus **Delete Gym** and **Logout** actions for the active workspace.
 
-> Google sign-in uses a full-page redirect to Google and back. Your domain must be listed under Firebase → Authentication → Settings → Authorized domains (`localhost` is included by default).
+> Google sign-in opens as a popup window (falls back to a full-page redirect only if the popup is blocked or unsupported, e.g. in some installed PWA contexts). Your domain must be listed under Firebase → Authentication → Settings → Authorized domains (`localhost` is included by default).
 
 ### Google sign-in troubleshooting
 
@@ -189,13 +189,14 @@ If sign-in fails, check the following in Firebase Console:
 1. **Authentication → Sign-in method → Google** must be enabled with a support email set.
 2. **Authentication → Settings → Authorized domains** should include `localhost` and your deployed host (for example `your-app.vercel.app`).
 3. The `VITE_FIREBASE_*` values in `.env` (or your host's environment variables) must match the Firebase web app you registered.
-4. If redirect sign-in fails, confirm your deployed domain is authorized and redeploy after updating `vercel.json` headers if needed.
-5. For Vercel deployments, confirm the deployed site uses the same Firebase project as the configured API key.
-6. Publish the Firestore rules from this repo if you see `Missing or insufficient permissions` after sign-in:
+4. For Vercel deployments, confirm the deployed site uses the same Firebase project as the configured API key.
+5. Publish the Firestore rules from this repo if you see `Missing or insufficient permissions` after sign-in:
 
 ```bash
 firebase deploy --only firestore:rules
 ```
+
+**Why popup instead of redirect:** `src/firebase/auth.js` uses `signInWithPopup` as the primary sign-in method, falling back to `signInWithRedirect` only when a popup can't open (blocked, or `auth/operation-not-supported-in-this-environment`, which happens in some installed/standalone PWA contexts). This is intentional — `signInWithRedirect` depends on Firebase's `authDomain` (`*.firebaseapp.com`) successfully persisting auth state across the redirect round-trip. Modern Chrome treats that domain as **third-party storage** relative to your app's own domain (e.g. a Vercel URL) and silently partitions/blocks it — the redirect to Google completes, but the auth result never makes it back, with no visible error. Popups avoid this entirely by relaying the result over `postMessage` between windows instead of via storage. The `same-origin-allow-popups` value in `vercel.json`'s `Cross-Origin-Opener-Policy` header is required for the popup flow to work.
 
 ## Building for Production
 
