@@ -156,7 +156,10 @@ export async function addMember(gymId, memberData) {
   const ref = await addDoc(membersCollection(gymId), {
     ...memberData,
     lifetimeAmountPaid: memberData.membershipFee || 0,
-    streakCount: 1,
+    // Streak starts at 0, not 1: a streak represents continuous ON-TIME
+    // RENEWALS, not the initial join. It should only appear (formatStreak
+    // hides values < 1) once a member has renewed at least once.
+    streakCount: 0,
     streakUnit: "month",
     status: "active",
     createdAt: serverTimestamp(),

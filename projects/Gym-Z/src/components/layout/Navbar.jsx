@@ -4,7 +4,6 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import { logout } from "../../firebase/auth.js";
 import { deleteGym } from "../../firebase/firestore.js";
-import Button from "../ui/Button.jsx";
 
 const PUBLIC_PATHS = new Set(["/", "/login", "/create-gym", "/rankings"]);
 
@@ -72,7 +71,7 @@ export default function Navbar() {
           className="flex items-center gap-2 min-w-0"
         >
           {showGymActions ? (
-            <span className="font-display text-lg tracking-wide truncate max-w-[180px] sm:max-w-xs">
+            <span className="font-display italic text-lg tracking-wide truncate max-w-[180px] sm:max-w-xs">
               {gym.gymName}
             </span>
           ) : (

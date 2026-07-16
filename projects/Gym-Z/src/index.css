@@ -66,6 +66,12 @@ html.light .bg-ink-800 {
 html.light .bg-ink-700 {
   background-color: #e5dfd2 !important;
 }
+html.light .bg-ink-900\/85 {
+  background-color: rgba(247, 245, 240, 0.85) !important;
+}
+html.light .bg-ink-800\/95 {
+  background-color: rgba(239, 236, 228, 0.95) !important;
+}
 html.light .border-ink-800 {
   border-color: #d9d3c7 !important;
 }
