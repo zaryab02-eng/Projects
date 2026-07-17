@@ -1,13 +1,13 @@
-import { Link } from 'react-router-dom'
-import Card from '../ui/Card.jsx'
-import ValidityBar from '../ui/ValidityBar.jsx'
-import Badge from '../ui/Badge.jsx'
-import { formatStreak } from '../../utils/streakUtils.js'
-import { daysUntil } from '../../utils/dateUtils.js'
+import { Link } from "react-router-dom";
+import Card from "../ui/Card.jsx";
+import ValidityBar from "../ui/ValidityBar.jsx";
+import Badge from "../ui/Badge.jsx";
+import { formatStreak } from "../../utils/streakUtils.js";
+import { daysUntil } from "../../utils/dateUtils.js";
 
 export default function MemberCard({ member }) {
-  const remaining = daysUntil(member.expiryDate)
-  const streakLabel = formatStreak(member.streakCount)
+  const remaining = daysUntil(member.expiryDate);
+  const streakLabel = formatStreak(member.streakDays);
 
   return (
     <Link to={`/members/${member.id}`}>
@@ -18,20 +18,31 @@ export default function MemberCard({ member }) {
             <p className="text-xs text-ink-500 font-mono">{member.phone}</p>
           </div>
           <div className="flex flex-col items-end gap-1 shrink-0">
-            {member.blacklisted && <Badge variant="critical">Blacklisted</Badge>}
-            {streakLabel && <span className="text-xs font-mono text-copper-400">🔥 {streakLabel}</span>}
+            {member.blacklisted && (
+              <Badge variant="critical">Blacklisted</Badge>
+            )}
+            {streakLabel && (
+              <span className="text-xs font-mono text-copper-400">
+                🔥 {streakLabel}
+              </span>
+            )}
           </div>
         </div>
 
         <div className="mt-3">
-          <ValidityBar joiningDate={member.joiningDate} expiryDate={member.expiryDate} />
+          <ValidityBar
+            joiningDate={member.joiningDate}
+            expiryDate={member.expiryDate}
+          />
         </div>
 
         <div className="flex items-center justify-between mt-2 text-xs text-ink-500">
           <span>{member.planName}</span>
-          <span className="font-mono">{remaining >= 0 ? `${remaining}d left` : `${-remaining}d overdue`}</span>
+          <span className="font-mono">
+            {remaining >= 0 ? `${remaining}d left` : `${-remaining}d overdue`}
+          </span>
         </div>
       </Card>
     </Link>
-  )
+  );
 }

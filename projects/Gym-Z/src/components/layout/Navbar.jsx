@@ -3,7 +3,10 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useTheme } from "../../context/ThemeContext.jsx";
 import { logout } from "../../firebase/auth.js";
-import { deleteGym } from "../../firebase/firestore.js";
+import { deleteGym, updateGym } from "../../firebase/firestore.js";
+import { DEFAULT_GRACE_PERIOD_DAYS } from "../../utils/streakUtils.js";
+import Modal from "../ui/Modal.jsx";
+import Button from "../ui/Button.jsx";
 
 const PUBLIC_PATHS = new Set(["/", "/login", "/create-gym", "/rankings"]);
 
@@ -17,7 +20,7 @@ function isAppRoute(pathname) {
 }
 
 export default function Navbar() {
-  const { user, gym, setGym } = useAuth();
+  const { user, gym, setGym, refreshGym } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,6 +31,9 @@ export default function Navbar() {
   );
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [graceInput, setGraceInput] = useState("30");
+  const [savingSettings, setSavingSettings] = useState(false);
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -61,6 +67,28 @@ export default function Navbar() {
     await deleteGym(gym.id, user.uid);
     setGym(null);
     navigate("/create-gym");
+  };
+
+  const openSettings = () => {
+    setMenuOpen(false);
+    setGraceInput(String(gym?.gracePeriodDays ?? DEFAULT_GRACE_PERIOD_DAYS));
+    setSettingsOpen(true);
+  };
+
+  const handleSaveSettings = async () => {
+    if (!gym?.id) return;
+    const days = Math.max(
+      1,
+      parseInt(graceInput, 10) || DEFAULT_GRACE_PERIOD_DAYS,
+    );
+    setSavingSettings(true);
+    try {
+      await updateGym(gym.id, { gracePeriodDays: days });
+      await refreshGym();
+      setSettingsOpen(false);
+    } finally {
+      setSavingSettings(false);
+    }
   };
 
   return (
@@ -115,7 +143,13 @@ export default function Navbar() {
                 ⋮
               </button>
               {menuOpen ? (
-                <div className="absolute right-0 mt-2 w-44 rounded-lg border border-ink-700 bg-ink-800 shadow-card py-1 overflow-hidden">
+                <div className="absolute right-0 mt-2 w-48 rounded-lg border border-ink-700 bg-ink-800 shadow-card py-1 overflow-hidden">
+                  <button
+                    onClick={openSettings}
+                    className="w-full text-left px-4 py-2.5 text-sm text-ink-50 hover:bg-ink-700 transition-colors"
+                  >
+                    Renewal Settings
+                  </button>
                   <button
                     onClick={handleDeleteGym}
                     className="w-full text-left px-4 py-2.5 text-sm text-vitality-critical hover:bg-ink-700 transition-colors"
@@ -134,6 +168,38 @@ export default function Navbar() {
           ) : null}
         </div>
       </div>
+
+      <Modal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        title="Renewal Settings"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="text-xs uppercase text-ink-500">
+              Grace Period (days)
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={graceInput}
+              onChange={(e) => setGraceInput(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-ink-700 bg-ink-900 px-3 py-2 text-sm focus:outline-none focus:border-copper-500"
+            />
+            <p className="text-xs text-ink-500 mt-2">
+              If a member renews within this many days after their membership
+              expires, their Loyalty Streak continues. Beyond this, it resets.
+            </p>
+          </div>
+          <Button
+            className="w-full"
+            loading={savingSettings}
+            onClick={handleSaveSettings}
+          >
+            Save Settings
+          </Button>
+        </div>
+      </Modal>
     </nav>
   );
 }

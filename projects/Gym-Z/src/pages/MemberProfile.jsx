@@ -15,17 +15,22 @@ import {
   getMember,
   getMemberRenewals,
   subscribeToPlans,
-  renewMembership,
+  renewExpiredMembership,
+  extendMembership,
+  renewMembershipImmediately,
   addToBlacklist,
   removeFromBlacklist,
   deleteMember,
 } from "../firebase/firestore.js";
-import { formatDisplayDate, daysUntil, addDays } from "../utils/dateUtils.js";
-import { formatStreak, computeNextStreak } from "../utils/streakUtils.js";
+import { formatDisplayDate, daysUntil } from "../utils/dateUtils.js";
+import {
+  formatStreak,
+  DEFAULT_GRACE_PERIOD_DAYS,
+} from "../utils/streakUtils.js";
 
 export default function MemberProfile() {
   const { memberId } = useParams();
-  const { gymId } = useAuth();
+  const { gymId, gym } = useAuth();
   const navigate = useNavigate();
   const [member, setMember] = useState(null);
   const [renewals, setRenewals] = useState([]);
@@ -35,6 +40,7 @@ export default function MemberProfile() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState("");
+  const [renewMode, setRenewMode] = useState("extend");
   const [submitting, setSubmitting] = useState(false);
   const menuRef = useRef(null);
 
@@ -65,22 +71,39 @@ export default function MemberProfile() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
 
+  const gracePeriodDays = gym?.gracePeriodDays ?? DEFAULT_GRACE_PERIOD_DAYS;
+  const isExpired = member ? daysUntil(member.expiryDate) < 0 : false;
+
+  const openRenewModal = () => {
+    setSelectedPlanId(plans[0]?.id || "");
+    setRenewMode("extend");
+    setRenewOpen(true);
+  };
+
   const handleRenew = async () => {
     const plan = plans.find((p) => p.id === selectedPlanId);
     if (!plan) return;
     setSubmitting(true);
     try {
-      const streak = computeNextStreak(member.expiryDate, member.streakCount);
-      const startDate = new Date().toISOString().slice(0, 10);
-      const expiryDate = addDays(startDate, plan.durationDays);
-      await renewMembership(gymId, memberId, {
-        planName: plan.name,
-        membershipFee: plan.fee,
-        startDate,
-        expiryDate,
-        newStreakCount: streak.count,
-        newStreakUnit: "month",
-      });
+      if (isExpired) {
+        await renewExpiredMembership(
+          gymId,
+          memberId,
+          member,
+          plan,
+          gracePeriodDays,
+        );
+      } else if (renewMode === "extend") {
+        await extendMembership(gymId, memberId, member, plan, gracePeriodDays);
+      } else {
+        await renewMembershipImmediately(
+          gymId,
+          memberId,
+          member,
+          plan,
+          gracePeriodDays,
+        );
+      }
       setRenewOpen(false);
       await load();
     } finally {
@@ -120,7 +143,7 @@ export default function MemberProfile() {
   }
 
   const remaining = daysUntil(member.expiryDate);
-  const streakLabel = formatStreak(member.streakCount);
+  const streakLabel = formatStreak(member.streakDays);
 
   return (
     <AppShell>
@@ -145,13 +168,7 @@ export default function MemberProfile() {
           >
             {member.blacklisted ? "Blacklisted" : "Blacklist"}
           </Button>
-          <Button
-            size="sm"
-            onClick={() => {
-              setSelectedPlanId(plans[0]?.id || "");
-              setRenewOpen(true);
-            }}
-          >
+          <Button size="sm" onClick={openRenewModal}>
             Renew Membership
           </Button>
 
@@ -219,9 +236,25 @@ export default function MemberProfile() {
         </div>
 
         <div className="space-y-5">
+          {member.scheduledMembership && (
+            <Card className="p-4 border-copper-500/30 bg-copper-500/5">
+              <p className="text-xs uppercase text-copper-400 mb-1">
+                Next Membership Scheduled
+              </p>
+              <p className="text-sm font-semibold">
+                {member.scheduledMembership.planName}
+              </p>
+              <p className="text-xs text-ink-500 font-mono mt-0.5">
+                Starts {formatDisplayDate(member.scheduledMembership.startDate)}{" "}
+                → Ends{" "}
+                {formatDisplayDate(member.scheduledMembership.expiryDate)}
+              </p>
+            </Card>
+          )}
+
           <Card className="p-5 text-center">
             <p className="text-xs uppercase text-ink-500 mb-2">
-              Membership Streak
+              Loyalty Streak
             </p>
             <p className="text-3xl font-mono font-bold text-copper-400">
               🔥 {streakLabel || "New Member"}
@@ -267,6 +300,45 @@ export default function MemberProfile() {
               label: `${p.name} — ₹${p.fee}`,
             }))}
           />
+
+          {isExpired ? (
+            <p className="text-xs text-ink-500 bg-ink-900/50 rounded-lg p-3">
+              This membership has expired. The new plan will start{" "}
+              <span className="text-ink-100 font-medium">today</span>.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-xs uppercase text-ink-500">Renewal Mode</p>
+              <button
+                type="button"
+                onClick={() => setRenewMode("extend")}
+                className={`w-full text-left p-3 rounded-lg border transition-colors ${renewMode === "extend" ? "border-copper-500 bg-copper-500/10" : "border-ink-700 hover:bg-ink-800"}`}
+              >
+                <p className="text-sm font-semibold">
+                  Extend Current Membership{" "}
+                  <span className="text-copper-400 text-xs">(Recommended)</span>
+                </p>
+                <p className="text-xs text-ink-500 mt-1">
+                  Starts right after the current plan ends on{" "}
+                  {formatDisplayDate(
+                    member.scheduledMembership?.expiryDate || member.expiryDate,
+                  )}
+                  . No remaining days are lost.
+                </p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setRenewMode("immediate")}
+                className={`w-full text-left p-3 rounded-lg border transition-colors ${renewMode === "immediate" ? "border-copper-500 bg-copper-500/10" : "border-ink-700 hover:bg-ink-800"}`}
+              >
+                <p className="text-sm font-semibold">Start Immediately</p>
+                <p className="text-xs text-ink-500 mt-1">
+                  Ends the current plan today. Any remaining days are discarded.
+                </p>
+              </button>
+            </div>
+          )}
+
           <Button className="w-full" loading={submitting} onClick={handleRenew}>
             Confirm Renewal
           </Button>
