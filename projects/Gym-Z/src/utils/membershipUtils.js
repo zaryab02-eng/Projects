@@ -1,42 +1,59 @@
 // Membership status classification + the color gradient for the horizontal
 // validity indicator on member cards (dark green -> red -> grey/expired).
-import { daysUntil } from './dateUtils.js'
+import { daysUntil } from "./dateUtils.js";
 
 export const URGENCY_BUCKETS = {
-  EXPIRED: 'expired',
-  EXPIRES_TODAY: 'expires_today',
-  EXPIRES_TOMORROW: 'expires_tomorrow',
-  WITHIN_3_DAYS: 'within_3_days',
-  WITHIN_7_DAYS: 'within_7_days',
-  HEALTHY: 'healthy'
-}
+  EXPIRED: "expired",
+  EXPIRES_TODAY: "expires_today",
+  EXPIRES_TOMORROW: "expires_tomorrow",
+  WITHIN_3_DAYS: "within_3_days",
+  WITHIN_7_DAYS: "within_7_days",
+  HEALTHY: "healthy",
+};
 
 const BUCKET_LABELS = {
-  [URGENCY_BUCKETS.EXPIRED]: 'Expired',
-  [URGENCY_BUCKETS.EXPIRES_TODAY]: 'Expires Today',
-  [URGENCY_BUCKETS.EXPIRES_TOMORROW]: 'Expires Tomorrow',
-  [URGENCY_BUCKETS.WITHIN_3_DAYS]: 'Expires Within 3 Days',
-  [URGENCY_BUCKETS.WITHIN_7_DAYS]: 'Expires Within 7 Days',
-  [URGENCY_BUCKETS.HEALTHY]: 'Active'
+  [URGENCY_BUCKETS.EXPIRED]: "Expired",
+  [URGENCY_BUCKETS.EXPIRES_TODAY]: "Expires Today",
+  [URGENCY_BUCKETS.EXPIRES_TOMORROW]: "Expires Tomorrow",
+  [URGENCY_BUCKETS.WITHIN_3_DAYS]: "Expires Within 3 Days",
+  [URGENCY_BUCKETS.WITHIN_7_DAYS]: "Expires Within 7 Days",
+  [URGENCY_BUCKETS.HEALTHY]: "Active",
+};
+
+/**
+ * A member's coverage doesn't end at `expiryDate` if they've already
+ * renewed in advance (Extend) — it ends whenever their queued
+ * `scheduledMembership` runs out. Every urgency/attention calculation
+ * should be based on this "effective" end date, not the raw field,
+ * otherwise members who already renewed still show up needing attention.
+ */
+export function getEffectiveExpiryDate(member) {
+  return member?.scheduledMembership?.expiryDate || member?.expiryDate;
 }
 
 export function getUrgencyBucket(expiryDateStr) {
-  const diff = daysUntil(expiryDateStr)
-  if (diff < 0) return URGENCY_BUCKETS.EXPIRED
-  if (diff === 0) return URGENCY_BUCKETS.EXPIRES_TODAY
-  if (diff === 1) return URGENCY_BUCKETS.EXPIRES_TOMORROW
-  if (diff <= 3) return URGENCY_BUCKETS.WITHIN_3_DAYS
-  if (diff <= 7) return URGENCY_BUCKETS.WITHIN_7_DAYS
-  return URGENCY_BUCKETS.HEALTHY
+  const diff = daysUntil(expiryDateStr);
+  if (diff < 0) return URGENCY_BUCKETS.EXPIRED;
+  if (diff === 0) return URGENCY_BUCKETS.EXPIRES_TODAY;
+  if (diff === 1) return URGENCY_BUCKETS.EXPIRES_TOMORROW;
+  if (diff <= 3) return URGENCY_BUCKETS.WITHIN_3_DAYS;
+  if (diff <= 7) return URGENCY_BUCKETS.WITHIN_7_DAYS;
+  return URGENCY_BUCKETS.HEALTHY;
 }
 
 export function bucketLabel(bucket) {
-  return BUCKET_LABELS[bucket] || bucket
+  return BUCKET_LABELS[bucket] || bucket;
 }
 
-// Urgency sort order: most urgent first (expired first, then soonest expiry)
+// Urgency sort order: most urgent first (expired first, then soonest expiry).
+// Uses effective expiry so already-renewed (scheduled) members sort by
+// their real coverage end, not their soon-to-lapse current segment.
 export function sortByUrgency(members) {
-  return [...members].sort((a, b) => daysUntil(a.expiryDate) - daysUntil(b.expiryDate))
+  return [...members].sort(
+    (a, b) =>
+      daysUntil(getEffectiveExpiryDate(a)) -
+      daysUntil(getEffectiveExpiryDate(b)),
+  );
 }
 
 export function groupByUrgency(members) {
@@ -45,14 +62,16 @@ export function groupByUrgency(members) {
     [URGENCY_BUCKETS.EXPIRES_TODAY]: [],
     [URGENCY_BUCKETS.EXPIRES_TOMORROW]: [],
     [URGENCY_BUCKETS.WITHIN_3_DAYS]: [],
-    [URGENCY_BUCKETS.WITHIN_7_DAYS]: []
-  }
+    [URGENCY_BUCKETS.WITHIN_7_DAYS]: [],
+  };
   members.forEach((m) => {
-    const bucket = getUrgencyBucket(m.expiryDate)
-    if (groups[bucket]) groups[bucket].push(m)
-  })
-  Object.keys(groups).forEach((key) => { groups[key] = sortByUrgency(groups[key]) })
-  return groups
+    const bucket = getUrgencyBucket(getEffectiveExpiryDate(m));
+    if (groups[bucket]) groups[bucket].push(m);
+  });
+  Object.keys(groups).forEach((key) => {
+    groups[key] = sortByUrgency(groups[key]);
+  });
+  return groups;
 }
 
 /**
@@ -61,26 +80,50 @@ export function groupByUrgency(members) {
  * scale, relative to the plan's total duration.
  */
 export function getValidityIndicator(joiningDateStr, expiryDateStr) {
-  const totalDays = Math.max(1, daysUntil(expiryDateStr) + daysSince(joiningDateStr))
-  const remaining = daysUntil(expiryDateStr)
+  const totalDays = Math.max(
+    1,
+    daysUntil(expiryDateStr) + daysSince(joiningDateStr),
+  );
+  const remaining = daysUntil(expiryDateStr);
 
   if (remaining < 0) {
-    return { percent: 0, color: 'vitality-expired', hex: '#5B616E', label: 'Expired' }
+    return {
+      percent: 0,
+      color: "vitality-expired",
+      hex: "#5B616E",
+      label: "Expired",
+    };
   }
-  const percent = Math.max(0, Math.min(100, Math.round((remaining / totalDays) * 100)))
+  const percent = Math.max(
+    0,
+    Math.min(100, Math.round((remaining / totalDays) * 100)),
+  );
 
-  let hex, label
-  if (remaining > 14 && percent > 60) { hex = '#1B6E4C'; label = 'Healthy' }
-  else if (percent > 40) { hex = '#3C9A5C'; label = 'Good' }
-  else if (percent > 25) { hex = '#8FBF4E'; label = 'Fair' }
-  else if (remaining > 7) { hex = '#E0B93B'; label = 'Watch' }
-  else if (remaining > 3) { hex = '#DE8A3A'; label = 'Soon' }
-  else { hex = '#C6462F'; label = 'Critical' }
+  let hex, label;
+  if (remaining > 14 && percent > 60) {
+    hex = "#1B6E4C";
+    label = "Healthy";
+  } else if (percent > 40) {
+    hex = "#3C9A5C";
+    label = "Good";
+  } else if (percent > 25) {
+    hex = "#8FBF4E";
+    label = "Fair";
+  } else if (remaining > 7) {
+    hex = "#E0B93B";
+    label = "Watch";
+  } else if (remaining > 3) {
+    hex = "#DE8A3A";
+    label = "Soon";
+  } else {
+    hex = "#C6462F";
+    label = "Critical";
+  }
 
-  return { percent, hex, label }
+  return { percent, hex, label };
 }
 
 function daysSince(dateStr) {
-  const diff = daysUntil(dateStr)
-  return Math.max(1, -diff)
+  const diff = daysUntil(dateStr);
+  return Math.max(1, -diff);
 }

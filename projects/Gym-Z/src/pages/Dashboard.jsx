@@ -7,6 +7,7 @@ import Spinner from "../components/ui/Spinner.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { subscribeToMembers } from "../firebase/firestore.js";
 import { daysUntil } from "../utils/dateUtils.js";
+import { getEffectiveExpiryDate } from "../utils/membershipUtils.js";
 
 export default function Dashboard() {
   const { gymId, gym } = useAuth();
@@ -22,12 +23,16 @@ export default function Dashboard() {
   const stats = useMemo(() => {
     if (!members) return null;
     const total = members.length;
-    const active = members.filter((m) => daysUntil(m.expiryDate) >= 0).length;
+    const active = members.filter(
+      (m) => daysUntil(getEffectiveExpiryDate(m)) >= 0,
+    ).length;
     const expiringSoon = members.filter((m) => {
-      const d = daysUntil(m.expiryDate);
+      const d = daysUntil(getEffectiveExpiryDate(m));
       return d >= 0 && d <= 7;
     }).length;
-    const expired = members.filter((m) => daysUntil(m.expiryDate) < 0).length;
+    const expired = members.filter(
+      (m) => daysUntil(getEffectiveExpiryDate(m)) < 0,
+    ).length;
     const blacklisted = members.filter((m) => m.blacklisted).length;
     return { total, active, expiringSoon, expired, blacklisted };
   }, [members]);
