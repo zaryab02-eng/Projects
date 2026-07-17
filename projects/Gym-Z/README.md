@@ -42,7 +42,8 @@ Gym-Z gives a gym owner a private, isolated workspace where they can:
 - Create custom membership plans (7/15/30/45/90/180/365 days, or anything else) with their own fees
 - Add members with duplicate detection by phone number (prevents double entries, surfaces history + a one-tap **Renew Membership** action instead)
 - See a dashboard prioritizing who needs attention first: expired, expiring today, tomorrow, within 3 days, within 7 days
-- Track a **Membership Streak** — a count of continuous, on-time renewals (not attendance). Starts at 0 on join and only appears after the first renewal; resets if a membership stays expired past a configurable grace period (default 30 days)
+- Track a **Loyalty Streak** — the member's total continuous, paid membership duration in days (not attendance). Shows "New Member" until 30 continuous days are completed; displays in days up to 1 year, then switches to "X Years Y Months". Resets completely if a member doesn't renew within the gym's configurable grace period (default 30 days, set under Renewal Settings)
+- **Renew Membership** now branches on whether the current membership is expired or still active: expired memberships always restart today; active memberships offer **Extend Current Membership** (queues the new plan to begin the moment the current one ends — no days lost) or **Start Immediately** (ends current coverage today, discards remaining days). Advance-scheduled memberships from Extend auto-activate app-wide (Dashboard, Members list, Member Profile) the moment their start date arrives — no manual step needed
 - Dashboard stat cards (Total, Active, Expiring Soon, Expired, Blacklisted) are tappable — each navigates straight to a pre-filtered Members or Blacklist view
 - Maintain a permanent, append-only member profile: personal info, current membership, full renewal history, lifetime amount paid, blacklist history
 - Blacklist/un-blacklist members while retaining their full history
@@ -151,8 +152,8 @@ gym-z/
 - **`src/firebase/firestore.js`** — every Firestore read/write. This is the single source of truth for the database shape; if you're adding a new field or collection, start here. Includes `deleteMember(gymId, memberId)`, which batch-deletes a member's document, their `renewals` subcollection, and any matching `blacklist` entry, then decrements the gym's `activeMemberCount`.
 - **`src/context/AuthContext.jsx`** — exposes `{ user, gym, gymId, loading }` app-wide via `useAuth()`. `gymId` (the Firebase Auth uid) is what every page uses to scope its Firestore queries to that gym's private subtree.
 - **`src/router/ProtectedRoute.jsx`** — the gatekeeper for authenticated routes. It redirects signed-in users to the right workspace screen and sends first-time users to `/create-gym` until a gym exists.
-- **`src/utils/membershipUtils.js`** — turns an expiry date into an urgency bucket (expired / today / tomorrow / 3 days / 7 days) and into the validity bar's color + percentage. This is the file to edit if you want to change the color thresholds.
-- **`src/utils/streakUtils.js`** — computes the next streak count on renewal and resets it if the grace period was exceeded. This is NOT attendance-based, by design.
+- **`src/utils/membershipUtils.js`** — turns an expiry date into an urgency bucket (expired / today / tomorrow / 3 days / 7 days) and into the val- - **`src/utils/streakUtils.js`** — computes the Loyalty Streak (in continuous days) on every renewal, and resets it if the gap since the member's last coverage exceeded the grace period. This is NOT attendance-based, by design. `formatStreak()` returns `null` (render as "New Member") until 30 days are reached, then formats as days or, past 1 year, "X Years Y Months".idity bar's color + percentage. This is the file to edit if you want to change the color thresholds.
+- **`src/firebase/firestore.js`** also owns scheduled-membership promotion: `computeScheduledPromotion()` is a pure function that decides whether a member's `scheduledMembership` (queued by an Extend renewal) is due to activate. Both `getMember` and `subscribeToMembers` call it, so Dashboard, Members list, and Member Profile can never show inconsistent membership state.
 
 ## Installation
 
@@ -310,7 +311,7 @@ The full, ready-to-publish rules live in [`firestore.rules`](./firestore.rules).
 
 - `users/{ownerUid}` — stores the owner's personal list of gyms as a `gymIds` array so a single owner can manage multiple gym workspaces.
 - `gyms/{gymId}` — the top-level gym document is readable by everyone for rankings, but only the authenticated owner whose uid matches `ownerUid` can update or delete it. The app also writes the gym's `ownerUid` and a `createdAt` timestamp here.
-- `gyms/{gymId}/members/*`, `membershipPlans/*`, `blacklist/*`, and each member's nested `renewals/*` — readable/writable **only** by the authenticated owner whose uid matches the gym's `ownerUid`. This keeps each gym workspace private and prevents cross-gym data access. This same rule covers member deletion (including their nested `renewals` and matching `blacklist` entries) since it's just a write on an already owner-scoped path — no rule changes were needed to support removing a member.
+- `gyms/{gymId}/members/*`, `membershipPlans/*`, `blacklist/*`, and each member's nested `renewals/*` — readable/writable **only** by the authenticated owner whose uid matches the gym's `ownerUid`. This keeps each gym workspace private and prevents cross-gym data access. This same rule covers member deletion, scheduled-membership promotion, and `gracePeriodDays` updates (a plain field on the already owner-scoped `gyms/{gymId}` doc) — no rule changes were needed for any of the renewal/streak/removal features.
 
 To publish updated rules after editing `firestore.rules`:
 
@@ -330,6 +331,7 @@ gyms (collection)
     ├── ownerUid, gymName, ownerName, ownerEmail, phone
     ├── city, state, shortAddress
     ├── activeMemberCount (number, kept in sync on add/renew/remove)
+    ├── gracePeriodDays (owner-configurable, default 30 — set via Navbar ⋮ → Renewal Settings)
     ├── createdAt
     │
     ├── membershipPlans (subcollection)
@@ -340,11 +342,16 @@ gyms (collection)
     │         fullName, phone, altPhone, address, age, gender,
     │         joiningDate, expiryDate, planName, membershipFee,
     │         notes, status, blacklisted,
-    │         streakCount (starts at 0; increments only on renewal), streakUnit,
-    │         lifetimeAmountPaid, createdAt
+    │         scheduledMembership (null, or { planName, membershipFee, startDate, expiryDate }
+    │           — queued by an "Extend" renewal; auto-promoted into the current
+    │           membership fields once startDate is reached, on any page load),
+    │         streakDays (total continuous days; 0 until first renewal),
+    │         streakStartDate (anchor date the streak is measured from; null until first renewal),
+    │         lifetimeAmountPaid (only ever increases, never resets), createdAt
     │       }
     │       └── renewals (subcollection)
     │           └── {renewalId} → { type: 'new'|'renewal', planName, amount, startDate, expiryDate, createdAt }
+    │             (append-only — every renewal, including Extend/Start Immediately, adds a new record; nothing is ever overwritten)
     │
     └── blacklist (subcollection)
         └── {entryId} → { memberId, reason, notes, dateAdded }
@@ -355,6 +362,8 @@ gyms (collection)
 **Duplicate detection** queries `members` `where('phone', '==', phone)` scoped to the current gym only (`findMemberByPhone` in `src/firebase/firestore.js`) — Firestore will prompt you to create a single-field index the first time this runs if one doesn't already exist implicitly (single-field equality queries are auto-indexed by default, so no manual index is normally required).
 
 **Member removal** (`deleteMember` in `src/firebase/firestore.js`) is a hard delete, not a soft/status flag: it batch-deletes the member document, every document in that member's `renewals` subcollection, and any `blacklist` entry whose `memberId` matches, then decrements `activeMemberCount` on the parent gym. There is no undo — the confirmation modal on `MemberProfile.jsx` is the only safeguard, by design, to keep the data model simple (no "deleted" status to filter around elsewhere in the app).
+
+**Scheduled (advance) renewals** — when an owner picks "Extend" on a still-active membership, the new plan is written to `scheduledMembership` instead of overwriting the current membership fields. There is no backend cron in this stack, so activation is "lazy": `computeScheduledPromotion()` in `src/firebase/firestore.js` checks on every read whether `scheduledMembership.startDate` has arrived, and if so promotes it into the current membership fields immediately, before any page renders data. This runs inside both `getMember` (Member Profile) and `subscribeToMembers` (Dashboard, Members list), so the gym owner never needs to open a specific member's profile for it to take effect — opening any page that lists members is enough. If a member already has a scheduled membership and renews again with Extend, the new one chains off the end of the _scheduled_ one (not the currently active one), so memberships never overlap.
 
 **Gym Rankings** reads the root `gyms` collection ordered by `activeMemberCount desc` — this requires no composite index since it's a single-field sort.
 
@@ -401,7 +410,10 @@ For destructive actions specifically (like Remove Member), follow the pattern al
 
 - **Urgency thresholds / dashboard categories** → `src/utils/membershipUtils.js` (`getUrgencyBucket`).
 - **Validity bar color thresholds** → `src/utils/membershipUtils.js` (`getValidityIndicator`).
-- **Streak calculation + grace period** → `src/utils/streakUtils.js`. Change `DEFAULT_GRACE_PERIOD_DAYS` to adjust the default, or pass a custom value per-gym once you add a settings field for it.
+- **Loyalty Streak calculation** → `src/utils/streakUtils.js`. `computeStreakOnRenewal()` determines continuity/reset on each renewal; `formatStreak()` controls the "New Member" threshold (`STREAK_QUALIFYING_DAYS`, default 30) and the days → years/months display switch (1 year).
+- **Grace period** → now a per-gym setting (`gracePeriodDays` on the gym doc), editable by the owner via the Navbar's **⋮ → Renewal Settings** modal (`src/components/layout/Navbar.jsx`). `DEFAULT_GRACE_PERIOD_DAYS` in `streakUtils.js` is only the fallback for gyms created before this field existed.
+- **Renewal behavior (Extend vs Start Immediately vs Expired)** → `src/firebase/firestore.js`: `renewExpiredMembership()`, `extendMembership()`, `renewMembershipImmediately()` all funnel through the shared `writeRenewal()` helper, which is the one place that writes history, increments lifetime paid, and recomputes the streak. `MemberProfile.jsx` decides which function to call based on `daysUntil(member.expiryDate) < 0` and the owner's Extend/Start Immediately choice.
+- **Scheduled membership auto-activation** → `computeScheduledPromotion()` in `src/firebase/firestore.js`. This is the single source of truth for "is a queued Extend renewal due yet" — edit here if you need to change the activation condition; both `getMember` and `subscribeToMembers` call it automatically.
 - **Dashboard stat card destinations** → `src/pages/Dashboard.jsx` passes an `onClick` to each `StatCard` that navigates to `/members?filter=active|expiring|expired` or `/blacklist`. `src/pages/Members.jsx` reads the `filter` query param via `useSearchParams` and applies it on top of the existing search/sort logic.
 - **Duplicate detection key** → currently phone number, enforced in `findMemberByPhone` (`src/firebase/firestore.js`). Changing the unique identifier means updating this query and the Firestore rule assumptions.
 - **Member removal behavior** → `deleteMember` (`src/firebase/firestore.js`). It's a hard delete of the member, their renewals, and their blacklist entry, plus an `activeMemberCount` decrement. To make it a soft delete instead (e.g. for audit trails), replace the `batch.delete(memberRef)` call with a `status: 'removed'` flag update and filter it out in `subscribeToMembers`/`Members.jsx` instead.
@@ -412,7 +424,8 @@ For destructive actions specifically (like Remove Member), follow the pattern al
 - **Light/Dark mode** → `src/context/ThemeContext.jsx` toggles a `.light` class on `<html>`; add `.light` variant overrides in `src/index.css` or via Tailwind's `dark:`/custom selector as needed.
 - **Typography** → Google Fonts are loaded in `index.html` (`Oswald` for display/headings, `Manrope` for body text, `IBM Plex Mono` for numeric/data readouts like stats and streak counters). Swap the `<link>` and `fontFamily` values in `tailwind.config.js` to change them.
 - **Navbar branding** → `src/components/layout/Navbar.jsx` shows the italic "Gym-Z" wordmark on public pages and the owner's actual gym name (also italic) once inside the app. Gym actions (Delete Gym, Logout) live in a single **⋮** dropdown menu rather than separate buttons.
-- **Member profile actions** → `src/pages/MemberProfile.jsx` mirrors the Navbar's dropdown pattern: destructive actions live in a **⋮** menu (`text-vitality-critical` styling) beside the primary Renew/Blacklist buttons, keeping the visual weight of "delete" consistent across the app.
+- **Member profile actions** → `src/pages/MemberProfile.jsx` mirrors the Navbar's dropdown pattern: destructive actions live in a **⋮** menu (`text-vitality-critical` styling) beside the primary Renew/Blacklist buttons, keeping the visual weight of "delete" consistent across the app. The Renew modal itself branches its content: expired memberships show a simple notice, active memberships show two selectable cards (Extend / Start Immediately) with the recommended option visually distinguished (`border-copper-500` + tinted background) rather than using a dropdown, since it's a binary, consequential choice.
+- **Renewal Settings** → `src/components/layout/Navbar.jsx`'s **⋮** menu now includes a "Renewal Settings" item above Delete Gym, opening a `<Modal>` with a single numeric input for `gracePeriodDays`, following the same modal/button styling as the rest of the app.
 
 ## Guide to Deploying Updates
 
@@ -440,6 +453,7 @@ The service worker (via `vite-plugin-pwa`, `registerType: 'autoUpdate'`) automat
 - Server-side aggregation (Cloud Functions) for `activeMemberCount` instead of client-side `increment()`, to make it fully tamper-resistant.
 - Push notifications (via Firebase Cloud Messaging) for expiring memberships, once the PWA has a service worker already in place to extend.
 - Soft-delete / archive option for removed members (currently a hard delete) for gyms that want an audit trail before permanent removal.
+- Server-side (Cloud Function) promotion of scheduled memberships on a nightly schedule, as a backstop for gyms that go multiple days without opening the app (currently promotion only runs on page load, which is sufficient for daily-use gyms but has a theoretical gap for fully inactive ones).
 
 ---
 
