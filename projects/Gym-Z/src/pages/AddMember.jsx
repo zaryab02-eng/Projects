@@ -88,6 +88,7 @@ export default function AddMember() {
           <MemberForm
             plans={plans}
             onSubmit={handleSubmit}
+            onCancel={() => navigate("/members")}
             submitting={submitting}
           />
         </Card>
