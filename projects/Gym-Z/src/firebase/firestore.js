@@ -233,6 +233,28 @@ export async function getMemberRenewals(gymId, memberId) {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
+export async function deleteMember(gymId, memberId) {
+  const batch = writeBatch(db);
+  const memberRef = doc(db, "gyms", gymId, "members", memberId);
+
+  // Delete all renewal history entries under this member
+  const renewalsSnap = await getDocs(
+    collection(db, "gyms", gymId, "members", memberId, "renewals"),
+  );
+  renewalsSnap.docs.forEach((renewalDoc) => batch.delete(renewalDoc.ref));
+
+  // Delete any blacklist entry referencing this member
+  const blacklistSnap = await getDocs(
+    query(blacklistCollection(gymId), where("memberId", "==", memberId)),
+  );
+  blacklistSnap.docs.forEach((blacklistDoc) => batch.delete(blacklistDoc.ref));
+
+  batch.delete(memberRef);
+  await batch.commit();
+
+  await updateDoc(doc(db, "gyms", gymId), { activeMemberCount: increment(-1) });
+}
+
 // ---------- Blacklist ----------
 
 export function blacklistCollection(gymId) {
