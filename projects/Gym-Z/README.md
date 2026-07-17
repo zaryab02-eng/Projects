@@ -1,3 +1,6 @@
+## `README.md` (full file)
+
+```markdown
 # Gym-Z
 
 A premium, mobile-first Progressive Web App for gym owners to manage members, renewals, expiries and membership streaks — without spreadsheets.
@@ -43,6 +46,7 @@ Gym-Z gives a gym owner a private, isolated workspace where they can:
 - Dashboard stat cards (Total, Active, Expiring Soon, Expired, Blacklisted) are tappable — each navigates straight to a pre-filtered Members or Blacklist view
 - Maintain a permanent, append-only member profile: personal info, current membership, full renewal history, lifetime amount paid, blacklist history
 - Blacklist/un-blacklist members while retaining their full history
+- Permanently remove a member from a gym via a confirmation-gated **Remove Member** action, tucked into a **⋮ menu** on the member's profile (mirrors the app's existing Delete Gym pattern) — this deletes the member document, their full renewal history, and any blacklist entry referencing them, and decrements the gym's `activeMemberCount`
 - Instantly search members by name or phone, fast even with thousands of records
 - Appear on a public, no-login **Gym Rankings** leaderboard ranked by active member count
 
@@ -62,88 +66,89 @@ The app installs as a standalone PWA on Android and works offline for previously
 | PWA                | `vite-plugin-pwa` (Workbox-generated service worker) |
 
 ## Folder Structure
-
 ```
+
 gym-z/
 ├── public/
-│   └── icons/                  # PWA icons (192, 512, maskable, apple-touch)
+│ └── icons/ # PWA icons (192, 512, maskable, apple-touch)
 ├── src/
-│   ├── components/
-│   │   ├── ui/                 # Generic, app-agnostic primitives
-│   │   │   ├── Button.jsx
-│   │   │   ├── Card.jsx
-│   │   │   ├── Input.jsx
-│   │   │   ├── Select.jsx
-│   │   │   ├── Badge.jsx
-│   │   │   ├── Spinner.jsx
-│   │   │   ├── Modal.jsx
-│   │   │   └── ValidityBar.jsx # The membership validity gradient bar
-│   │   ├── layout/              # App chrome (nav, footer, page shell)
-│   │   │   ├── Navbar.jsx
-│   │   │   ├── Sidebar.jsx      # Desktop side nav
-│   │   │   ├── BottomNav.jsx    # Mobile tab bar
-│   │   │   ├── Footer.jsx       # "Made by Zaryab" on every page
-│   │   │   └── AppShell.jsx     # Wraps every authenticated page
-│   │   ├── dashboard/
-│   │   │   ├── StatCard.jsx
-│   │   │   └── ExpiryAttentionList.jsx
-│   │   ├── members/
-│   │   │   ├── MemberCard.jsx
-│   │   │   ├── MemberForm.jsx
-│   │   │   ├── DuplicateMemberModal.jsx
-│   │   │   └── RenewalHistory.jsx
-│   │   ├── plans/
-│   │   │   ├── PlanCard.jsx
-│   │   │   └── PlanFormModal.jsx
-│   │   ├── blacklist/
-│   │   │   ├── BlacklistEntryCard.jsx
-│   │   │   └── AddToBlacklistModal.jsx
-│   │   └── rankings/
-│   │       └── GymRankCard.jsx
-│   ├── pages/                   # One file per route
-│   │   ├── Landing.jsx
-│   │   ├── Login.jsx
-│   │   ├── CreateGym.jsx        # Google sign-in + gym profile registration
-│   │   ├── Dashboard.jsx
-│   │   ├── Members.jsx          # List + instant search
-│   │   ├── AddMember.jsx
-│   │   ├── MemberProfile.jsx    # Permanent member profile
-│   │   ├── MembershipPlans.jsx
-│   │   ├── Blacklist.jsx
-│   │   ├── GymRankings.jsx      # Public, no login required
-│   │   └── NotFound.jsx
-│   ├── context/
-│   │   ├── AuthContext.jsx      # Current user + their gym workspace
-│   │   └── ThemeContext.jsx     # Light/Dark mode
-│   ├── firebase/
-│   │   ├── config.js            # Firebase app initialization
-│   │   ├── auth.js               # Auth + Google sign-in wrapper functions
-│   │   └── firestore.js          # All Firestore reads/writes live here
-│   ├── router/
-│   │   ├── AppRouter.jsx
-│   │   └── ProtectedRoute.jsx    # Redirects to /login if not authenticated
-│   ├── utils/
-│   │   ├── dateUtils.js          # Date string <-> Date helpers
-│   │   ├── membershipUtils.js    # Urgency buckets + validity bar color logic
-│   │   └── streakUtils.js        # Membership streak calculation
-│   ├── App.jsx
-│   ├── main.jsx                  # React root, wraps providers + router
-│   └── index.css                 # Tailwind entry + base styles
-├── firestore.rules               # Security rules (see below)
-├── vercel.json                   # Vercel headers (optional)
+│ ├── components/
+│ │ ├── ui/ # Generic, app-agnostic primitives
+│ │ │ ├── Button.jsx
+│ │ │ ├── Card.jsx
+│ │ │ ├── Input.jsx
+│ │ │ ├── Select.jsx
+│ │ │ ├── Badge.jsx
+│ │ │ ├── Spinner.jsx
+│ │ │ ├── Modal.jsx
+│ │ │ └── ValidityBar.jsx # The membership validity gradient bar
+│ │ ├── layout/ # App chrome (nav, footer, page shell)
+│ │ │ ├── Navbar.jsx
+│ │ │ ├── Sidebar.jsx # Desktop side nav
+│ │ │ ├── BottomNav.jsx # Mobile tab bar
+│ │ │ ├── Footer.jsx # "Made by Zaryab" on every page
+│ │ │ └── AppShell.jsx # Wraps every authenticated page
+│ │ ├── dashboard/
+│ │ │ ├── StatCard.jsx
+│ │ │ └── ExpiryAttentionList.jsx
+│ │ ├── members/
+│ │ │ ├── MemberCard.jsx
+│ │ │ ├── MemberForm.jsx
+│ │ │ ├── DuplicateMemberModal.jsx
+│ │ │ └── RenewalHistory.jsx
+│ │ ├── plans/
+│ │ │ ├── PlanCard.jsx
+│ │ │ └── PlanFormModal.jsx
+│ │ ├── blacklist/
+│ │ │ ├── BlacklistEntryCard.jsx
+│ │ │ └── AddToBlacklistModal.jsx
+│ │ └── rankings/
+│ │ └── GymRankCard.jsx
+│ ├── pages/ # One file per route
+│ │ ├── Landing.jsx
+│ │ ├── Login.jsx
+│ │ ├── CreateGym.jsx # Google sign-in + gym profile registration
+│ │ ├── Dashboard.jsx
+│ │ ├── Members.jsx # List + instant search
+│ │ ├── AddMember.jsx
+│ │ ├── MemberProfile.jsx # Permanent member profile + Renew/Blacklist/Remove actions
+│ │ ├── MembershipPlans.jsx
+│ │ ├── Blacklist.jsx
+│ │ ├── GymRankings.jsx # Public, no login required
+│ │ └── NotFound.jsx
+│ ├── context/
+│ │ ├── AuthContext.jsx # Current user + their gym workspace
+│ │ └── ThemeContext.jsx # Light/Dark mode
+│ ├── firebase/
+│ │ ├── config.js # Firebase app initialization
+│ │ ├── auth.js # Auth + Google sign-in wrapper functions
+│ │ └── firestore.js # All Firestore reads/writes live here
+│ ├── router/
+│ │ ├── AppRouter.jsx
+│ │ └── ProtectedRoute.jsx # Redirects to /login if not authenticated
+│ ├── utils/
+│ │ ├── dateUtils.js # Date string <-> Date helpers
+│ │ ├── membershipUtils.js # Urgency buckets + validity bar color logic
+│ │ └── streakUtils.js # Membership streak calculation
+│ ├── App.jsx
+│ ├── main.jsx # React root, wraps providers + router
+│ └── index.css # Tailwind entry + base styles
+├── firestore.rules # Security rules (see below)
+├── vercel.json # Vercel headers (optional)
 ├── index.html
-├── vite.config.js                # Includes vite-plugin-pwa configuration
-├── tailwind.config.js            # Color tokens, fonts, animations
+├── vite.config.js # Includes vite-plugin-pwa configuration
+├── tailwind.config.js # Color tokens, fonts, animations
 ├── postcss.config.js
 ├── .env.example
 └── package.json
-```
+
+````
 
 ### What each important file does
 
 - **`src/firebase/config.js`** — the only place `initializeApp` is called. All other modules import `auth` and `db` from here.
 - **`src/firebase/auth.js`** — every auth operation (Google sign-in, logout) as a plain async function, so pages never talk to the Firebase SDK directly.
-- **`src/firebase/firestore.js`** — every Firestore read/write. This is the single source of truth for the database shape; if you're adding a new field or collection, start here.
+- **`src/firebase/firestore.js`** — every Firestore read/write. This is the single source of truth for the database shape; if you're adding a new field or collection, start here. Includes `deleteMember(gymId, memberId)`, which batch-deletes a member's document, their `renewals` subcollection, and any matching `blacklist` entry, then decrements the gym's `activeMemberCount`.
 - **`src/context/AuthContext.jsx`** — exposes `{ user, gym, gymId, loading }` app-wide via `useAuth()`. `gymId` (the Firebase Auth uid) is what every page uses to scope its Firestore queries to that gym's private subtree.
 - **`src/router/ProtectedRoute.jsx`** — the gatekeeper for authenticated routes. It redirects signed-in users to the right workspace screen and sends first-time users to `/create-gym` until a gym exists.
 - **`src/utils/membershipUtils.js`** — turns an expiry date into an urgency bucket (expired / today / tomorrow / 3 days / 7 days) and into the validity bar's color + percentage. This is the file to edit if you want to change the color thresholds.
@@ -157,7 +162,7 @@ gym-z/
 git clone <your-repo-url> gym-z
 cd gym-z
 npm install
-```
+````
 
 Then copy the environment template and fill in your Firebase project's keys (see [Firebase Project Setup](#firebase-project-setup-from-scratch) below):
 
@@ -305,7 +310,7 @@ The full, ready-to-publish rules live in [`firestore.rules`](./firestore.rules).
 
 - `users/{ownerUid}` — stores the owner's personal list of gyms as a `gymIds` array so a single owner can manage multiple gym workspaces.
 - `gyms/{gymId}` — the top-level gym document is readable by everyone for rankings, but only the authenticated owner whose uid matches `ownerUid` can update or delete it. The app also writes the gym's `ownerUid` and a `createdAt` timestamp here.
-- `gyms/{gymId}/members/*`, `membershipPlans/*`, `blacklist/*`, and each member's nested `renewals/*` — readable/writable **only** by the authenticated owner whose uid matches the gym's `ownerUid`. This keeps each gym workspace private and prevents cross-gym data access.
+- `gyms/{gymId}/members/*`, `membershipPlans/*`, `blacklist/*`, and each member's nested `renewals/*` — readable/writable **only** by the authenticated owner whose uid matches the gym's `ownerUid`. This keeps each gym workspace private and prevents cross-gym data access. This same rule covers member deletion (including their nested `renewals` and matching `blacklist` entries) since it's just a write on an already owner-scoped path — no rule changes were needed to support removing a member.
 
 To publish updated rules after editing `firestore.rules`:
 
@@ -324,7 +329,7 @@ gyms (collection)
 └── {gymId}                      # auto-generated Firestore document id
     ├── ownerUid, gymName, ownerName, ownerEmail, phone
     ├── city, state, shortAddress
-    ├── activeMemberCount (number, kept in sync on add/renew)
+    ├── activeMemberCount (number, kept in sync on add/renew/remove)
     ├── createdAt
     │
     ├── membershipPlans (subcollection)
@@ -349,6 +354,8 @@ gyms (collection)
 
 **Duplicate detection** queries `members` `where('phone', '==', phone)` scoped to the current gym only (`findMemberByPhone` in `src/firebase/firestore.js`) — Firestore will prompt you to create a single-field index the first time this runs if one doesn't already exist implicitly (single-field equality queries are auto-indexed by default, so no manual index is normally required).
 
+**Member removal** (`deleteMember` in `src/firebase/firestore.js`) is a hard delete, not a soft/status flag: it batch-deletes the member document, every document in that member's `renewals` subcollection, and any `blacklist` entry whose `memberId` matches, then decrements `activeMemberCount` on the parent gym. There is no undo — the confirmation modal on `MemberProfile.jsx` is the only safeguard, by design, to keep the data model simple (no "deleted" status to filter around elsewhere in the app).
+
 **Gym Rankings** reads the root `gyms` collection ordered by `activeMemberCount desc` — this requires no composite index since it's a single-field sort.
 
 ## Reusable Components
@@ -371,6 +378,7 @@ Every route maps 1:1 to a file in `src/pages/`. To change what a screen shows:
 1. Open the matching file (e.g. `src/pages/Dashboard.jsx`).
 2. Pages read data via hooks (`useAuth()` for the current gym) and the functions exported from `src/firebase/firestore.js` — they don't call Firestore directly.
 3. Most pages wrap their content in `<AppShell>` (adds the navbar/sidebar/bottom nav/footer) — public pages like `Landing`, `Login`, `GymRankings` instead compose `<Navbar>` + `<Footer>` directly since they don't need the authenticated app chrome.
+4. `MemberProfile.jsx` follows the same **⋮ overflow menu** pattern as `Navbar.jsx` for destructive actions: primary actions (Renew, Blacklist) are visible buttons, while the destructive **Remove Member** action lives behind a small dropdown with its own outside-click-to-close handling, and is gated behind a confirmation `<Modal>` before calling `deleteMember`.
 
 ## Guide to Modifying Components
 
@@ -387,6 +395,8 @@ Example: adding a "Trainer Assignment" feature to members.
 3. **UI** — add the field to `MemberForm.jsx` and display it in `MemberProfile.jsx`.
 4. **Security rules** — if you add a new top-level subcollection (e.g. `gyms/{gymId}/trainers`), it's automatically covered by the existing wildcard rule in `firestore.rules` (`match /{subcollection}/{docId}`) — no rule changes needed unless you want different permissions for it.
 
+For destructive actions specifically (like Remove Member), follow the pattern already established: tuck the action behind a **⋮ menu** rather than a prominent button, and require a confirmation `<Modal>` before calling the Firestore mutation — see `src/pages/MemberProfile.jsx` for a working reference.
+
 ## Guide to Changing Business Logic
 
 - **Urgency thresholds / dashboard categories** → `src/utils/membershipUtils.js` (`getUrgencyBucket`).
@@ -394,6 +404,7 @@ Example: adding a "Trainer Assignment" feature to members.
 - **Streak calculation + grace period** → `src/utils/streakUtils.js`. Change `DEFAULT_GRACE_PERIOD_DAYS` to adjust the default, or pass a custom value per-gym once you add a settings field for it.
 - **Dashboard stat card destinations** → `src/pages/Dashboard.jsx` passes an `onClick` to each `StatCard` that navigates to `/members?filter=active|expiring|expired` or `/blacklist`. `src/pages/Members.jsx` reads the `filter` query param via `useSearchParams` and applies it on top of the existing search/sort logic.
 - **Duplicate detection key** → currently phone number, enforced in `findMemberByPhone` (`src/firebase/firestore.js`). Changing the unique identifier means updating this query and the Firestore rule assumptions.
+- **Member removal behavior** → `deleteMember` (`src/firebase/firestore.js`). It's a hard delete of the member, their renewals, and their blacklist entry, plus an `activeMemberCount` decrement. To make it a soft delete instead (e.g. for audit trails), replace the `batch.delete(memberRef)` call with a `status: 'removed'` flag update and filter it out in `subscribeToMembers`/`Members.jsx` instead.
 
 ## Guide to Customizing the UI
 
@@ -401,6 +412,7 @@ Example: adding a "Trainer Assignment" feature to members.
 - **Light/Dark mode** → `src/context/ThemeContext.jsx` toggles a `.light` class on `<html>`; add `.light` variant overrides in `src/index.css` or via Tailwind's `dark:`/custom selector as needed.
 - **Typography** → Google Fonts are loaded in `index.html` (`Oswald` for display/headings, `Manrope` for body text, `IBM Plex Mono` for numeric/data readouts like stats and streak counters). Swap the `<link>` and `fontFamily` values in `tailwind.config.js` to change them.
 - **Navbar branding** → `src/components/layout/Navbar.jsx` shows the italic "Gym-Z" wordmark on public pages and the owner's actual gym name (also italic) once inside the app. Gym actions (Delete Gym, Logout) live in a single **⋮** dropdown menu rather than separate buttons.
+- **Member profile actions** → `src/pages/MemberProfile.jsx` mirrors the Navbar's dropdown pattern: destructive actions live in a **⋮** menu (`text-vitality-critical` styling) beside the primary Renew/Blacklist buttons, keeping the visual weight of "delete" consistent across the app.
 
 ## Guide to Deploying Updates
 
@@ -427,7 +439,12 @@ The service worker (via `vite-plugin-pwa`, `registerType: 'autoUpdate'`) automat
 - Multi-branch support for gym chains (a `branches` subcollection under a parent gym).
 - Server-side aggregation (Cloud Functions) for `activeMemberCount` instead of client-side `increment()`, to make it fully tamper-resistant.
 - Push notifications (via Firebase Cloud Messaging) for expiring memberships, once the PWA has a service worker already in place to extend.
+- Soft-delete / archive option for removed members (currently a hard delete) for gyms that want an audit trail before permanent removal.
 
 ---
 
 **Made by Zaryab**
+
+```
+
+```
