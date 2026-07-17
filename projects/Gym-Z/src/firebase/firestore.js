@@ -456,11 +456,22 @@ export async function addToBlacklist(gymId, memberId, entry) {
   });
 }
 
-export async function removeFromBlacklist(gymId, blacklistEntryId, memberId) {
-  await deleteDoc(doc(db, "gyms", gymId, "blacklist", blacklistEntryId));
-  await updateDoc(doc(db, "gyms", gymId, "members", memberId), {
+/**
+ * Un-blacklists a member. Takes just memberId (not a blacklist entry id)
+ * so any screen that already has the member — Member Profile included,
+ * which never loads blacklist entries itself — can call this directly.
+ * Looks up and deletes the matching blacklist entry/entries itself.
+ */
+export async function removeFromBlacklist(gymId, memberId) {
+  const snap = await getDocs(
+    query(blacklistCollection(gymId), where("memberId", "==", memberId)),
+  );
+  const batch = writeBatch(db);
+  snap.docs.forEach((entryDoc) => batch.delete(entryDoc.ref));
+  batch.update(doc(db, "gyms", gymId, "members", memberId), {
     blacklisted: false,
   });
+  await batch.commit();
 }
 
 export function subscribeToBlacklist(gymId, callback) {

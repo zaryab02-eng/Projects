@@ -22,15 +22,20 @@ export default function Dashboard() {
 
   const stats = useMemo(() => {
     if (!members) return null;
+    // Blacklisted members are on a separate track — they shouldn't count
+    // toward Active/Expiring/Expired, since a blacklisted member isn't
+    // someone the owner is expected to renew or act on.
+    const nonBlacklisted = members.filter((m) => !m.blacklisted);
+
     const total = members.length;
-    const active = members.filter(
+    const active = nonBlacklisted.filter(
       (m) => daysUntil(getEffectiveExpiryDate(m)) >= 0,
     ).length;
-    const expiringSoon = members.filter((m) => {
+    const expiringSoon = nonBlacklisted.filter((m) => {
       const d = daysUntil(getEffectiveExpiryDate(m));
       return d >= 0 && d <= 7;
     }).length;
-    const expired = members.filter(
+    const expired = nonBlacklisted.filter(
       (m) => daysUntil(getEffectiveExpiryDate(m)) < 0,
     ).length;
     const blacklisted = members.filter((m) => m.blacklisted).length;
@@ -92,7 +97,10 @@ export default function Dashboard() {
           </div>
 
           <h2 className="font-display text-lg mb-3">Needs Attention</h2>
-          <ExpiryAttentionList members={members} />
+          {/* Blacklisted members don't need renewal attention either */}
+          <ExpiryAttentionList
+            members={members.filter((m) => !m.blacklisted)}
+          />
         </>
       )}
     </AppShell>

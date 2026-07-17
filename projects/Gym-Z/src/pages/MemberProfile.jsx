@@ -122,6 +122,17 @@ export default function MemberProfile() {
     }
   };
 
+  const handleUnblacklist = async () => {
+    if (!window.confirm("Remove this member from the blacklist?")) return;
+    setSubmitting(true);
+    try {
+      await removeFromBlacklist(gymId, memberId);
+      await load();
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleDelete = async () => {
     setSubmitting(true);
     try {
@@ -160,14 +171,6 @@ export default function MemberProfile() {
           <p className="text-ink-500 font-mono text-sm mt-1">{member.phone}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setBlacklistOpen(true)}
-            disabled={member.blacklisted}
-          >
-            {member.blacklisted ? "Blacklisted" : "Blacklist"}
-          </Button>
           <Button size="sm" onClick={openRenewModal}>
             Renew Membership
           </Button>
@@ -182,7 +185,28 @@ export default function MemberProfile() {
               ⋮
             </button>
             {menuOpen ? (
-              <div className="absolute right-0 mt-2 w-44 rounded-lg border border-ink-700 bg-ink-800 shadow-card py-1 overflow-hidden z-10">
+              <div className="absolute right-0 mt-2 w-48 rounded-lg border border-ink-700 bg-ink-800 shadow-card py-1 overflow-hidden z-10">
+                {member.blacklisted ? (
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false);
+                      handleUnblacklist();
+                    }}
+                    className="w-full text-left px-4 py-2.5 text-sm text-ink-50 hover:bg-ink-700 transition-colors"
+                  >
+                    Remove from Blacklist
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setBlacklistOpen(true);
+                    }}
+                    className="w-full text-left px-4 py-2.5 text-sm text-ink-50 hover:bg-ink-700 transition-colors"
+                  >
+                    Blacklist Member
+                  </button>
+                )}
                 <button
                   onClick={() => {
                     setMenuOpen(false);

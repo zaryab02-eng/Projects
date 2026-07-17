@@ -10,7 +10,10 @@ import Button from "../components/ui/Button.jsx";
 import Spinner from "../components/ui/Spinner.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { subscribeToMembers } from "../firebase/firestore.js";
-import { sortByUrgency } from "../utils/membershipUtils.js";
+import {
+  sortByUrgency,
+  getEffectiveExpiryDate,
+} from "../utils/membershipUtils.js";
 import { daysUntil } from "../utils/dateUtils.js";
 
 const FILTER_LABELS = {
@@ -35,15 +38,23 @@ export default function Members() {
     if (!members) return [];
     let list = sortByUrgency(members);
 
+    // Active / Expiring / Expired filters mirror the Dashboard's stat
+    // cards: blacklisted members are excluded, since they're on a
+    // separate track and shouldn't appear as needing renewal attention.
     if (filter === "active") {
-      list = list.filter((m) => daysUntil(m.expiryDate) >= 0);
+      list = list.filter(
+        (m) => !m.blacklisted && daysUntil(getEffectiveExpiryDate(m)) >= 0,
+      );
     } else if (filter === "expiring") {
       list = list.filter((m) => {
-        const d = daysUntil(m.expiryDate);
+        if (m.blacklisted) return false;
+        const d = daysUntil(getEffectiveExpiryDate(m));
         return d >= 0 && d <= 7;
       });
     } else if (filter === "expired") {
-      list = list.filter((m) => daysUntil(m.expiryDate) < 0);
+      list = list.filter(
+        (m) => !m.blacklisted && daysUntil(getEffectiveExpiryDate(m)) < 0,
+      );
     }
 
     if (!search.trim()) return list;
