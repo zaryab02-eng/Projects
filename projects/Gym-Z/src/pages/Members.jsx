@@ -4,8 +4,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import AppShell from "../components/layout/AppShell.jsx";
-import MemberCard from "../components/members/MemberCard.jsx";
+import MemberListItem from "../components/members/MemberListItem.jsx";
 import Input from "../components/ui/Input.jsx";
+import Select from "../components/ui/Select.jsx";
 import Button from "../components/ui/Button.jsx";
 import Spinner from "../components/ui/Spinner.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -22,10 +23,17 @@ const FILTER_LABELS = {
   expired: "Expired",
 };
 
+const SORT_OPTIONS = [
+  { value: "urgency", label: "Sort: Needs Attention First" },
+  { value: "newest", label: "Sort: Newest Members First" },
+  { value: "oldest", label: "Sort: Oldest Members First" },
+];
+
 export default function Members() {
   const { gymId } = useAuth();
   const [members, setMembers] = useState(null);
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("urgency");
   const [searchParams, setSearchParams] = useSearchParams();
   const filter = searchParams.get("filter") || "";
 
@@ -36,11 +44,8 @@ export default function Members() {
 
   const filtered = useMemo(() => {
     if (!members) return [];
-    // Plain list, no urgency grouping/headers here — that's the
-    // Dashboard's "Needs Attention" job. This is just sorted so the
-    // most urgent members surface first within the flat list.
-    let list = sortByUrgency(members);
 
+    let list = members;
     if (filter === "active") {
       list = list.filter(
         (m) => !m.blacklisted && daysUntil(getEffectiveExpiryDate(m)) >= 0,
@@ -57,12 +62,29 @@ export default function Members() {
       );
     }
 
-    if (!search.trim()) return list;
-    const q = search.trim().toLowerCase();
-    return list.filter(
-      (m) => m.fullName?.toLowerCase().includes(q) || m.phone?.includes(q),
-    );
-  }, [members, search, filter]);
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter(
+        (m) => m.fullName?.toLowerCase().includes(q) || m.phone?.includes(q),
+      );
+    }
+
+    // joiningDate is a plain "YYYY-MM-DD" string, so lexical comparison
+    // sorts chronologically without needing to parse Date objects.
+    if (sortBy === "newest") {
+      list = [...list].sort((a, b) =>
+        (b.joiningDate || "").localeCompare(a.joiningDate || ""),
+      );
+    } else if (sortBy === "oldest") {
+      list = [...list].sort((a, b) =>
+        (a.joiningDate || "").localeCompare(b.joiningDate || ""),
+      );
+    } else {
+      list = sortByUrgency(list);
+    }
+
+    return list;
+  }, [members, search, filter, sortBy]);
 
   const clearFilter = () => setSearchParams({});
 
@@ -89,12 +111,20 @@ export default function Members() {
         </div>
       ) : null}
 
-      <Input
-        placeholder="Search by name or phone..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="mb-6"
-      />
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <Input
+          placeholder="Search by name or phone..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="flex-1"
+        />
+        <Select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          options={SORT_OPTIONS}
+          className="sm:w-64 shrink-0"
+        />
+      </div>
 
       {!members ? (
         <div className="flex justify-center py-20">
@@ -105,9 +135,9 @@ export default function Members() {
           No members found.
         </p>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="space-y-2.5">
           {filtered.map((m) => (
-            <MemberCard key={m.id} member={m} />
+            <MemberListItem key={m.id} member={m} />
           ))}
         </div>
       )}
