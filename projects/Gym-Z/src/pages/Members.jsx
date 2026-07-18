@@ -6,7 +6,6 @@ import { Link, useSearchParams } from "react-router-dom";
 import AppShell from "../components/layout/AppShell.jsx";
 import MemberListItem from "../components/members/MemberListItem.jsx";
 import Input from "../components/ui/Input.jsx";
-import Select from "../components/ui/Select.jsx";
 import Button from "../components/ui/Button.jsx";
 import Spinner from "../components/ui/Spinner.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -24,9 +23,9 @@ const FILTER_LABELS = {
 };
 
 const SORT_OPTIONS = [
-  { value: "urgency", label: "Sort: Needs Attention First" },
-  { value: "newest", label: "Sort: Newest Members First" },
-  { value: "oldest", label: "Sort: Oldest Members First" },
+  { value: "urgency", label: "Needs Attention" },
+  { value: "newest", label: "Newest First" },
+  { value: "oldest", label: "Oldest First" },
 ];
 
 export default function Members() {
@@ -111,19 +110,32 @@ export default function Members() {
         </div>
       ) : null}
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+      <div className="flex items-center gap-2 mb-6">
         <Input
           placeholder="Search by name or phone..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="flex-1"
         />
-        <Select
+        {/* Small native select, not the shared <Select> component —
+            keeps this compact and inline instead of full-width with a
+            label block, which is how <Select> renders everywhere else. */}
+        <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          options={SORT_OPTIONS}
-          className="sm:w-64 shrink-0"
-        />
+          aria-label="Sort members"
+          className="shrink-0 bg-ink-900 border border-ink-600 rounded-lg pl-3 pr-7 py-2.5 text-xs font-medium text-ink-50 focus:border-copper-500 focus:ring-1 focus:ring-copper-500 outline-none appearance-none bg-no-repeat bg-[right_0.5rem_center] bg-[length:14px]"
+          style={{
+            backgroundImage:
+              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E\")",
+          }}
+        >
+          {SORT_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {!members ? (
