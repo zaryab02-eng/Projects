@@ -23,8 +23,6 @@ export default function Navbar() {
   const location = useLocation();
   const isPublicPage = PUBLIC_PATHS.has(location.pathname);
   const showGymActions = Boolean(user && gym && isAppRoute(location.pathname));
-  // No gym yet (e.g. just deleted one and landed back on /create-gym) —
-  // still show a menu so the owner can log out without a gym workspace.
   const showUserMenu = Boolean(
     user && !gym && location.pathname === "/create-gym",
   );
@@ -75,8 +73,13 @@ export default function Navbar() {
           to={gym ? "/dashboard" : isPublicPage ? "/" : "/login"}
           className="flex items-center gap-2 min-w-0"
         >
+          <img
+            src="/gymZ.webp"
+            alt="Gym-Z"
+            className="h-8 w-8 rounded-md object-cover shrink-0"
+          />
           {showGymActions ? (
-            <span className="font-display italic text-lg tracking-wide truncate max-w-[180px] sm:max-w-xs">
+            <span className="font-display italic text-lg tracking-wide truncate max-w-[140px] sm:max-w-xs">
               {gym.gymName}
             </span>
           ) : (

@@ -61,84 +61,99 @@ export default function MemberForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid sm:grid-cols-2 gap-4">
-        <Input
-          label="Full Name"
-          required
-          value={values.fullName}
-          onChange={handleChange("fullName")}
-          error={errors.fullName}
-          placeholder="e.g. Rohit Sharma"
-        />
-        <Input
-          label="Phone Number"
-          required
-          value={values.phone}
-          onChange={handleChange("phone")}
-          error={errors.phone}
-          placeholder="+91XXXXXXXXXX"
-        />
-        <Input
-          label="Alternate Phone"
-          value={values.altPhone}
-          onChange={handleChange("altPhone")}
-          placeholder="Optional"
-        />
-        <Input
-          label="Age"
-          type="number"
-          value={values.age}
-          onChange={handleChange("age")}
-          placeholder="Optional"
-        />
-        <Select
-          label="Gender"
-          value={values.gender}
-          onChange={handleChange("gender")}
-          options={[
-            { value: "", label: "Select (optional)" },
-            { value: "male", label: "Male" },
-            { value: "female", label: "Female" },
-            { value: "other", label: "Other" },
-          ]}
-        />
-        <Input
-          label="Joining Date"
-          type="date"
-          required
-          value={values.joiningDate}
-          onChange={handleChange("joiningDate")}
-        />
-        <Select
-          label="Membership Plan"
-          required
-          value={values.planId}
-          onChange={handleChange("planId")}
-          error={errors.planId}
-          options={plans.map((p) => ({
-            value: p.id,
-            label: `${p.name} — ₹${p.fee}`,
-          }))}
-        />
-        <Input
-          label="Membership Fee (₹)"
-          type="number"
-          required
-          value={values.membershipFee}
-          onChange={handleChange("membershipFee")}
-        />
-      </div>
-      <Input
-        label="Address"
-        value={values.address}
-        onChange={handleChange("address")}
-        placeholder="Optional"
-      />
-      <label className="block">
-        <span className="block text-xs font-semibold uppercase tracking-wide text-ink-500 mb-1.5">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <section>
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-500 mb-3">
+          Personal Information
+        </h3>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Input
+            label="Full Name"
+            required
+            value={values.fullName}
+            onChange={handleChange("fullName")}
+            error={errors.fullName}
+            placeholder="e.g. Rohit Sharma"
+          />
+          <Input
+            label="Phone Number"
+            required
+            value={values.phone}
+            onChange={handleChange("phone")}
+            error={errors.phone}
+            placeholder="+91XXXXXXXXXX"
+          />
+          <Input
+            label="Alternate Phone"
+            value={values.altPhone}
+            onChange={handleChange("altPhone")}
+            placeholder="Optional"
+          />
+          <Input
+            label="Age"
+            type="number"
+            value={values.age}
+            onChange={handleChange("age")}
+            placeholder="Optional"
+          />
+          <Select
+            label="Gender"
+            value={values.gender}
+            onChange={handleChange("gender")}
+            options={[
+              { value: "", label: "Select (optional)" },
+              { value: "male", label: "Male" },
+              { value: "female", label: "Female" },
+              { value: "other", label: "Other" },
+            ]}
+          />
+          <Input
+            label="Address"
+            value={values.address}
+            onChange={handleChange("address")}
+            placeholder="Optional"
+          />
+        </div>
+      </section>
+
+      <section className="pt-5 border-t border-ink-700/60">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-500 mb-3">
+          Membership Details
+        </h3>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Input
+            label="Joining Date"
+            type="date"
+            required
+            value={values.joiningDate}
+            onChange={handleChange("joiningDate")}
+          />
+          <Select
+            label="Membership Plan"
+            required
+            value={values.planId}
+            onChange={handleChange("planId")}
+            error={errors.planId}
+            options={plans.map((p) => ({
+              value: p.id,
+              label: `${p.name} — ₹${p.fee}`,
+            }))}
+          />
+          <Input
+            label="Membership Fee (₹)"
+            type="number"
+            required
+            value={values.membershipFee}
+            onChange={handleChange("membershipFee")}
+            className="sm:col-span-2"
+          />
+        </div>
+      </section>
+
+      <section className="pt-5 border-t border-ink-700/60">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-500 mb-3">
           Notes
-        </span>
+        </h3>
         <textarea
           rows={3}
           value={values.notes}
@@ -146,8 +161,9 @@ export default function MemberForm({
           placeholder="Optional"
           className="w-full bg-ink-900 border border-ink-600 rounded-lg px-3.5 py-2.5 text-sm text-ink-50 placeholder:text-ink-500 focus:border-copper-500 focus:ring-1 focus:ring-copper-500 outline-none"
         />
-      </label>
-      <div className={onCancel ? "flex gap-3" : ""}>
+      </section>
+
+      <div className={onCancel ? "flex gap-3 pt-1" : "pt-1"}>
         {onCancel && (
           <Button
             type="button"

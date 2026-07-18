@@ -4,12 +4,14 @@ import AppShell from "../components/layout/AppShell.jsx";
 import Card from "../components/ui/Card.jsx";
 import MemberForm from "../components/members/MemberForm.jsx";
 import DuplicateMemberModal from "../components/members/DuplicateMemberModal.jsx";
+import PlanFormModal from "../components/plans/PlanFormModal.jsx";
 import Spinner from "../components/ui/Spinner.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import {
   subscribeToPlans,
   findMemberByPhone,
   addMember,
+  addPlan,
   renewExpiredMembership,
   extendMembership,
 } from "../firebase/firestore.js";
@@ -23,11 +25,27 @@ export default function AddMember() {
   const [submitting, setSubmitting] = useState(false);
   const [duplicate, setDuplicate] = useState(null);
   const [pendingValues, setPendingValues] = useState(null);
+  const [creatingPlan, setCreatingPlan] = useState(false);
 
   useEffect(() => {
     if (!gymId) return;
     return subscribeToPlans(gymId, setPlans);
   }, [gymId]);
+
+  // No plans exist yet: this becomes true, which opens the New Plan modal
+  // below automatically. Once a plan is created, the live subscription
+  // updates `plans` and this flips back to false on its own, closing the
+  // modal and revealing the actual Add Member form — no extra step needed.
+  const noPlansYet = plans !== null && plans.length === 0;
+
+  const handleCreatePlan = async (values) => {
+    setCreatingPlan(true);
+    try {
+      await addPlan(gymId, values);
+    } finally {
+      setCreatingPlan(false);
+    }
+  };
 
   const handleSubmit = async (values) => {
     setSubmitting(true);
@@ -78,10 +96,9 @@ export default function AddMember() {
         <div className="flex justify-center py-20">
           <Spinner size="lg" />
         </div>
-      ) : plans.length === 0 ? (
+      ) : noPlansYet ? (
         <Card className="p-6 text-center text-ink-500 text-sm">
-          Create a membership plan first before adding members. Go to Membership
-          Plans.
+          You need at least one membership plan before adding members.
         </Card>
       ) : (
         <Card className="p-5 sm:p-6 max-w-2xl">
@@ -93,6 +110,15 @@ export default function AddMember() {
           />
         </Card>
       )}
+
+      <PlanFormModal
+        open={noPlansYet}
+        onClose={() => navigate("/members")}
+        onSubmit={handleCreatePlan}
+        initialValues={null}
+        submitting={creatingPlan}
+        cancelLabel="Cancel"
+      />
 
       <DuplicateMemberModal
         member={duplicate}
