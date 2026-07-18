@@ -21,22 +21,16 @@ export default function MemberForm({
     gender: "",
     joiningDate: new Date().toISOString().slice(0, 10),
     planId: plans?.[0]?.id || "",
-    membershipFee: plans?.[0]?.fee || "",
     notes: "",
     ...initialValues,
   });
   const [errors, setErrors] = useState({});
 
+  const selectedPlan = plans.find((p) => p.id === values.planId);
+
   const handleChange = (key) => (e) => {
     const value = e.target.value;
-    setValues((v) => {
-      const next = { ...v, [key]: value };
-      if (key === "planId") {
-        const plan = plans.find((p) => p.id === value);
-        if (plan) next.membershipFee = plan.fee;
-      }
-      return next;
-    });
+    setValues((v) => ({ ...v, [key]: value }));
   };
 
   const validate = () => {
@@ -56,7 +50,7 @@ export default function MemberForm({
     onSubmit({
       ...values,
       planName: plan?.name,
-      membershipFee: Number(values.membershipFee),
+      membershipFee: plan?.fee || 0,
     });
   };
 
@@ -139,15 +133,15 @@ export default function MemberForm({
               label: `${p.name} — ₹${p.fee}`,
             }))}
           />
-          <Input
-            label="Membership Fee (₹)"
-            type="number"
-            required
-            value={values.membershipFee}
-            onChange={handleChange("membershipFee")}
-            className="sm:col-span-2"
-          />
         </div>
+        {selectedPlan && (
+          <p className="mt-2 text-xs text-ink-500">
+            Fee for this plan:{" "}
+            <span className="text-ink-100 font-semibold font-mono">
+              ₹{selectedPlan.fee}
+            </span>
+          </p>
+        )}
       </section>
 
       <section className="pt-5 border-t border-ink-700/60">

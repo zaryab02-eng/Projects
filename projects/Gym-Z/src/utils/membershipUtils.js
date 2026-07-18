@@ -56,6 +56,9 @@ export function sortByUrgency(members) {
   );
 }
 
+// Buckets EVERY member, including fully healthy ones (the 'healthy'
+// group) — callers that only want urgent members (e.g. the Dashboard's
+// Needs Attention list) simply skip that key when iterating.
 export function groupByUrgency(members) {
   const groups = {
     [URGENCY_BUCKETS.EXPIRED]: [],
@@ -63,6 +66,7 @@ export function groupByUrgency(members) {
     [URGENCY_BUCKETS.EXPIRES_TOMORROW]: [],
     [URGENCY_BUCKETS.WITHIN_3_DAYS]: [],
     [URGENCY_BUCKETS.WITHIN_7_DAYS]: [],
+    [URGENCY_BUCKETS.HEALTHY]: [],
   };
   members.forEach((m) => {
     const bucket = getUrgencyBucket(getEffectiveExpiryDate(m));

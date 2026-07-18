@@ -1,19 +1,13 @@
-// Instant search stays fast at scale by filtering the already-subscribed
-// in-memory member list (Firestore onSnapshot keeps it live) rather than
-// issuing a new query per keystroke.
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import AppShell from "../components/layout/AppShell.jsx";
-import MemberCard from "../components/members/MemberCard.jsx";
+import UrgencyMemberGroups from "../components/members/UrgencyMemberGroups.jsx";
 import Input from "../components/ui/Input.jsx";
 import Button from "../components/ui/Button.jsx";
 import Spinner from "../components/ui/Spinner.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { subscribeToMembers } from "../firebase/firestore.js";
-import {
-  sortByUrgency,
-  getEffectiveExpiryDate,
-} from "../utils/membershipUtils.js";
+import { getEffectiveExpiryDate } from "../utils/membershipUtils.js";
 import { daysUntil } from "../utils/dateUtils.js";
 
 const FILTER_LABELS = {
@@ -36,11 +30,8 @@ export default function Members() {
 
   const filtered = useMemo(() => {
     if (!members) return [];
-    let list = sortByUrgency(members);
+    let list = members;
 
-    // Active / Expiring / Expired filters mirror the Dashboard's stat
-    // cards: blacklisted members are excluded, since they're on a
-    // separate track and shouldn't appear as needing renewal attention.
     if (filter === "active") {
       list = list.filter(
         (m) => !m.blacklisted && daysUntil(getEffectiveExpiryDate(m)) >= 0,
@@ -100,16 +91,12 @@ export default function Members() {
         <div className="flex justify-center py-20">
           <Spinner size="lg" />
         </div>
-      ) : filtered.length === 0 ? (
-        <p className="text-center text-ink-500 py-16 text-sm">
-          No members found.
-        </p>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filtered.map((m) => (
-            <MemberCard key={m.id} member={m} />
-          ))}
-        </div>
+        <UrgencyMemberGroups
+          members={filtered}
+          includeHealthy
+          emptyMessage="No members found."
+        />
       )}
     </AppShell>
   );

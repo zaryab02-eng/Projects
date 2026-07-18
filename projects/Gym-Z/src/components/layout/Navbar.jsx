@@ -73,19 +73,24 @@ export default function Navbar() {
           to={gym ? "/dashboard" : isPublicPage ? "/" : "/login"}
           className="flex items-center gap-2 min-w-0"
         >
-          <img
-            src="/gymZ.webp"
-            alt="Gym-Z"
-            className="h-8 w-8 rounded-md object-cover shrink-0"
-          />
           {showGymActions ? (
-            <span className="font-display italic text-lg tracking-wide truncate max-w-[140px] sm:max-w-xs">
+            // Inside the app with an active gym workspace: show only the
+            // gym name, no app icon/logo — keeps the navbar focused on
+            // "whose workspace this is" rather than app branding.
+            <span className="font-display italic text-lg tracking-wide truncate max-w-[180px] sm:max-w-xs">
               {gym.gymName}
             </span>
           ) : (
-            <span className="font-display italic text-lg tracking-wide text-copper-400">
-              Gym-Z
-            </span>
+            <>
+              <img
+                src="/gymZ.webp"
+                alt="Gym-Z"
+                className="h-8 w-8 rounded-md object-cover shrink-0"
+              />
+              <span className="font-display italic text-lg tracking-wide text-copper-400">
+                Gym-Z
+              </span>
+            </>
           )}
         </Link>
 

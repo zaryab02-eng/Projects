@@ -155,26 +155,35 @@ export default function MemberProfile() {
 
   const remaining = daysUntil(member.expiryDate);
   const streakLabel = formatStreak(member.streakDays);
+  const initial = member.fullName?.trim()?.[0]?.toUpperCase() || "?";
 
   return (
     <AppShell>
-      <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
-        <div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="font-display text-2xl sm:text-3xl">
-              {member.fullName}
-            </h1>
-            {member.blacklisted && (
-              <Badge variant="critical">Blacklisted</Badge>
-            )}
+      {/* Header */}
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="h-12 w-12 rounded-full bg-ink-800 border border-ink-700 flex items-center justify-center font-display text-lg text-copper-400 shrink-0">
+            {initial}
           </div>
-          <p className="text-ink-500 font-mono text-sm mt-1">{member.phone}</p>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="font-display text-xl sm:text-2xl truncate">
+                {member.fullName}
+              </h1>
+              {member.blacklisted && (
+                <Badge variant="critical">Blacklisted</Badge>
+              )}
+            </div>
+            <p className="text-ink-500 font-mono text-sm mt-0.5">
+              {member.phone}
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" onClick={openRenewModal}>
-            Renew Membership
-          </Button>
 
+        <div className="flex items-center gap-2 shrink-0">
+          <Button size="sm" onClick={openRenewModal}>
+            Renew
+          </Button>
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setMenuOpen((open) => !open)}
@@ -222,92 +231,74 @@ export default function MemberProfile() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 space-y-5">
-          <Card className="p-5">
-            <h2 className="font-display text-lg mb-4">Current Membership</h2>
-            <ValidityBar
-              joiningDate={member.joiningDate}
-              expiryDate={member.expiryDate}
-            />
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 text-sm">
-              <Info label="Plan" value={member.planName} />
-              <Info
-                label="Joined"
-                value={formatDisplayDate(member.joiningDate)}
-              />
-              <Info
-                label="Expires"
-                value={formatDisplayDate(member.expiryDate)}
-              />
-              <Info
-                label="Status"
-                value={
-                  remaining >= 0
-                    ? `${remaining}d left`
-                    : `${-remaining}d overdue`
-                }
-              />
-            </div>
-          </Card>
+      {/* Membership + quick stats — replaces 3 separate big cards */}
+      <Card className="p-5 mb-5">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-semibold">{member.planName}</p>
+          <span className="text-xs font-mono text-ink-500">
+            {remaining >= 0 ? `${remaining}d left` : `${-remaining}d overdue`}
+          </span>
+        </div>
+        <ValidityBar
+          joiningDate={member.joiningDate}
+          expiryDate={member.expiryDate}
+        />
 
-          <Card className="p-5">
-            <h2 className="font-display text-lg mb-4">
-              Membership & Renewal History
-            </h2>
-            <RenewalHistory renewals={renewals} />
-          </Card>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5 pt-4 border-t border-ink-700/60">
+          <Info label="Joined" value={formatDisplayDate(member.joiningDate)} />
+          <Info label="Expires" value={formatDisplayDate(member.expiryDate)} />
+          <Info label="Streak" value={`🔥 ${streakLabel || "New"}`} accent />
+          <Info
+            label="Lifetime Paid"
+            value={`₹${member.lifetimeAmountPaid || 0}`}
+            accent
+          />
         </div>
 
-        <div className="space-y-5">
-          {member.scheduledMembership && (
-            <Card className="p-4 border-copper-500/30 bg-copper-500/5">
-              <p className="text-xs uppercase text-copper-400 mb-1">
+        {member.scheduledMembership && (
+          <div className="mt-4 pt-4 border-t border-ink-700/60 flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <p className="text-xs uppercase text-copper-400 mb-0.5">
                 Next Membership Scheduled
               </p>
               <p className="text-sm font-semibold">
                 {member.scheduledMembership.planName}
               </p>
-              <p className="text-xs text-ink-500 font-mono mt-0.5">
-                Starts {formatDisplayDate(member.scheduledMembership.startDate)}{" "}
-                → Ends{" "}
-                {formatDisplayDate(member.scheduledMembership.expiryDate)}
-              </p>
-            </Card>
-          )}
-
-          <Card className="p-5 text-center">
-            <p className="text-xs uppercase text-ink-500 mb-2">
-              Loyalty Streak
-            </p>
-            <p className="text-3xl font-mono font-bold text-copper-400">
-              🔥 {streakLabel || "New Member"}
-            </p>
-          </Card>
-
-          <Card className="p-5 text-center">
-            <p className="text-xs uppercase text-ink-500 mb-2">
-              Lifetime Amount Paid
-            </p>
-            <p className="text-3xl font-mono font-bold">
-              ₹{member.lifetimeAmountPaid || 0}
-            </p>
-          </Card>
-
-          <Card className="p-5">
-            <h3 className="font-display text-base mb-3">
-              Personal Information
-            </h3>
-            <div className="space-y-2 text-sm">
-              <Info label="Alt Phone" value={member.altPhone || "—"} />
-              <Info label="Age" value={member.age || "—"} />
-              <Info label="Gender" value={member.gender || "—"} />
-              <Info label="Address" value={member.address || "—"} />
-              <Info label="Notes" value={member.notes || "—"} />
             </div>
-          </Card>
+            <p className="text-xs text-ink-500 font-mono">
+              {formatDisplayDate(member.scheduledMembership.startDate)} →{" "}
+              {formatDisplayDate(member.scheduledMembership.expiryDate)}
+            </p>
+          </div>
+        )}
+      </Card>
+
+      {/* Personal info */}
+      <Card className="p-5 mb-5">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-500 mb-3">
+          Personal Information
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+          <Info label="Alt Phone" value={member.altPhone || "—"} />
+          <Info label="Age" value={member.age || "—"} />
+          <Info label="Gender" value={member.gender || "—"} />
+          <Info label="Address" value={member.address || "—"} />
         </div>
-      </div>
+        {member.notes && (
+          <div className="mt-4 pt-4 border-t border-ink-700/60">
+            <p className="text-[11px] uppercase text-ink-500 mb-1">Notes</p>
+            <p className="text-sm text-ink-100">{member.notes}</p>
+          </div>
+        )}
+      </Card>
+
+      {/* Renewal history */}
+      <Card className="p-5">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-500 mb-3">
+          Membership & Renewal History
+        </h2>
+        <RenewalHistory renewals={renewals} />
+      </Card>
 
       <Modal
         open={renewOpen}
@@ -414,11 +405,15 @@ export default function MemberProfile() {
   );
 }
 
-function Info({ label, value }) {
+function Info({ label, value, accent }) {
   return (
     <div>
       <p className="text-[11px] uppercase text-ink-500">{label}</p>
-      <p className="font-medium mt-0.5 break-words">{value}</p>
+      <p
+        className={`font-medium mt-0.5 break-words ${accent ? "text-copper-400 font-mono text-sm" : ""}`}
+      >
+        {value}
+      </p>
     </div>
   );
 }
