@@ -255,6 +255,11 @@ Update text directly in the data files under [src/data](src/data):
 - [src/data/timeline.ts](src/data/timeline.ts)
 - [src/data/restorations.ts](src/data/restorations.ts)
 
+#### Google rating
+
+- **Default location:** `src/data/reviews.ts` (exported as `googleRating`).
+- **Default value:** `googleRating.average` is set to `5` in the data file. Update this value to reflect a different displayed average rating.
+
 ### Layout and sections
 
 The page sections are in [src/components/sections](src/components/sections). Each section can be customized without changing the app structure.

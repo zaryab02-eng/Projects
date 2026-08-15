@@ -1,10 +1,17 @@
-import { Star } from "lucide-react";
+import { useState } from "react";
+import { Star, Quote } from "lucide-react";
 import { reviews, googleRating } from "@/data/reviews";
 import { siteConfig } from "@/data/siteConfig";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll";
 
+const INITIAL_COUNT = 9;
+
 export function Reviews() {
+  const [showAll, setShowAll] = useState(false);
+  const visibleReviews = showAll ? reviews : reviews.slice(0, INITIAL_COUNT);
+  const hasMore = reviews.length > INITIAL_COUNT;
+
   return (
     <section id="reviews" className="py-28 sm:py-36 bg-iron">
       <div className="container-px">
@@ -25,6 +32,7 @@ export function Reviews() {
           <p className="text-sm text-ash">
             Based on {googleRating.totalReviews}+ reviews
           </p>
+
           <a
             href={siteConfig.links.googleReviews}
             target="_blank"
@@ -35,21 +43,56 @@ export function Reviews() {
           </a>
         </RevealOnScroll>
 
-        <div className="flex gap-6 overflow-x-auto pb-6 snap-x snap-mandatory mask-fade-bottom [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          {reviews.map((review) => (
-            <div
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {visibleReviews.map((review, index) => (
+            <RevealOnScroll
               key={review.id}
-              className="snap-center shrink-0 w-[280px] sm:w-[340px] card-surface overflow-hidden"
+              direction="up"
+              delay={(index % 3) * 0.08}
             >
-              <img
-                src={review.screenshot}
-                alt={`Google review screenshot from ${review.customerName}`}
-                loading="lazy"
-                className="w-full h-auto object-cover"
-              />
-            </div>
+              <div className="card-surface h-full p-6 sm:p-7 flex flex-col gap-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex gap-0.5">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        size={15}
+                        className={
+                          i < review.rating
+                            ? "fill-brass text-brass"
+                            : "text-ash/30"
+                        }
+                      />
+                    ))}
+                  </div>
+                  <Quote size={20} className="text-brass/25 shrink-0" />
+                </div>
+
+                <p className="text-sm sm:text-[15px] text-ash leading-relaxed flex-1">
+                  {review.text ?? "5-star rating on Google."}
+                </p>
+
+                <p className="font-mono text-xs uppercase tracking-widest2 text-ivory pt-3 border-t border-white/10">
+                  {review.customerName}
+                </p>
+              </div>
+            </RevealOnScroll>
           ))}
         </div>
+
+        {hasMore && (
+          <div className="flex justify-center mt-12">
+            <button
+              type="button"
+              onClick={() => setShowAll((v) => !v)}
+              className="btn-ghost !py-2.5 !px-6"
+            >
+              {showAll
+                ? "Show Fewer Reviews"
+                : `Show All ${reviews.length} Reviews`}
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );
