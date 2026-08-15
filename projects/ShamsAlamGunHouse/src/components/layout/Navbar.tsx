@@ -1,20 +1,20 @@
-import { useState } from 'react'
-import { Menu, X } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { useScrolled } from '@/hooks/useScrolled'
-import { siteConfig } from '@/data/siteConfig'
-import { LinkButton } from '@/components/ui/Button'
+import { useState } from "react";
+import { Menu, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useScrolled } from "@/hooks/useScrolled";
+import { siteConfig } from "@/data/siteConfig";
+import { LinkButton } from "@/components/ui/Button";
 
 const navLinks = [
-  { label: 'Legacy', href: '#legacy' },
-  { label: 'About', href: '#about' },
-  { label: 'Services', href: '#services' },
-  { label: 'Restorations', href: '#restorations' },
-  { label: 'Gallery', href: '#gallery' },
-  { label: 'Shop', href: '#shop' },
-  { label: 'Reviews', href: '#reviews' },
-  { label: 'Contact', href: '#contact' },
-]
+  { label: "Home", href: "#home" },
+  { label: "Legacy", href: "#legacy" },
+  { label: "About", href: "#about" },
+  { label: "Services", href: "#services" },
+  { label: "Restorations", href: "/restorations" },
+  { label: "Gallery", href: "/gallery" },
+  { label: "Reviews", href: "#reviews" },
+  { label: "Contact", href: "#contact" },
+];
 
 /**
  * Sticky navigation bar. Transparent over the hero image, and switches
@@ -23,17 +23,22 @@ const navLinks = [
  * match the `id` prop on the corresponding section component.
  */
 export function Navbar() {
-  const scrolled = useScrolled(60)
-  const [open, setOpen] = useState(false)
+  const scrolled = useScrolled(60);
+  const [open, setOpen] = useState(false);
 
   return (
     <header
       className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
-        scrolled ? 'glass-panel shadow-soft' : 'bg-transparent border-b border-transparent'
+        scrolled
+          ? "glass-panel shadow-soft"
+          : "bg-transparent border-b border-transparent"
       }`}
     >
       <nav className="container-px flex items-center justify-between h-20">
-        <a href="#home" className="font-display text-xl sm:text-2xl tracking-wide text-ivory">
+        <a
+          href="#home"
+          className="font-display text-xl sm:text-2xl tracking-wide text-ivory"
+        >
           {siteConfig.shopName}
         </a>
 
@@ -50,12 +55,16 @@ export function Navbar() {
           ))}
         </ul>
 
-        <LinkButton href="#contact" variant="ghost" className="hidden lg:inline-flex !py-2.5 !px-6">
+        <LinkButton
+          href="#contact"
+          variant="ghost"
+          className="hidden lg:inline-flex !py-2.5 !px-6"
+        >
           Book a Service
         </LinkButton>
 
         <button
-          aria-label={open ? 'Close menu' : 'Open menu'}
+          aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
           className="lg:hidden text-ivory p-2 -mr-2"
@@ -68,7 +77,7 @@ export function Navbar() {
         {open && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
+            animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3 }}
             className="lg:hidden glass-panel overflow-hidden"
@@ -90,5 +99,5 @@ export function Navbar() {
         )}
       </AnimatePresence>
     </header>
-  )
+  );
 }

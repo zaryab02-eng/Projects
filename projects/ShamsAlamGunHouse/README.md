@@ -18,7 +18,7 @@ This website is built to present Sham's Alam Gun House as a trusted, licensed, f
 - safety inspections
 - accessories sales
 
-The site is currently a single-page experience with sections for hero, legacy, about, services, before/after gallery, workshop gallery, accessories shop, reviews, highlights, why choose us, and contact.
+The site now uses a cleaner structure: the homepage focuses on the brand story, legacy, trust, and core service message, while restoration work and workshop gallery content live on dedicated pages to keep the experience uncluttered and easier to browse.
 
 ---
 
@@ -95,9 +95,14 @@ ShamsAlamGunHouse/
 
 ## 4. How the Site Works
 
-The homepage is assembled in [src/pages/Home.tsx](src/pages/Home.tsx). Each section is a separate component and most of the visible content comes from the data files in [src/data](src/data).
+The homepage is assembled in [src/pages/Home.tsx](src/pages/Home.tsx). It keeps the core story and trust-building sections together.
 
-The app shell is in [src/App.tsx](src/App.tsx). It contains the navbar, footer, and floating WhatsApp button.
+Dedicated pages now live in:
+
+- [src/pages/RestorationsPage.tsx](src/pages/RestorationsPage.tsx) for before/after restoration work and accessories
+- [src/pages/GalleryPage.tsx](src/pages/GalleryPage.tsx) for workshop photos and process images
+
+The app shell is in [src/App.tsx](src/App.tsx). It contains the navbar, footer, floating WhatsApp button, and route definitions for the full site.
 
 ---
 
