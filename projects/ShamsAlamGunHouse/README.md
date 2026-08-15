@@ -1,6 +1,6 @@
 # Sham's Alam Gun House — Project Handoff Guide
 
-This project is a React + TypeScript + Vite website for Sham's Alam Gun House. It is designed as a premium, single-page marketing website for a licensed gun repair and restoration business.
+This project is a React + TypeScript + Vite website for Sham's Alam Gun House. It is designed as a premium brand website for a licensed gun repair and restoration business, with a crisp marketing homepage and dedicated pages for the deeper restoration and workshop content.
 
 This README is written so that any AI assistant, future developer, or client-side editor can understand the project structure, business purpose, and exactly where to change names, addresses, photos, contact details, and other content.
 
@@ -18,7 +18,7 @@ This website is built to present Sham's Alam Gun House as a trusted, licensed, f
 - safety inspections
 - accessories sales
 
-The site now uses a cleaner structure: the homepage focuses on the brand story, legacy, trust, and core service message, while restoration work and workshop gallery content live on dedicated pages to keep the experience uncluttered and easier to browse.
+The site now uses a cleaner structure: the homepage focuses on the brand story, legacy, trust, and core service message, while restoration work and workshop gallery content live on dedicated pages to keep the experience uncluttered and easier to browse. The navbar is intentionally limited to the most important destinations so it remains clear and functional instead of crowded with every section button.
 
 ---
 
@@ -99,10 +99,10 @@ The homepage is assembled in [src/pages/Home.tsx](src/pages/Home.tsx). It keeps 
 
 Dedicated pages now live in:
 
-- [src/pages/RestorationsPage.tsx](src/pages/RestorationsPage.tsx) for before/after restoration work and accessories
+- [src/pages/RestorationsPage.tsx](src/pages/RestorationsPage.tsx) for before/after restoration work only
 - [src/pages/GalleryPage.tsx](src/pages/GalleryPage.tsx) for workshop photos and process images
 
-The app shell is in [src/App.tsx](src/App.tsx). It contains the navbar, footer, floating WhatsApp button, and route definitions for the full site.
+The app shell is in [src/App.tsx](src/App.tsx). It contains the navbar, footer, floating WhatsApp button, and route definitions for the full site. The navbar is intentionally kept compact and reliable, with only the key destinations visible.
 
 ---
 
