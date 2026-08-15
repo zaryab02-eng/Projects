@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useScrolled } from "@/hooks/useScrolled";
@@ -20,10 +20,41 @@ const navLinks = [
  * to a blurred glass panel once the user scrolls past the hero.
  * Add or remove sections by editing `navLinks` above — anchors must
  * match the `id` prop on the corresponding section component.
+ *
+ * Hash links (e.g. "/#legacy") are handled manually in handleNavClick,
+ * because React Router's <Link> does not auto-scroll to on-page anchors.
+ * Plain route links (e.g. "/gallery") are left to <Link>'s default behavior.
  */
 export function Navbar() {
   const scrolled = useScrolled(60);
   const [open, setOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const scrollToId = (id: string) => {
+    // Small delay lets the target route render first if we just navigated.
+    window.setTimeout(() => {
+      const el = document.getElementById(id);
+      el?.scrollIntoView({ behavior: "smooth" });
+      window.history.replaceState(null, "", `/#${id}`);
+    }, 120);
+  };
+
+  const handleNavClick = (e: React.MouseEvent, to: string) => {
+    setOpen(false);
+    if (!to.includes("#")) return; // plain route (Restorations, Gallery) — let Link handle it
+
+    e.preventDefault();
+    const [path, hash] = to.split("#");
+    const targetPath = path || "/";
+
+    if (location.pathname === targetPath) {
+      scrollToId(hash);
+    } else {
+      navigate(targetPath);
+      scrollToId(hash);
+    }
+  };
 
   return (
     <header
@@ -36,6 +67,7 @@ export function Navbar() {
       <nav className="container-px flex items-center justify-between h-20">
         <Link
           to="/#home"
+          onClick={(e) => handleNavClick(e, "/#home")}
           className="font-display text-xl sm:text-2xl tracking-wide text-ivory"
         >
           {siteConfig.shopName}
@@ -47,7 +79,7 @@ export function Navbar() {
               <Link
                 to={link.to}
                 className="font-mono text-xs uppercase tracking-widest2 text-ash transition-colors hover:text-brass-light"
-                onClick={() => setOpen(false)}
+                onClick={(e) => handleNavClick(e, link.to)}
               >
                 {link.label}
               </Link>
@@ -59,6 +91,7 @@ export function Navbar() {
           href="/#contact"
           variant="ghost"
           className="hidden lg:inline-flex !py-2.5 !px-6"
+          onClick={(e: React.MouseEvent) => handleNavClick(e, "/#contact")}
         >
           Book a Service
         </LinkButton>
@@ -87,7 +120,7 @@ export function Navbar() {
                 <li key={link.to}>
                   <Link
                     to={link.to}
-                    onClick={() => setOpen(false)}
+                    onClick={(e) => handleNavClick(e, link.to)}
                     className="block py-3 font-mono text-sm uppercase tracking-widest2 text-ash hover:text-brass-light"
                   >
                     {link.label}

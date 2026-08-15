@@ -5,7 +5,7 @@
  * hard-coding text.
  */
 
-const whatsappNumber = import.meta.env.VITE_WHATSAPP_NUMBER || "919999999999";
+const whatsappNumber = import.meta.env.VITE_WHATSAPP_NUMBER || "919415281681";
 
 export const siteConfig = {
   shopName: "Sham's Alam Gun House",
@@ -21,23 +21,23 @@ export const siteConfig = {
   },
 
   contact: {
-    phoneDisplay: "+91 98765 43210",
-    phoneHref: "tel:+919876543210",
-    email: "info@shamsalamgunhouse.example.in",
+    phoneDisplay: "094152 81681",
+    phoneHref: "tel:+919415281681",
+    email: "info@shamsalamgunhouse.example.in", // Replace with the real business email
     whatsappNumber,
     whatsappHref: (message: string) =>
       `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`,
     address: {
-      line1: "14, Gun Foundry Lane",
-      line2: "Old Cantonment Road",
-      city: "Lucknow",
+      line1: "Kotwali Road",
+      line2: "Miyan Bazar",
+      city: "Gorakhpur",
       state: "Uttar Pradesh",
-      pincode: "226001",
+      pincode: "273005",
       country: "India",
     },
     hours: [
-      { day: "Monday – Saturday", time: "10:00 AM – 7:00 PM" },
-      { day: "Sunday", time: "Closed" },
+      { day: "Wed – Mon", time: "10:00 AM – 7:00 PM" },
+      { day: "Tuesday", time: "Closed" },
     ],
   },
 
@@ -47,7 +47,7 @@ export const siteConfig = {
       "https://g.page/r/example-review-link",
     googleMapsEmbed:
       import.meta.env.VITE_GOOGLE_MAPS_EMBED_URL ||
-      "https://www.google.com/maps?q=Lucknow,Uttar+Pradesh&output=embed",
+      "https://www.google.com/maps?q=Kotwali+Road,+Miyan+Bazar,+Gorakhpur,+Uttar+Pradesh+273005&output=embed",
     instagram: "https://instagram.com/shamsalamgunhouse.example",
     facebook: "https://facebook.com/shamsalamgunhouse.example",
   },

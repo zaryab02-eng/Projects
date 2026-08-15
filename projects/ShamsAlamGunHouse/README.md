@@ -1,28 +1,12 @@
-# Sham's Alam Gun House — Project Handoff Guide
+# Sham's Alam Gun House
 
-This project is a React + TypeScript + Vite website for Sham's Alam Gun House. It is designed as a premium brand website for a licensed gun repair and restoration business, with a crisp marketing homepage and dedicated pages for the deeper restoration and workshop content.
+A premium React + TypeScript + Vite website for a licensed gun repair and restoration workshop in Gorakhpur, India.
 
-This README is written so that any AI assistant, future developer, or client-side editor can understand the project structure, business purpose, and exactly where to change names, addresses, photos, contact details, and other content.
-
----
-
-## 1. Project Purpose
-
-This website is built to present Sham's Alam Gun House as a trusted, licensed, family-run workshop for:
-
-- gun repair
-- firearm restoration
-- cleaning and maintenance
-- metal refinishing
-- wooden stock restoration
-- safety inspections
-- accessories sales
-
-The site now uses a cleaner structure: the homepage focuses on the brand story, legacy, trust, and core service message, while restoration work and workshop gallery content live on dedicated pages to keep the experience uncluttered and easier to browse. The navbar is intentionally limited to the most important destinations so it remains clear and functional instead of crowded with every section button.
+This project presents a high-trust, heritage-style brand for firearm restoration, maintenance, and accessories while keeping the layout clean and conversion-focused.
 
 ---
 
-## 2. Tech Stack
+## Stack
 
 - React 18
 - TypeScript
@@ -34,14 +18,53 @@ The site now uses a cleaner structure: the homepage focuses on the brand story, 
 
 ---
 
-## 3. Project Structure
+## Features
+
+- Premium single-page marketing layout for a firearms workshop
+- Dedicated restoration and gallery pages
+- Floating WhatsApp CTA
+- Footer with contact and business hours
+- Centralized business settings in one config file
+- Responsive layout for mobile and desktop
+
+---
+
+## Getting started
+
+1. Install dependencies
+
+   ```bash
+   npm install
+   ```
+
+2. Start the dev server
+
+   ```bash
+   npm run dev
+   ```
+
+3. Build for production
+
+   ```bash
+   npm run build
+   ```
+
+4. Preview production build locally
+
+   ```bash
+   npm run preview
+   ```
+
+---
+
+## Project structure
 
 ```text
 ShamsAlamGunHouse/
 ├── index.html
 ├── package.json
-├── postcss.config.js
 ├── tailwind.config.ts
+├── postcss.config.js
 ├── tsconfig.json
 ├── tsconfig.node.json
 ├── vite.config.ts
@@ -50,7 +73,6 @@ ShamsAlamGunHouse/
 │   ├── App.tsx
 │   ├── main.tsx
 │   ├── index.css
-│   ├── vite-env.d.ts
 │   ├── components/
 │   │   ├── layout/
 │   │   │   ├── Footer.tsx
@@ -73,6 +95,7 @@ ShamsAlamGunHouse/
 │   │   └── ui/
 │   │       ├── Button.tsx
 │   │       ├── Divider.tsx
+│   │       ├── RevealOnScroll.tsx
 │   │       └── SectionHeading.tsx
 │   ├── data/
 │   │   ├── gallery.ts
@@ -86,168 +109,108 @@ ShamsAlamGunHouse/
 │   │   ├── useCountUp.ts
 │   │   └── useScrolled.ts
 │   ├── pages/
-│   │   └── Home.tsx
-│   └── types/
-│       └── index.ts
+│   │   ├── GalleryPage.tsx
+│   │   ├── Home.tsx
+│   │   └── RestorationsPage.tsx
+│   ├── types/
+│   │   └── index.ts
+│   └── vite-env.d.ts
+└── README.md
 ```
 
 ---
 
-## 4. How the Site Works
+## Business config
 
-The homepage is assembled in [src/pages/Home.tsx](src/pages/Home.tsx). It keeps the core story and trust-building sections together.
+Most site content is centralized in [src/data/siteConfig.ts](src/data/siteConfig.ts). This is the main file to update when changing:
 
-Dedicated pages now live in:
+- shop name
+- legal name
+- phone number
+- email
+- address
+- WhatsApp number
+- social links
+- hours
+- legal disclaimer
 
-- [src/pages/RestorationsPage.tsx](src/pages/RestorationsPage.tsx) for before/after restoration work only
-- [src/pages/GalleryPage.tsx](src/pages/GalleryPage.tsx) for workshop photos and process images
+### Example values to update
 
-The app shell is in [src/App.tsx](src/App.tsx). It contains the navbar, footer, floating WhatsApp button, and route definitions for the full site. The navbar is intentionally kept compact and reliable, with only the key destinations visible.
+- `shopName`
+- `legalName`
+- `tagline`
+- `heroSubline`
+- `contact.phoneDisplay`
+- `contact.phoneHref`
+- `contact.email`
+- `contact.address`
+- `contact.hours`
+- `links.instagram`
+- `links.facebook`
 
----
-
-## 5. Where to Change Business Information
-
-These are the main files to edit for business identity and content.
-
-### 5.1 Business Name, Tagline, and Legal Name
-
-File: [src/data/siteConfig.ts](src/data/siteConfig.ts)
-
-Change these values:
-
-- shopName
-- legalName
-- tagline
-- heroSubline
-
-Current business name: Sham's Alam Gun House
-
-### 5.2 Address, Phone, Email, Hours, Social Links
-
-File: [src/data/siteConfig.ts](src/data/siteConfig.ts)
-
-Edit these fields:
-
-- contact.phoneDisplay
-- contact.phoneHref
-- contact.email
-- contact.address
-- contact.hours
-- links.instagram
-- links.facebook
-
-### 5.3 WhatsApp Message and Link
-
-File: [src/data/siteConfig.ts](src/data/siteConfig.ts)
-
-The WhatsApp link is generated from:
-
-- contact.whatsappNumber
-- contact.whatsappHref
-
-You can also update the pre-filled message in [src/components/layout/WhatsAppFloatButton.tsx](src/components/layout/WhatsAppFloatButton.tsx).
-
-### 5.4 SEO and Browser Title
-
-File: [index.html](index.html)
-
-Update:
-
-- title
-- meta description
-- author
-- Open Graph title/description
-- Twitter title/description
-
-### 5.5 Legal Disclaimer / License Info
-
-File: [src/data/siteConfig.ts](src/data/siteConfig.ts)
-
-Change:
-
-- license.number
-- legalDisclaimer
+The WhatsApp link is built dynamically from the number in `siteConfig`, so updating the number there is enough in most cases.
 
 ---
 
-## 6. Where to Change Photos and Images
+## Environment variables
 
-Images are mostly stored as URLs inside the data files, not inside the section components.
+This project supports environment variables for dynamic contact and review values.
 
-### 6.1 Hero Background
+Create a `.env` file in the project root with values such as:
 
-File: [src/components/sections/Hero.tsx](src/components/sections/Hero.tsx)
+```bash
+VITE_WHATSAPP_NUMBER=919415281681
+VITE_GOOGLE_REVIEWS_URL=https://g.page/your-review-link
+VITE_GOOGLE_MAPS_EMBED_URL=https://www.google.com/maps?q=your+location
+```
 
-Replace the background image URL in the section style.
-
-### 6.2 About Section Image
-
-File: [src/components/sections/AboutUs.tsx](src/components/sections/AboutUs.tsx)
-
-Replace the image URL used in the main about image.
-
-### 6.3 Family Timeline Photos
-
-File: [src/data/timeline.ts](src/data/timeline.ts)
-
-Each timeline entry has a photo field. Replace the placeholder paths with real images for each family member.
-
-Use this exact naming pattern in the public folder:
-
-- /family/late-janab-sultan.jpg
-- /family/late-janam-shams-alam.jpg
-- /family/mohd-arhsad-mony.jpg
-- /family/mohd-imran.jpg
-- /family/mohd-zaryab.jpg
-- /family/mohd-altamash.jpg
-
-Recommended setup:
-
-1. Create the folder: public/family/
-2. Add one portrait image per person in that folder
-3. Keep file names lowercase and use hyphens instead of spaces
-4. Use a portrait crop with a consistent aspect ratio, ideally 900x1200 or similar
-5. Keep backgrounds clean and lighting consistent for a polished family timeline
-
-Important: update the `photo` value in each object in [src/data/timeline.ts](src/data/timeline.ts) to match the file you place in public/family/.
-
-### 6.4 Before/After Restoration Images
-
-File: [src/data/restorations.ts](src/data/restorations.ts)
-
-Each project has:
-
-- beforeImage
-- afterImage
-
-Use matching images with similar framing for the slider to look correct.
-
-### 6.5 Workshop Gallery Images
-
-File: [src/data/gallery.ts](src/data/gallery.ts)
-
-Each gallery item includes:
-
-- src
-- alt
-- category
-
-### 6.6 Product Images
-
-File: [src/data/products.ts](src/data/products.ts)
-
-Each product entry has an image field. Replace these with your product photos.
-
-### 6.7 Review Screenshots
-
-File: [src/data/reviews.ts](src/data/reviews.ts)
-
-Each review contains a screenshot URL and customer name.
+If these are not set, the app falls back to the defaults in [src/data/siteConfig.ts](src/data/siteConfig.ts).
 
 ---
 
-## 7. Where to Change Text Content
+## Content editing guide
+
+### Business text
+
+Update text directly in the data files under [src/data](src/data):
+
+- [src/data/services.ts](src/data/services.ts)
+- [src/data/reviews.ts](src/data/reviews.ts)
+- [src/data/gallery.ts](src/data/gallery.ts)
+- [src/data/products.ts](src/data/products.ts)
+- [src/data/timeline.ts](src/data/timeline.ts)
+- [src/data/restorations.ts](src/data/restorations.ts)
+
+### Layout and sections
+
+The page sections are in [src/components/sections](src/components/sections). Each section can be customized without changing the app structure.
+
+### Footer and nav
+
+- [src/components/layout/Footer.tsx](src/components/layout/Footer.tsx)
+- [src/components/layout/Navbar.tsx](src/components/layout/Navbar.tsx)
+- [src/components/layout/WhatsAppFloatButton.tsx](src/components/layout/WhatsAppFloatButton.tsx)
+
+---
+
+## Notes
+
+- The current project is meant to be a polished brand website rather than a full e-commerce app.
+- The contact section is intentionally minimal and does not duplicate the footer details.
+- For real launch content, replace demo placeholders such as the email, social URLs, and review links.
+
+---
+
+## Common commands
+
+```bash
+npm install
+npm run dev
+npm run build
+npm run preview
+```
+
+If you need to update the brand identity, business details, or launch content, start in [src/data/siteConfig.ts](src/data/siteConfig.ts).
 
 ### 7.1 Homepage Sections
 
