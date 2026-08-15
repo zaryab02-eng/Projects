@@ -145,15 +145,15 @@ export const googleRating = {
 };
 
 export const businessStats: StatItem[] = [
-  { id: "stat-years", label: "Years of Experience", value: 66, suffix: "+" },
-  { id: "stat-repairs", label: "Repairs Completed", value: 8400, suffix: "+" },
+  { id: "stat-years", label: "Years of Trust", value: 100, suffix: "+" },
+  { id: "stat-repairs", label: "Repairs Completed", value: 12500, suffix: "+" },
   {
     id: "stat-restorations",
     label: "Restorations Completed",
-    value: 1250,
+    value: 1900,
     suffix: "+",
   },
-  { id: "stat-customers", label: "Happy Customers", value: 3600, suffix: "+" },
+  { id: "stat-customers", label: "Happy Customers", value: 5500, suffix: "+" },
 ];
 
 export const whyChooseUs: WhyChooseUsItem[] = [

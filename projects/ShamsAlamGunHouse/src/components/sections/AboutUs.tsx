@@ -28,7 +28,7 @@ export function AboutUs() {
           <div className="relative">
             <div className="overflow-hidden rounded-sm shadow-soft aspect-[4/5] max-w-md">
               <img
-                src="https://picsum.photos/seed/about-workshop/700/875"
+                src="/about.jpg"
                 alt="Craftsman at work inside the Sham's Alam Gun House workshop"
                 loading="lazy"
                 className="h-full w-full object-cover"

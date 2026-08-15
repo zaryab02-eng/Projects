@@ -10,10 +10,24 @@ const whatsappNumber = import.meta.env.VITE_WHATSAPP_NUMBER || "919415281681";
 export const siteConfig = {
   shopName: "Sham's Alam Gun House",
   legalName: "Sham's Alam Gun House - Licensed Gunsmiths",
+
+  // The family craft lineage traces back to 1958 under this name.
   establishedYear: 1958,
+
+  // The family's gunsmithing trade itself predates 1958 — carried
+  // through an earlier, older family shop before a later division.
+  // This is the figure used anywhere the site says "100+ years of trust."
+  trustYears: 100,
+
+  // This specific shop reopened under its own name after the family
+  // division. Kept separate from establishedYear/trustYears so the
+  // three facts never collapse into one misleading date.
+  independentSince: "2023-10-03",
+  independentSinceDisplay: "3 October 2023",
+
   tagline: "Licensed Gun Repair & Restoration",
   heroSubline:
-    "Four generations of hand craftsmanship, built on trust, precision, and an unbroken respect for the tools we are entrusted with.",
+    "A family craft over a century in the making, carried forward today with the same trust, precision, and respect for the tools we are entrusted with.",
 
   license: {
     label: "Licensed under the Arms Act, 1959",

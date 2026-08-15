@@ -9,40 +9,40 @@ export const timeline: TimelineGeneration[] = [
   {
     id: "gen-1",
     generationLabel: "First Generation",
-    name: "Late Janab Sultan",
-    years: "—",
+    name: "Late Muhammad Sultan",
+    years: "Late",
     photo: "/family/late-janab-sultan.jpg",
     description:
-      "The original family patriarch whose values, discipline, and craft set the foundation for generations to follow.",
+      "Late Muhammad Sultan served as a Head Instructor in the War Section around the 1940s and was respectfully known as an Engineer. He was the one who laid the foundation of our family’s craft, beginning a legacy of skill, dedication, and craftsmanship that continues to this day.",
     contribution:
       "Established the family’s legacy in the trade and became the first name in the line of dedicated craftsmanship.",
   },
   {
     id: "gen-2",
     generationLabel: "Second Generation",
-    name: "Late Janam Shams Alam",
-    years: "—",
+    name: "Muhammad Shams Alam",
+    years: "Late",
     photo: "/family/late-janam-shams-alam.jpg",
     description:
-      "The next keeper of the family tradition, carrying forward the reputation and skill of the lineage.",
+      "Late Muhammad Shams Alam, son of Late Muhammad Sultan, was one of the most distinguished craftsmen of his generation. Renowned for his exceptional skill, intelligence, and remarkable character, he carried forward the family’s tradition with extraordinary dedication and mastery. His work and conduct earned him lasting respect and established him as one of the finest figures in the family’s legacy.",
     contribution:
-      "Protected the family name and passed on the practical knowledge and work ethic that shaped the generations after him.",
+      "Carried the family tradition to new heights through exceptional craftsmanship, intelligence, and an unwavering commitment to excellence.",
   },
   {
     id: "gen-3",
     generationLabel: "Third Generation",
-    name: "Mohd Arhsad (Mony)",
+    name: "Mr. Muhammad Arhsad (Mony)",
     years: "Present",
     photo: "/family/mohd-arhsad-mony.jpg",
     description:
-      "A guiding hand in the family craft, building on the legacy with commitment, patience, and technical skill.",
+      "Mr. Muhammad Arshad (Mony), son of Late Muhammad Shams Alam, is the one who safeguarded and carried the family legacy forward. With the exceptional skill he inherited from his father, he earned immense respect through his craftsmanship, honesty, patience, and dedication. Known for never disappointing a customer, he built a reputation that stands proudly alongside the generations before him.",
     contribution:
-      "Continued the tradition with steady leadership and made sure the family craft remained rooted in discipline and trust.",
+      "Protected and elevated the family legacy through exceptional craftsmanship, earning lasting respect and trust from generations of customers.",
   },
   {
     id: "gen-4",
-    generationLabel: "Fourth Generation",
-    name: "Mohd Imran",
+    generationLabel: "Third Generation",
+    name: "Mr. Muhammad Imran",
     years: "Present",
     photo: "/family/mohd-imran.jpg",
     description:
@@ -52,8 +52,8 @@ export const timeline: TimelineGeneration[] = [
   },
   {
     id: "gen-5",
-    generationLabel: "Fifth Generation",
-    name: "Mohd Altamash",
+    generationLabel: "Fourth Generation",
+    name: "Mr. Muhammad Altamash",
     years: "Present",
     photo: "/family/mohd-altamash.jpg",
     description:
