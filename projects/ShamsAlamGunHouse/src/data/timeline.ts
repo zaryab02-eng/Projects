@@ -9,7 +9,7 @@ export const timeline: TimelineGeneration[] = [
   {
     id: "gen-1",
     generationLabel: "First Generation",
-    name: "Late Muhammad Sultan",
+    name: "Muhammad Sultan",
     years: "Late",
     photo: "/family/late-janab-sultan.jpg",
     description:
