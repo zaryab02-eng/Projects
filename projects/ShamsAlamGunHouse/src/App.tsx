@@ -10,7 +10,7 @@ import { GalleryPage } from "@/pages/GalleryPage";
  * App shell: router + persistent layout (Navbar, WhatsApp button, Footer)
  * wrapping whichever route is active.
  */
-export default function App() {
+const App = () => {
   return (
     <BrowserRouter>
       <Navbar />
@@ -25,4 +25,6 @@ export default function App() {
       <Footer />
     </BrowserRouter>
   );
-}
+};
+
+export default App;
