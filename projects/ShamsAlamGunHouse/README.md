@@ -182,11 +182,30 @@ File: [src/components/sections/AboutUs.tsx](src/components/sections/AboutUs.tsx)
 
 Replace the image URL used in the main about image.
 
-### 6.3 Timeline Photos
+### 6.3 Family Timeline Photos
 
 File: [src/data/timeline.ts](src/data/timeline.ts)
 
-Each timeline entry has a photo field. Replace those URLs with your real images.
+Each timeline entry has a photo field. Replace the placeholder paths with real images for each family member.
+
+Use this exact naming pattern in the public folder:
+
+- /family/late-janab-sultan.jpg
+- /family/late-janam-shams-alam.jpg
+- /family/mohd-arhsad-mony.jpg
+- /family/mohd-imran.jpg
+- /family/mohd-zaryab.jpg
+- /family/mohd-altamash.jpg
+
+Recommended setup:
+
+1. Create the folder: public/family/
+2. Add one portrait image per person in that folder
+3. Keep file names lowercase and use hyphens instead of spaces
+4. Use a portrait crop with a consistent aspect ratio, ideally 900x1200 or similar
+5. Keep backgrounds clean and lighting consistent for a polished family timeline
+
+Important: update the `photo` value in each object in [src/data/timeline.ts](src/data/timeline.ts) to match the file you place in public/family/.
 
 ### 6.4 Before/After Restoration Images
 

@@ -16,13 +16,12 @@ export function LegacyTimeline() {
       <div className="container-px">
         <SectionHeading
           eyebrow="The Family Legacy"
-          title="Four Generations, One Workbench"
-          description="Every tool in this workshop has passed through more than one pair of hands. Here is the line that shaped them."
+          title="Six Generations, One Family Line"
+          description="From the first patriarch to the present generation, this is the story of one family line continuing the craft together."
         />
       </div>
 
       <div className="relative container-px max-w-5xl mx-auto">
-        {/* Central rail */}
         <div className="absolute left-6 lg:left-1/2 top-0 bottom-0 w-px lg:-translate-x-1/2 bg-gradient-to-b from-transparent via-gunmetal to-transparent" />
 
         <ol className="relative flex flex-col gap-20 lg:gap-28">
@@ -30,7 +29,6 @@ export function LegacyTimeline() {
             const isEven = index % 2 === 0
             return (
               <li key={gen.id} className="relative">
-                {/* Brass rivet marker on the rail */}
                 <motion.span
                   initial={{ scale: 0 }}
                   whileInView={{ scale: 1 }}
@@ -44,26 +42,17 @@ export function LegacyTimeline() {
                     isEven ? '' : 'lg:[direction:rtl]'
                   }`}
                 >
-                  <RevealOnScroll direction={isEven ? 'left' : 'right'} className="lg:[direction:ltr]">
-                    <div className="overflow-hidden rounded-sm border border-white/5 shadow-soft aspect-[4/5] max-w-sm">
-                      <img
-                        src={gen.photo}
-                        alt={`${gen.name}, ${gen.generationLabel}`}
-                        loading="lazy"
-                        className="h-full w-full object-cover grayscale-[15%] hover:grayscale-0 transition-all duration-700 hover:scale-105"
-                      />
-                    </div>
-                  </RevealOnScroll>
-
                   <RevealOnScroll
-                    direction={isEven ? 'right' : 'left'}
-                    delay={0.1}
+                    direction={isEven ? 'left' : 'right'}
+                    delay={0.05}
                     className="lg:[direction:ltr] flex flex-col justify-center"
                   >
                     <span className="font-mono text-xs uppercase tracking-widest2 text-brass">
                       {gen.generationLabel} · {gen.years}
                     </span>
-                    <h3 className="font-display text-2xl sm:text-3xl text-ivory mt-3 mb-4">{gen.name}</h3>
+                    <h3 className="font-signature text-3xl sm:text-4xl text-brass-light mt-3 mb-4 font-bold italic tracking-wide leading-none">
+                      {gen.name}
+                    </h3>
                     <p className="body-copy mb-4">{gen.description}</p>
                     <div className="border-l-2 border-brass/40 pl-4">
                       <p className="text-sm text-ash italic">{gen.contribution}</p>

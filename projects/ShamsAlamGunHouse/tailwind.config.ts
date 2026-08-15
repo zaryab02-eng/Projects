@@ -29,6 +29,7 @@ export default {
         display: ['"Fraunces"', 'serif'],
         body: ['"Public Sans"', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
+        signature: ['"Segoe Print"', '"Bradley Hand"', '"Comic Sans MS"', 'cursive'],
       },
       backgroundImage: {
         'brass-gradient': 'linear-gradient(135deg, #D6B37B 0%, #B08D57 45%, #8A6B3E 100%)',

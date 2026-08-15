@@ -1,12 +1,12 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import { fileURLToPath, URL } from 'node:url';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import { fileURLToPath, URL } from "node:url";
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [react()],
     resolve: {
         alias: {
-            '@': fileURLToPath(new URL('./src', import.meta.url)),
+            "@": fileURLToPath(new URL("./src", import.meta.url)),
         },
     },
     build: {
@@ -14,8 +14,8 @@ export default defineConfig({
         rollupOptions: {
             output: {
                 manualChunks: {
-                    vendor: ['react', 'react-dom', 'react-router-dom'],
-                    motion: ['framer-motion'],
+                    vendor: ["react", "react-dom", "react-router-dom"],
+                    motion: ["framer-motion"],
                 },
             },
         },

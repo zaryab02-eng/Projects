@@ -9,45 +9,67 @@ export const timeline: TimelineGeneration[] = [
   {
     id: 'gen-1',
     generationLabel: 'First Generation',
-    name: 'Late Ram Prasad Verma',
-    years: '1958 – 1979',
-    photo: 'https://picsum.photos/seed/heritage-gen1/600/720',
+    name: 'Late Janab Sultan',
+    years: '—',
+    photo: '/family/late-janab-sultan.jpg',
     description:
-      'A trained armourer who apprenticed under a British-era gunsmith before founding the workshop in 1958.',
+      'The original family patriarch whose values, discipline, and craft set the foundation for generations to follow.',
     contribution:
-      'Established the workshop\'s reputation for precision barrel work and laid down the hand-tool discipline the family still follows today.',
+      'Established the family’s legacy in the trade and became the first name in the line of dedicated craftsmanship.',
   },
   {
     id: 'gen-2',
     generationLabel: 'Second Generation',
-    name: 'Late Suresh Verma',
-    years: '1979 – 2004',
-    photo: 'https://picsum.photos/seed/heritage-gen2/600/720',
+    name: 'Late Janam Shams Alam',
+    years: '—',
+    photo: '/family/late-janam-shams-alam.jpg',
     description:
-      'Took over the workshop at 22 and expanded it from barrel repair into full restoration of antique and heirloom firearms.',
+      'The next keeper of the family tradition, carrying forward the reputation and skill of the lineage.',
     contribution:
-      'Introduced wooden stock restoration and cold-blueing services, and formalised the workshop\'s licence under the Arms Act, 1959.',
+      'Protected the family name and passed on the practical knowledge and work ethic that shaped the generations after him.',
   },
   {
     id: 'gen-3',
     generationLabel: 'Third Generation',
-    name: 'Vinod Verma & Anil Verma',
-    years: '2004 – Present',
-    photo: 'https://picsum.photos/seed/heritage-gen3/600/720',
+    name: 'Mohd Arhsad (Mony)',
+    years: 'Present',
+    photo: '/family/mohd-arhsad-mony.jpg',
     description:
-      'Brothers who trained together and modernised the workshop with precision measuring tools while preserving hand-finishing techniques.',
+      'A guiding hand in the family craft, building on the legacy with commitment, patience, and technical skill.',
     contribution:
-      'Built long-term relationships with collectors and licence holders across the state, and mentored the fourth generation from childhood.',
+      'Continued the tradition with steady leadership and made sure the family craft remained rooted in discipline and trust.',
   },
   {
     id: 'gen-4',
     generationLabel: 'Fourth Generation',
-    name: 'Arjun Verma & Karan Verma',
-    years: '2018 – Present',
-    photo: 'https://picsum.photos/seed/heritage-gen4/600/720',
+    name: 'Mohd Imran',
+    years: 'Present',
+    photo: '/family/mohd-imran.jpg',
     description:
-      'Brothers carrying the workshop forward, combining formal training in metallurgy with decades of family technique.',
+      'A key part of the same family lane, contributing to the craft and carrying the same legacy forward with pride.',
     contribution:
-      'Introduced digital record-keeping, safety inspection protocols, and brought the family\'s craft online for the first time.',
+      'Worked alongside the family in the same lineage, preserving the values and strengthening the path ahead for the next generation.',
+  },
+  {
+    id: 'gen-5',
+    generationLabel: 'Fifth Generation',
+    name: 'Mohd Zaryab',
+    years: 'Present',
+    photo: '/family/mohd-zaryab.jpg',
+    description:
+      'Continuing the journey with passion, focus, and a deep respect for the family’s craft and heritage.',
+    contribution:
+      'Carrying the family tradition forward while learning, refining, and building on the lessons passed down through the generations.',
+  },
+  {
+    id: 'gen-6',
+    generationLabel: 'Sixth Generation',
+    name: 'Mohd Altamash',
+    years: 'Present',
+    photo: '/family/mohd-altamash.jpg',
+    description:
+      'Standing in the same family lane, sharing the same roots and the same responsibility to preserve the craft.',
+    contribution:
+      'Represents the next chapter of the family story, growing with the legacy and keeping the line moving forward together.',
   },
 ]
