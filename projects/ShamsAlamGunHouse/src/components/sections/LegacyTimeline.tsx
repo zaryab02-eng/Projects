@@ -1,7 +1,7 @@
-import { motion } from 'framer-motion'
-import { timeline } from '@/data/timeline'
-import { SectionHeading } from '@/components/ui/SectionHeading'
-import { RevealOnScroll } from '@/components/ui/RevealOnScroll'
+import { motion } from "framer-motion";
+import { timeline } from "@/data/timeline";
+import { SectionHeading } from "@/components/ui/SectionHeading";
+import { RevealOnScroll } from "@/components/ui/RevealOnScroll";
 
 /**
  * The Family Legacy Timeline — the site's signature element.
@@ -12,7 +12,10 @@ import { RevealOnScroll } from '@/components/ui/RevealOnScroll'
  */
 export function LegacyTimeline() {
   return (
-    <section id="legacy" className="relative py-28 sm:py-36 bg-iron overflow-hidden">
+    <section
+      id="legacy"
+      className="relative py-28 sm:py-36 bg-iron overflow-hidden"
+    >
       <div className="container-px">
         <SectionHeading
           eyebrow="The Family Legacy"
@@ -26,24 +29,24 @@ export function LegacyTimeline() {
 
         <ol className="relative flex flex-col gap-20 lg:gap-28">
           {timeline.map((gen, index) => {
-            const isEven = index % 2 === 0
+            const isEven = index % 2 === 0;
             return (
               <li key={gen.id} className="relative">
                 <motion.span
                   initial={{ scale: 0 }}
                   whileInView={{ scale: 1 }}
                   viewport={{ once: true, amount: 0.6 }}
-                  transition={{ duration: 0.5, ease: 'backOut' }}
+                  transition={{ duration: 0.5, ease: "backOut" }}
                   className="absolute left-6 lg:left-1/2 top-2 -translate-x-1/2 h-3.5 w-3.5 rounded-full bg-brass-gradient ring-4 ring-iron shadow-brass z-10"
                 />
 
                 <div
                   className={`grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 pl-16 lg:pl-0 ${
-                    isEven ? '' : 'lg:[direction:rtl]'
+                    isEven ? "" : "lg:[direction:rtl]"
                   }`}
                 >
                   <RevealOnScroll
-                    direction={isEven ? 'left' : 'right'}
+                    direction={isEven ? "left" : "right"}
                     delay={0.05}
                     className="lg:[direction:ltr] flex flex-col justify-center"
                   >
@@ -55,15 +58,17 @@ export function LegacyTimeline() {
                     </h3>
                     <p className="body-copy mb-4">{gen.description}</p>
                     <div className="border-l-2 border-brass/40 pl-4">
-                      <p className="text-sm text-ash italic">{gen.contribution}</p>
+                      <p className="text-sm text-ash italic">
+                        {gen.contribution}
+                      </p>
                     </div>
                   </RevealOnScroll>
                 </div>
               </li>
-            )
+            );
           })}
         </ol>
       </div>
     </section>
-  )
+  );
 }
