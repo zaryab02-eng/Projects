@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useScrolled } from "@/hooks/useScrolled";
@@ -6,14 +7,12 @@ import { siteConfig } from "@/data/siteConfig";
 import { LinkButton } from "@/components/ui/Button";
 
 const navLinks = [
-  { label: "Home", href: "#home" },
-  { label: "Legacy", href: "#legacy" },
-  { label: "About", href: "#about" },
-  { label: "Services", href: "#services" },
-  { label: "Restorations", href: "/restorations" },
-  { label: "Gallery", href: "/gallery" },
-  { label: "Reviews", href: "#reviews" },
-  { label: "Contact", href: "#contact" },
+  { label: "Home", to: "/#home" },
+  { label: "Legacy", to: "/#legacy" },
+  { label: "Services", to: "/#services" },
+  { label: "Restorations", to: "/restorations" },
+  { label: "Gallery", to: "/gallery" },
+  { label: "Contact", to: "/#contact" },
 ];
 
 /**
@@ -35,28 +34,29 @@ export function Navbar() {
       }`}
     >
       <nav className="container-px flex items-center justify-between h-20">
-        <a
-          href="#home"
+        <Link
+          to="/#home"
           className="font-display text-xl sm:text-2xl tracking-wide text-ivory"
         >
           {siteConfig.shopName}
-        </a>
+        </Link>
 
         <ul className="hidden lg:flex items-center gap-8">
           {navLinks.map((link) => (
-            <li key={link.href}>
-              <a
-                href={link.href}
+            <li key={link.to}>
+              <Link
+                to={link.to}
                 className="font-mono text-xs uppercase tracking-widest2 text-ash transition-colors hover:text-brass-light"
+                onClick={() => setOpen(false)}
               >
                 {link.label}
-              </a>
+              </Link>
             </li>
           ))}
         </ul>
 
         <LinkButton
-          href="#contact"
+          href="/#contact"
           variant="ghost"
           className="hidden lg:inline-flex !py-2.5 !px-6"
         >
@@ -84,14 +84,14 @@ export function Navbar() {
           >
             <ul className="container-px flex flex-col gap-1 py-4">
               {navLinks.map((link) => (
-                <li key={link.href}>
-                  <a
-                    href={link.href}
+                <li key={link.to}>
+                  <Link
+                    to={link.to}
                     onClick={() => setOpen(false)}
                     className="block py-3 font-mono text-sm uppercase tracking-widest2 text-ash hover:text-brass-light"
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
