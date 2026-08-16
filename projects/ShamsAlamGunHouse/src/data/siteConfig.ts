@@ -12,7 +12,7 @@ export const siteConfig = {
   legalName: "Sham's Alam Gun House - Licensed Gunsmiths",
 
   // The family craft lineage traces back to 1958 under this name.
-  establishedYear: 1958,
+  establishedYear: 2023,
 
   // The family's gunsmithing trade itself predates 1958 — carried
   // through an earlier, older family shop before a later division.
@@ -37,7 +37,7 @@ export const siteConfig = {
   contact: {
     phoneDisplay: "094152 81681",
     phoneHref: "tel:+919415281681",
-    email: "info@shamsalamgunhouse.example.in", // Replace with the real business email
+    email: "mohda978@gmail.com", // Replace with the real business email
     whatsappNumber,
     whatsappHref: (message: string) =>
       `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`,
@@ -62,7 +62,7 @@ export const siteConfig = {
     googleMapsEmbed:
       import.meta.env.VITE_GOOGLE_MAPS_EMBED_URL ||
       "https://www.google.com/maps?q=Kotwali+Road,+Miyan+Bazar,+Gorakhpur,+Uttar+Pradesh+273005&output=embed",
-    instagram: "https://instagram.com/shamsalamgunhouse.example",
+    instagram: "https://www.instagram.com/shams.alam.gun.house/",
     facebook: "https://facebook.com/shamsalamgunhouse.example",
   },
 
