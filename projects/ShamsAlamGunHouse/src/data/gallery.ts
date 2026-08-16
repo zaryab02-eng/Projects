@@ -36,7 +36,7 @@ export const galleryImages: GalleryImage[] = [
   },
   {
     id: "g-05",
-    src: "https://picsum.photos/seed/workshop-05/700/900",
+    src: "/finished2.jpg",
     alt: "Finished restored shotgun on display",
     category: "Finished Projects",
   },
@@ -78,7 +78,7 @@ export const galleryImages: GalleryImage[] = [
   },
   {
     id: "g-12",
-    src: "https://picsum.photos/seed/workshop-12/700/500",
+    src: "/finished1.jpg",
     alt: "Completed restoration lined up for pickup",
     category: "Finished Projects",
   },
