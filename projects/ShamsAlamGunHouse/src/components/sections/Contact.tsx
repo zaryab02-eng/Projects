@@ -5,7 +5,7 @@ import { RevealOnScroll } from "@/components/ui/RevealOnScroll";
 
 export function Contact() {
   return (
-    <section id="contact" className="py-28 sm:py-36 bg-charcoal">
+    <section id="contact" className="py-16 sm:py-20 bg-charcoal">
       <div className="container-px">
         <SectionHeading
           eyebrow="Get In Touch"
