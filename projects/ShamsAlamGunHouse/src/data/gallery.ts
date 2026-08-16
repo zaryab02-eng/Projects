@@ -30,7 +30,7 @@ export const galleryImages: GalleryImage[] = [
   },
   {
     id: "g-04",
-    src: "https://picsum.photos/seed/workshop-04/700/500",
+    src: "/repair1.jpg",
     alt: "Trigger mechanism repair in progress",
     category: "Repair Work",
   },
@@ -42,7 +42,7 @@ export const galleryImages: GalleryImage[] = [
   },
   {
     id: "g-06",
-    src: "https://picsum.photos/seed/workshop-06/700/500",
+    src: "/acce1.jpg",
     alt: "Leather gun case and cleaning kit",
     category: "Accessories",
   },
@@ -52,12 +52,12 @@ export const galleryImages: GalleryImage[] = [
     alt: "Rows of precision files and rasps",
     category: "Tools",
   },
-  {
-    id: "g-08",
-    src: "https://picsum.photos/seed/workshop-08/700/500",
-    alt: "Wooden stock being hand-sanded",
-    category: "Restoration Process",
-  },
+  // {
+  //   id: "g-08",
+  //   src: "https://picsum.photos/seed/workshop-08/700/500",
+  //   alt: "Wooden stock being hand-sanded",
+  //   category: "Restoration Process",
+  // },
   {
     id: "g-09",
     src: "/workShop2.jpg",
@@ -66,7 +66,7 @@ export const galleryImages: GalleryImage[] = [
   },
   {
     id: "g-10",
-    src: "https://picsum.photos/seed/workshop-10/700/500",
+    src: "/repair2.jpg",
     alt: "Scope being mounted on a rifle",
     category: "Repair Work",
   },
