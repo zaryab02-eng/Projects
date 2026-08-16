@@ -22,7 +22,7 @@ const pillars = [
 
 export function AboutUs() {
   return (
-    <section id="about" className="py-28 sm:py-36 bg-charcoal">
+    <section id="about" className="py-16 sm:py-20 bg-charcoal">
       <div className="container-px grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         <RevealOnScroll direction="left">
           <div className="relative">

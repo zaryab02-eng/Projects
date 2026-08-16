@@ -6,14 +6,14 @@ import { RevealOnScroll } from "@/components/ui/RevealOnScroll";
 
 export function Reviews() {
   return (
-    <section id="reviews" className="py-28 sm:py-36 bg-iron">
+    <section id="reviews" className="py-16 sm:py-20 bg-iron">
       <div className="container-px">
         <SectionHeading
           eyebrow="Customer Reviews"
           title="Trusted by Hundreds of Customers"
         />
 
-        <RevealOnScroll className="flex flex-col items-center gap-2 mb-14">
+        <RevealOnScroll className="flex flex-col items-center gap-2 mb-8">
           <div className="flex gap-1">
             {Array.from({ length: 5 }).map((_, i) => (
               <Star key={i} size={22} className="fill-brass text-brass" />

@@ -1,27 +1,29 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { businessStats } from '@/data/reviews'
-import { useCountUp } from '@/hooks/useCountUp'
-import type { StatItem } from '@/types'
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { businessStats } from "@/data/reviews";
+import { useCountUp } from "@/hooks/useCountUp";
+import type { StatItem } from "@/types";
 
 function StatCounter({ stat, start }: { stat: StatItem; start: boolean }) {
-  const value = useCountUp(stat.value, start)
+  const value = useCountUp(stat.value, start);
   return (
     <div className="text-center">
       <p className="font-display text-4xl sm:text-5xl text-brass-light">
-        {value.toLocaleString('en-IN')}
+        {value.toLocaleString("en-IN")}
         {stat.suffix}
       </p>
-      <p className="mt-3 font-mono text-xs uppercase tracking-widest2 text-ash">{stat.label}</p>
+      <p className="mt-3 font-mono text-xs uppercase tracking-widest2 text-ash">
+        {stat.label}
+      </p>
     </div>
-  )
+  );
 }
 
 export function BusinessHighlights() {
-  const [inView, setInView] = useState(false)
+  const [inView, setInView] = useState(false);
 
   return (
-    <section className="py-24 sm:py-28 bg-charcoal border-y border-white/5">
+    <section className="py-14 sm:py-16 bg-charcoal border-y border-white/5">
       <motion.div
         onViewportEnter={() => setInView(true)}
         viewport={{ once: true, amount: 0.4 }}
@@ -32,5 +34,5 @@ export function BusinessHighlights() {
         ))}
       </motion.div>
     </section>
-  )
+  );
 }

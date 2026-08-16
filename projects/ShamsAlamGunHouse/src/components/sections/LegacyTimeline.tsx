@@ -18,7 +18,7 @@ export function LegacyTimeline() {
   return (
     <section
       id="legacy"
-      className="relative py-28 sm:py-36 bg-iron overflow-hidden"
+      className="relative py-16 sm:py-20 bg-iron overflow-hidden"
     >
       <div className="container-px">
         <SectionHeading
