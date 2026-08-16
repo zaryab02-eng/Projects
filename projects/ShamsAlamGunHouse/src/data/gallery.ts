@@ -24,7 +24,7 @@ export const galleryImages: GalleryImage[] = [
   },
   {
     id: "g-03",
-    src: "https://picsum.photos/seed/workshop-03/700/900",
+    src: "/restore1.jpg",
     alt: "Craftsman polishing a barrel",
     category: "Restoration Process",
   },
@@ -72,7 +72,7 @@ export const galleryImages: GalleryImage[] = [
   },
   {
     id: "g-11",
-    src: "https://picsum.photos/seed/workshop-11/700/900",
+    src: "/restore3.jpg",
     alt: "Bluing tank in the metal finishing bay",
     category: "Restoration Process",
   },
