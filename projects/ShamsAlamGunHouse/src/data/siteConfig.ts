@@ -58,7 +58,8 @@ export const siteConfig = {
   links: {
     googleReviews:
       import.meta.env.VITE_GOOGLE_REVIEWS_URL ||
-      "https://g.page/r/example-review-link",
+      "https://share.google/sFuPHcI6RFFJGGPIr",
+
     googleMapsEmbed:
       import.meta.env.VITE_GOOGLE_MAPS_EMBED_URL ||
       "https://www.google.com/maps?q=Kotwali+Road,+Miyan+Bazar,+Gorakhpur,+Uttar+Pradesh+273005&output=embed",
