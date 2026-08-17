@@ -2,35 +2,46 @@
 <html lang="en-IN">
   <head>
     <meta charset="UTF-8" />
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Primary SEO -->
     <title>
-      Sham's Alam Gun House | Licensed Gun Repair & Restoration, India
+      Sham's Alam Gun House | Licensed Gun Repair & Restoration, Gorakhpur
     </title>
     <meta
       name="description"
-      content="A fourth-generation, licensed gun repair and restoration workshop in India. Expert metal refinishing, wooden stock restoration, servicing and safety inspection, trusted for over six decades."
+      content="A licensed, family-run gun repair and restoration workshop in Gorakhpur, India, carrying forward over 100 years of trust. Expert metal refinishing, wooden stock restoration, servicing and safety inspection."
     />
     <meta
       name="keywords"
-      content="gun repair India, licensed gunsmith, gun restoration, firearm servicing, wooden stock restoration, metal refinishing, scope mounting"
+      content="gun repair Gorakhpur, licensed gunsmith India, gun restoration, firearm servicing, wooden stock restoration, metal refinishing, scope mounting"
     />
     <meta name="author" content="Sham's Alam Gun House" />
     <meta name="robots" content="index, follow" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://shamsalamgunhouse.vercel.app/" />
     <meta
       property="og:title"
       content="Sham's Alam Gun House | Licensed Gun Repair & Restoration"
     />
     <meta
       property="og:description"
-      content="Four generations of licensed craftsmanship. Gun repair, restoration and servicing built on trust."
+      content="A licensed, family-run workshop in Gorakhpur, India, carrying forward over 100 years of trust in gun repair and restoration."
     />
-    <meta property="og:image" content="/og-cover.jpg" />
+    <meta
+      property="og:image"
+      content="https://shamsalamgunhouse.vercel.app/og-cover.jpg"
+    />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -40,7 +51,7 @@
     />
     <meta
       name="twitter:description"
-      content="Four generations of licensed craftsmanship, trusted by hundreds of customers across India."
+      content="A licensed, family-run workshop in Gorakhpur, India, carrying forward over 100 years of trust in gun repair and restoration."
     />
 
     <!-- Fonts -->
@@ -52,6 +63,43 @@
     />
 
     <meta name="theme-color" content="#0B0C0E" />
+
+    <!-- Structured data: helps Google show a logo, address, hours, and phone in search results -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "name": "Sham's Alam Gun House",
+        "image": "https://shamsalamgunhouse.vercel.app/web-app-manifest-512x512.png",
+        "logo": "https://shamsalamgunhouse.vercel.app/web-app-manifest-512x512.png",
+        "url": "https://shamsalamgunhouse.vercel.app/",
+        "telephone": "+919415281681",
+        "priceRange": "₹₹",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Kotwali Road, Miyan Bazar",
+          "addressLocality": "Gorakhpur",
+          "addressRegion": "Uttar Pradesh",
+          "postalCode": "273005",
+          "addressCountry": "IN"
+        },
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": [
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+              "Sunday",
+              "Monday"
+            ],
+            "opens": "10:00",
+            "closes": "19:00"
+          }
+        ]
+      }
+    </script>
   </head>
   <body class="bg-iron text-ivory font-body antialiased">
     <div id="root"></div>
