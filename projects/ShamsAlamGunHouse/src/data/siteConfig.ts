@@ -12,7 +12,7 @@ export const siteConfig = {
   legalName: "Sham's Alam Gun House - Licensed Gunsmiths",
 
   // The family craft lineage traces back to 1958 under this name.
-  establishedYear: 1950,
+  establishedYear: 1935,
 
   // The family's gunsmithing trade itself predates 1958 — carried
   // through an earlier, older family shop before a later division.
