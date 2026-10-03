@@ -39,6 +39,7 @@ Gym-Z gives a gym owner a private, isolated workspace where they can:
 - Create custom membership plans (7/15/30/45/90/180/365 days, or anything else) with their own fees
 - Add members with duplicate detection by phone number (prevents double entries, surfaces history + a one-tap **Renew Membership** action instead). The Add Member form includes a **Cancel** button that returns to the Members list without saving
 - See a dashboard **Needs Attention** section prioritizing who needs action first: expired, expiring today, tomorrow, within 3 days, within 7 days — grouped under urgency headers with a validity-bar card per member. Based on each member's **effective coverage end date** (their scheduled future membership if one is queued via Extend, otherwise their current `expiryDate`), so a member who already renewed never shows up needing attention just because their old segment is about to lapse. The **Members** page itself is a plain, simple row list with no validity bar or urgency headers — urgency alerts live only on the Dashboard. Members has its own **Sort** dropdown instead: Needs Attention First (urgency order), Newest Members First, or Oldest Members First (by joining date)
+- Send **renewal reminders** in one tap. A **Remind** button appears on Dashboard cards for members who are expired or expiring within 3 days, and on every non-blacklisted Member Profile. It opens a sheet with **WhatsApp**, **SMS** (for members without WhatsApp), **Call** and **Copy message**. Messages are written in Hinglish by default, can be customised by the owner (**Edit message**), and the date of the last reminder is shown on the member. Reminders are sent through plain `wa.me` / `sms:` / `tel:` links, so there is no API, cost or backend — the owner taps Send in their own app
 - **Renew Membership** branches on whether the current membership is expired or still active: expired memberships always restart today; active memberships offer **Extend Current Membership** (queues the new plan to begin the moment the current one ends — no days lost) or **Start Immediately** (ends current coverage today, discards remaining days). Advance-scheduled memberships from Extend auto-activate app-wide (Dashboard, Members list, Member Profile) the moment their start date arrives — no manual step needed
 - Dashboard stat cards (Total, Active, Expiring Soon, Expired, Blacklisted) are tappable — each navigates straight to a pre-filtered Members or Blacklist view. **Active**, **Expiring Soon**, and **Expired** always exclude blacklisted members, both on the dashboard counts and the "Needs Attention" list, since a blacklisted member is on a separate track and isn't someone the owner needs to renew
 - Maintain a permanent, append-only member profile: personal info, current membership, full renewal history, lifetime amount paid, blacklist history
@@ -90,9 +91,10 @@ gym-z/
 │   │   │   ├── StatCard.jsx
 │   │   │   └── ExpiryAttentionList.jsx
 │   │   ├── members/
-│   │   │   ├── MemberCard.jsx         # Validity-bar card; used ONLY inside UrgencyMemberGroups on the Dashboard's Needs Attention section
+│   │   │   ├── MemberCard.jsx         # Validity-bar card; used ONLY inside UrgencyMemberGroups on the Dashboard's Needs Attention section; shows Remind button when showRemind is set
 │   │   │   ├── MemberListItem.jsx     # Plain compact row (no validity bar) — used only by the Members page's list
 │   │   │   ├── UrgencyMemberGroups.jsx # Urgency-grouped member list (headers + MemberCard grid) — used only by the Dashboard's Needs Attention section
+│   │   │   ├── ReminderMenu.jsx       # Remind button + sheet (WhatsApp / SMS / Call / Copy) + message template editor
 │   │   │   ├── MemberForm.jsx         # Includes optional Cancel button (see onCancel prop)
 │   │   │   ├── DuplicateMemberModal.jsx
 │   │   │   └── RenewalHistory.jsx
@@ -111,7 +113,7 @@ gym-z/
 │   │   ├── Dashboard.jsx
 │   │   ├── Members.jsx                # List + instant search
 │   │   ├── AddMember.jsx
-│   │   ├── MemberProfile.jsx          # Permanent member profile + Renew action, ⋮ menu (Blacklist toggle + Remove Member)
+│   │   ├── MemberProfile.jsx          # Permanent member profile + Remind + Renew actions, ⋮ menu (Blacklist toggle + Remove Member)
 │   │   ├── MembershipPlans.jsx
 │   │   ├── Blacklist.jsx
 │   │   ├── GymRankings.jsx            # Public, no login required
@@ -128,7 +130,8 @@ gym-z/
 │   │   └── ProtectedRoute.jsx         # Redirects to /login if not authenticated
 │   ├── utils/
 │   │   ├── dateUtils.js               # Date string <-> Date helpers
-│   │   └── membershipUtils.js         # Urgency buckets, effective-expiry helper + validity bar color logic
+│   │   ├── membershipUtils.js         # Urgency buckets, effective-expiry helper + validity bar color logic
+│   │   └── reminderUtils.js           # Reminder message builder, phone normalisation, WhatsApp/SMS/tel links
 │   ├── App.jsx
 │   ├── main.jsx                       # React root, wraps providers + router
 │   └── index.css                      # Tailwind entry + base styles
@@ -147,11 +150,13 @@ gym-z/
 - **`src/firebase/config.js`** — the only place `initializeApp` is called. All other modules import `auth` and `db` from here.
 - **`src/firebase/auth.js`** — every auth operation (Google sign-in, logout) as a plain async function, so pages never talk to the Firebase SDK directly.
 - **`src/firebase/firestore.js`** — every Firestore read/write. This is the single source of truth for the database shape; if you're adding a new field or collection, start here. Includes `deleteMember(gymId, memberId)`, which batch-deletes a member's document, their `renewals` subcollection, and any matching `blacklist` entry, then decrements the gym's `activeMemberCount`. Also includes `removeFromBlacklist(gymId, memberId)`, which takes just the member id — it looks up and deletes the matching blacklist entry itself, so any screen holding a member (Member Profile included) can un-blacklist directly without first loading blacklist entries.
-- **`src/context/AuthContext.jsx`** — exposes `{ user, gym, gymId, loading }` app-wide via `useAuth()`. `gymId` (the Firebase Auth uid) is what every page uses to scope its Firestore queries to that gym's private subtree.
+- **`src/context/AuthContext.jsx`** — exposes `{ user, gym, gymId, loading, refreshGym, setGym }` app-wide via `useAuth()`. `gymId` is what every page uses to scope its Firestore queries to that gym's private subtree.
 - **`src/router/ProtectedRoute.jsx`** — the gatekeeper for authenticated routes. It redirects signed-in users to the right workspace screen and sends first-time users to `/create-gym` until a gym exists.
 - **`src/utils/membershipUtils.js`** — turns an expiry date into an urgency bucket (expired / today / tomorrow / 3 days / 7 days / healthy) and into the validity bar's color + percentage. Also exports `getEffectiveExpiryDate(member)`, which returns a member's scheduled membership's expiry if one is queued (from a prior Extend), otherwise their plain `expiryDate` — every urgency/attention calculation is based on this, not the raw field, so already-renewed members don't show as needing attention. `groupByUrgency()` buckets every member including a `healthy` group, but only `UrgencyMemberGroups.jsx` (Dashboard) consumes it — Members.jsx uses `sortByUrgency()` purely as one of its three sort options (the other two — Newest/Oldest — sort directly by `joiningDate` inline in `Members.jsx`, not via this file). This is the file to edit if you want to change the color thresholds.
 - **`src/firebase/firestore.js`** also owns scheduled-membership promotion: `computeScheduledPromotion()` is a pure function that decides whether a member's `scheduledMembership` (queued by an Extend renewal) is due to activate. Both `getMember` and `subscribeToMembers` call it, so Dashboard, Members list, and Member Profile can never show inconsistent membership state.
 - **`src/components/rankings/GymRankCard.jsx`** — one row on the public Gym Rankings page. It formats the member count through `formatMemberCount()`, which shows the real number up to `MEMBER_COUNT_CAP` (20) and `20+` above it.
+- **`src/utils/reminderUtils.js`** — everything about reminder text and links, with no React and no Firebase. `normalizePhone()` turns whatever is stored (spaces, dashes, `+`, a leading `0`, a bare 10-digit number) into a digits-only number with country code, or `null` if unusable. `buildReminderMessage(member, gymName, template)` fills a template and uses the member's **effective** expiry date. `whatsappUrl`, `smsUrl` and `telUrl` build the links.
+- **`src/components/members/ReminderMenu.jsx`** — the Remind button and its sheet. It renders the sheet through a React portal on `document.body` (so a parent card's CSS transform can't break the sheet's fixed positioning) and stops click events so tapping it inside a clickable card never opens the member profile. It also holds the template editor and records `lastRemindedAt`.
 
 ## Installation
 
@@ -310,8 +315,10 @@ Vite only exposes env vars prefixed with `VITE_` to client code (see `src/fireba
 The full, ready-to-publish rules live in [`firestore.rules`](./firestore.rules). Summary of the contract they enforce:
 
 - `users/{ownerUid}` — stores the owner's personal list of gyms as a `gymIds` array so a single owner can manage multiple gym workspaces.
-- `gyms/{gymId}` — the top-level gym document is readable by everyone for rankings, but only the authenticated owner whose uid matches `ownerUid` can update or delete it. The app also writes the gym's `ownerUid` and a `createdAt` timestamp here.
-- `gyms/{gymId}/members/*`, `membershipPlans/*`, `blacklist/*`, and each member's nested `renewals/*` — readable/writable **only** by the authenticated owner whose uid matches the gym's `ownerUid`. This keeps each gym workspace private and prevents cross-gym data access. This same rule covers member deletion, scheduled-membership promotion, and blacklist toggling (a plain field on the already owner-scoped member doc) — no rule changes were needed for any of the renewal/removal/blacklist features.
+- `gyms/{gymId}` — the top-level gym document is readable by everyone for rankings, but only the authenticated owner whose uid matches `ownerUid` can update or delete it. The app also writes the gym's `ownerUid` and a `createdAt` timestamp here. The owner-only update rule also covers saving the gym's `reminderTemplate`.
+- `gyms/{gymId}/members/*`, `membershipPlans/*`, `blacklist/*`, and each member's nested `renewals/*` — readable/writable **only** by the authenticated owner whose uid matches the gym's `ownerUid`. This keeps each gym workspace private and prevents cross-gym data access. This same rule covers member deletion, scheduled-membership promotion, blacklist toggling and the `lastRemindedAt` stamp (plain fields on the already owner-scoped member doc) — no rule changes were needed for any of the renewal/removal/blacklist/reminder features.
+
+> Because `gyms/{gymId}` is publicly readable, anything stored on it — including `reminderTemplate` — can be read by anyone with the document id. Don't put private information in the message template.
 
 To publish updated rules after editing `firestore.rules`:
 
@@ -331,6 +338,7 @@ gyms (collection)
     ├── ownerUid, gymName, ownerName, ownerEmail, phone
     ├── city, state, shortAddress
     ├── activeMemberCount (number, kept in sync on add/remove; shown publicly capped at "20+")
+    ├── reminderTemplate (optional string; the owner's custom reminder wording. Empty/missing = use the built-in Hinglish default)
     ├── createdAt
     │
     ├── membershipPlans (subcollection)
@@ -344,6 +352,7 @@ gyms (collection)
     │         scheduledMembership (null, or { planName, membershipFee, startDate, expiryDate }
     │           — queued by an "Extend" renewal; auto-promoted into the current
     │           membership fields once startDate is reached, on any page load),
+    │         lastRemindedAt (optional 'YYYY-MM-DD'; set when the owner taps WhatsApp or SMS in the Remind sheet),
     │         lifetimeAmountPaid (only ever increases, never resets), createdAt
     │       }
     │       └── renewals (subcollection)
@@ -366,7 +375,7 @@ gyms (collection)
 
 **Scheduled (advance) renewals** — when an owner picks "Extend" on a still-active membership, the new plan is written to `scheduledMembership` instead of overwriting the current membership fields. There is no backend cron in this stack, so activation is "lazy": `computeScheduledPromotion()` in `src/firebase/firestore.js` checks on every read whether `scheduledMembership.startDate` has arrived, and if so promotes it into the current membership fields immediately, before any page renders data. This runs inside both `getMember` (Member Profile) and `subscribeToMembers` (Dashboard, Members list), so the gym owner never needs to open a specific member's profile for it to take effect — opening any page that lists members is enough. If a member already has a scheduled membership and renews again with Extend, the new one chains off the end of the _scheduled_ one (not the currently active one), so memberships never overlap.
 
-**Effective expiry / urgency calculation** — `getEffectiveExpiryDate(member)` in `src/utils/membershipUtils.js` returns `member.scheduledMembership?.expiryDate || member.expiryDate`. `groupByUrgency`, `sortByUrgency`, the Dashboard stat cards, and the Members page filters all use this instead of the raw `expiryDate`, so a member who already renewed via Extend (and is just waiting on their scheduled start date) is correctly treated as covered, not as needing attention.
+**Effective expiry / urgency calculation** — `getEffectiveExpiryDate(member)` in `src/utils/membershipUtils.js` returns `member.scheduledMembership?.expiryDate || member.expiryDate`. `groupByUrgency`, `sortByUrgency`, the Dashboard stat cards, the Members page filters and the reminder message all use this instead of the raw `expiryDate`, so a member who already renewed via Extend (and is just waiting on their scheduled start date) is correctly treated as covered, not as needing attention.
 
 **Gym Rankings** reads the root `gyms` collection ordered by `activeMemberCount desc` — this requires no composite index since it's a single-field sort. Sorting uses the real count; only the _displayed_ number is capped at `20+` (see `GymRankCard.jsx`). The cap is display-only: the real `activeMemberCount` is still stored on the publicly readable gym document, so it hides the number in the UI but does not make it secret. Truly hiding it would require storing a separate public field and keeping the real count out of public reads.
 
@@ -377,7 +386,7 @@ All components under `src/components/ui/` are intentionally generic (no Firebase
 - **`Button`** — variants: `primary` (copper), `secondary` (steel), `ghost`, `danger`, `subtle`; sizes `sm|md|lg`; supports `loading`.
 - **`Card`** — the base surface for every panel.
 - **`Input` / `Select`** — labeled form fields with built-in error display.
-- **`Modal`** — bottom-sheet on mobile, centered dialog on desktop.
+- **`Modal`** — bottom-sheet on mobile, centered dialog on desktop. It is **not** a portal: it renders where you place it. If you open one from inside an element that has a CSS `transform` (for example a hover-lift card), wrap it in `createPortal(..., document.body)` as `ReminderMenu.jsx` does, otherwise its fixed positioning is relative to that element.
 - **`Badge`** — small status pill (`warn`, `critical`, `success`, `neutral`).
 - **`ValidityBar`** — the signature horizontal membership-validity gradient bar, driven entirely by `utils/membershipUtils.js`.
 
@@ -390,9 +399,9 @@ Every route maps 1:1 to a file in `src/pages/`. To change what a screen shows:
 1. Open the matching file (e.g. `src/pages/Dashboard.jsx`).
 2. Pages read data via hooks (`useAuth()` for the current gym) and the functions exported from `src/firebase/firestore.js` — they don't call Firestore directly.
 3. Most pages wrap their content in `<AppShell>` (adds the navbar/sidebar/bottom nav/footer) — public pages like `Landing`, `Login`, `GymRankings` instead compose `<Navbar>` + `<Footer>` directly since they don't need the authenticated app chrome.
-4. `MemberProfile.jsx` follows the same **⋮ overflow menu** pattern as `Navbar.jsx` for secondary/destructive actions: **Renew Membership** stays a visible primary button, while the **Blacklist toggle** (label swaps between "Blacklist Member" and "Remove from Blacklist" based on `member.blacklisted`) and the destructive **Remove Member** action both live in the same dropdown, with its own outside-click-to-close handling. Remove Member is still gated behind a confirmation `<Modal>` before calling `deleteMember`; the blacklist toggle is a direct call (with a native `confirm()` when un-blacklisting) since it's non-destructive and already reversible.
+4. `MemberProfile.jsx` follows the same **⋮ overflow menu** pattern as `Navbar.jsx` for secondary/destructive actions: **Renew Membership** stays a visible primary button (next to the **Remind** button), while the **Blacklist toggle** (label swaps between "Blacklist Member" and "Remove from Blacklist" based on `member.blacklisted`) and the destructive **Remove Member** action both live in the same dropdown, with its own outside-click-to-close handling. Remove Member is still gated behind a confirmation `<Modal>` before calling `deleteMember`; the blacklist toggle is a direct call (with a native `confirm()` when un-blacklisting) since it's non-destructive and already reversible.
 5. `AddMember.jsx` passes an `onCancel` handler into `MemberForm` that navigates back to `/members` without saving — `MemberForm` only renders the Cancel button when `onCancel` is supplied, so other callers of the form are unaffected.
-6. `Dashboard.jsx`'s **Needs Attention** section renders `ExpiryAttentionList.jsx`, which delegates to `UrgencyMemberGroups.jsx` (urgency headers + `MemberCard` grid, `includeHealthy=false`). `Members.jsx` intentionally does **not** use `UrgencyMemberGroups` or `MemberCard` — it renders a plain `MemberListItem` row list (no validity bar, no urgency headers), with its own `Select` control offering three sort modes (urgency / newest / oldest by joining date), so alerts/urgency visuals stay exclusive to the Dashboard while Members stays simple and scannable.
+6. `Dashboard.jsx`'s **Needs Attention** section renders `ExpiryAttentionList.jsx`, which delegates to `UrgencyMemberGroups.jsx` (urgency headers + `MemberCard` grid, `includeHealthy=false`). `Members.jsx` intentionally does **not** use `UrgencyMemberGroups` or `MemberCard` — it renders a plain `MemberListItem` row list (no validity bar, no urgency headers, no Remind button), with its own `Select` control offering three sort modes (urgency / newest / oldest by joining date), so alerts/urgency visuals stay exclusive to the Dashboard while Members stays simple and scannable.
 
 ## Guide to Modifying Components
 
@@ -415,9 +424,13 @@ For destructive actions specifically (like Remove Member), follow the pattern al
 
 - **Urgency thresholds / dashboard categories** → `src/utils/membershipUtils.js` (`getUrgencyBucket`).
 - **Validity bar color thresholds** → `src/utils/membershipUtils.js` (`getValidityIndicator`).
-- **What counts as "effective expiry" for urgency purposes** → `getEffectiveExpiryDate()` in `src/utils/membershipUtils.js`. Edit here if scheduled-membership handling needs to change; `groupByUrgency`, `sortByUrgency`, `Dashboard.jsx`, and `Members.jsx` all funnel through it.
+- **What counts as "effective expiry" for urgency purposes** → `getEffectiveExpiryDate()` in `src/utils/membershipUtils.js`. Edit here if scheduled-membership handling needs to change; `groupByUrgency`, `sortByUrgency`, `Dashboard.jsx`, `Members.jsx` and the reminder message all funnel through it.
 - **Where urgency grouping/headers/validity bars appear** → only `src/components/dashboard/ExpiryAttentionList.jsx` (via `UrgencyMemberGroups.jsx`) on the Dashboard. `Members.jsx` deliberately avoids both — it's a flat, searchable, sortable list using `MemberListItem` (no bar, no grouping). If you want the grouped urgency view with validity bars back on Members too, swap its render to `<UrgencyMemberGroups members={filtered} includeHealthy />` instead of the `MemberListItem` list.
 - **Members page sort options** → `src/pages/Members.jsx`, the `sortBy` state and its `useMemo` branch. Currently: `urgency` (via `sortByUrgency()`), `newest`/`oldest` (inline `localeCompare` on `joiningDate`, since it's a plain `YYYY-MM-DD` string). Add more options by extending `SORT_OPTIONS` and the corresponding branch.
+- **Which Dashboard cards show the Remind button** → `REMIND_BUCKETS` in `src/components/members/UrgencyMemberGroups.jsx` (currently expired, expires today, expires tomorrow, within 3 days). Add `within_7_days` to the set to show it on every Needs Attention card. Blacklisted members never get the button (checked in `MemberCard.jsx`, `MemberProfile.jsx` and `ReminderMenu.jsx`).
+- **Reminder message wording** → default text is `DEFAULT_TEMPLATE` in `src/utils/reminderUtils.js` (Hinglish). Owners can override it per gym from **Remind → Edit message**; that is stored as `reminderTemplate` on the gym document. Placeholders: `{name}` (first name), `{plan}`, `{gym}`, `{status}` (an automatic phrase: expired / today / tomorrow / "N din baaki"), `{date}`, `{days}`. To change the language or the `{status}` phrases, edit `getStatusText()` and `DEFAULT_TEMPLATE`.
+- **Reminder phone handling / country code** → `normalizePhone()` and `DEFAULT_COUNTRY_CODE` (`"91"`) in `src/utils/reminderUtils.js`. 10-digit numbers get the country code added; numbers that already include one (11–15 digits) are left alone; anything else is treated as invalid and only **Copy message** stays enabled. Change the constant for a country other than India.
+- **"Last reminded" tracking** → `ReminderMenu.jsx` writes `lastRemindedAt` (via `updateMember`) when the owner taps **WhatsApp** or **SMS**. **Call** and **Copy message** do not count. The app cannot know whether the message was actually sent, only that the owner opened it.
 - **Renewal behavior (Extend vs Start Immediately vs Expired)** → `src/firebase/firestore.js`: `renewExpiredMembership()`, `extendMembership()`, `renewMembershipImmediately()` all funnel through the shared `writeRenewal()` helper, which is the one place that writes history and increments lifetime paid. `MemberProfile.jsx` decides which function to call based on `daysUntil(member.expiryDate) < 0` and the owner's Extend/Start Immediately choice. `AddMember.jsx` also calls `renewExpiredMembership` / `extendMembership` when the owner taps Renew on a duplicate-phone match.
 - **Scheduled membership auto-activation** → `computeScheduledPromotion()` in `src/firebase/firestore.js`. This is the single source of truth for "is a queued Extend renewal due yet" — edit here if you need to change the activation condition; both `getMember` and `subscribeToMembers` call it automatically.
 - **Dashboard stat card destinations** → `src/pages/Dashboard.jsx` passes an `onClick` to each `StatCard` that navigates to `/members?filter=active|expiring|expired` or `/blacklist`. `src/pages/Members.jsx` reads the `filter` query param via `useSearchParams` and applies it on top of the existing search/sort logic. Both exclude blacklisted members from `active`/`expiring`/`expired`.
@@ -431,11 +444,12 @@ For destructive actions specifically (like Remove Member), follow the pattern al
 - **Light/Dark mode** → `src/context/ThemeContext.jsx` toggles a `.light` class on `<html>`; add `.light` variant overrides in `src/index.css` or via Tailwind's `dark:`/custom selector as needed.
 - **Typography** → Google Fonts are loaded in `index.html` (`Oswald` for display/headings, `Manrope` for body text, `IBM Plex Mono` for numeric/data readouts like stats and counters). Swap the `<link>` and `fontFamily` values in `tailwind.config.js` to change them.
 - **Navbar branding** → `src/components/layout/Navbar.jsx` shows the italic "Gym-Z" wordmark on public pages and the owner's actual gym name (also italic) once inside the app. Gym actions (Delete Gym, Logout) live in a single **⋮** dropdown menu rather than separate buttons. On `/create-gym`, if the user is signed in but has no gym yet, a lighter **⋮** menu offering just **Logout** appears instead, so a user who just deleted their gym isn't stranded without a way out.
-- **Member profile actions** → `src/pages/MemberProfile.jsx` mirrors the Navbar's dropdown pattern: the **⋮** menu holds the **Blacklist / Remove from Blacklist** toggle and the destructive **Remove Member** action (`text-vitality-critical` styling) together, while **Renew Membership** stays a prominent standalone button. The Renew modal itself branches its content: expired memberships show a simple notice, active memberships show two selectable cards (Extend / Start Immediately) with the recommended option visually distinguished (`border-copper-500` + tinted background) rather than using a dropdown, since it's a binary, consequential choice. The membership summary card shows three stats: Joined, Expires and Lifetime Paid.
+- **Member profile actions** → `src/pages/MemberProfile.jsx` mirrors the Navbar's dropdown pattern: the **⋮** menu holds the **Blacklist / Remove from Blacklist** toggle and the destructive **Remove Member** action (`text-vitality-critical` styling) together, while **Remind** and **Renew** stay prominent standalone buttons. The Renew modal itself branches its content: expired memberships show a simple notice, active memberships show two selectable cards (Extend / Start Immediately) with the recommended option visually distinguished (`border-copper-500` + tinted background) rather than using a dropdown, since it's a binary, consequential choice. The membership summary card shows three stats: Joined, Expires and Lifetime Paid, and a "Last reminded" line appears under the phone number once a reminder has been sent.
+- **Remind sheet** → `src/components/members/ReminderMenu.jsx`. Two views in one modal: the action list (message preview, last-reminded line, WhatsApp / SMS / Call / Copy) and the template editor (textarea, tap-to-insert placeholder chips, live preview, Reset to default, Save). On Dashboard cards a small "Reminded <date>" label sits beside the button; pass `showLastReminded={false}` to hide it (the Member Profile does, since it shows the date under the phone number instead).
 - **Blacklist page cards** → `src/components/blacklist/BlacklistEntryCard.jsx` wraps the member name/phone/reason block in a `<Link>` to that member's profile, with the **Remove from Blacklist** button kept outside the link so it doesn't trigger navigation.
 - **Add Member form** → `src/components/members/MemberForm.jsx` accepts an optional `onCancel` prop; when passed (currently only from `AddMember.jsx`), a ghost-styled **Cancel** button renders next to the submit button.
 - **Duplicate member popup** → `src/components/members/DuplicateMemberModal.jsx` shows Current Plan, Expiry Date and Lifetime Paid (the last spans both grid columns), plus **View Full History** and **Renew Membership** actions.
-- **Member list styles** → two different presentations, deliberately kept apart: `src/components/members/MemberCard.jsx` (avatar initial, validity bar, plan, days remaining) is used ONLY inside `UrgencyMemberGroups.jsx` on the Dashboard's Needs Attention section. `src/components/members/MemberListItem.jsx` is a plainer compact row (avatar initial, name, phone/plan/joined line, days remaining — no validity bar) used ONLY by `Members.jsx`'s list. Keep this split if you want alerts/urgency visuals to stay exclusive to the Dashboard.
+- **Member list styles** → two different presentations, deliberately kept apart: `src/components/members/MemberCard.jsx` (avatar initial, validity bar, plan, days remaining, optional Remind button) is used ONLY inside `UrgencyMemberGroups.jsx` on the Dashboard's Needs Attention section. `src/components/members/MemberListItem.jsx` is a plainer compact row (avatar initial, name, phone/plan/joined line, days remaining — no validity bar) used ONLY by `Members.jsx`'s list. Keep this split if you want alerts/urgency visuals to stay exclusive to the Dashboard.
 - **Ranking member count display** → `src/components/rankings/GymRankCard.jsx` defines `MEMBER_COUNT_CAP` (default 20). Counts above it render as `20+`; counts at or below it show the real number. Change the constant to move the cap. This is display-only: the real `activeMemberCount` is still stored in Firestore and is publicly readable.
 
 ## Guide to Deploying Updates
@@ -457,12 +471,15 @@ The service worker (via `vite-plugin-pwa`, `registerType: 'autoUpdate'`) automat
 
 ## Suggested Future Improvements
 
-- SMS/WhatsApp renewal reminders (e.g. via a Cloud Function triggered on a schedule, cross-referencing `expiryDate`).
+- Fully automatic reminders (no tap needed) via the WhatsApp Business API and a scheduled Cloud Function. This needs Meta approval, pre-approved message templates, per-message fees and Firebase's paid plan, so the current one-tap `wa.me` flow is the lightweight version.
+- A bulk "Remind everyone expiring soon" action that walks the owner through one WhatsApp message after another.
 - Role-based staff accounts per gym (currently one owner account per gym).
 - Exporting member lists / financial summaries to CSV or PDF.
+- A monthly revenue summary on the Dashboard, built from the existing renewal history amounts.
 - Multi-branch support for gym chains (a `branches` subcollection under a parent gym).
 - Server-side aggregation (Cloud Functions) for `activeMemberCount` instead of client-side `increment()`, to make it fully tamper-resistant.
 - A truly private member count for rankings: store a separate public field (e.g. a bucketed `memberCountBadge`) and keep the real `activeMemberCount` out of public reads, instead of only capping the displayed number.
+- Move `reminderTemplate` to a private settings document so it isn't part of the publicly readable gym document.
 - Push notifications (via Firebase Cloud Messaging) for expiring memberships, once the PWA has a service worker already in place to extend.
 - Soft-delete / archive option for removed members (currently a hard delete) for gyms that want an audit trail before permanent removal.
 - Server-side (Cloud Function) promotion of scheduled memberships on a nightly schedule, as a backstop for gyms that go multiple days without opening the app (currently promotion only runs on page load, which is sufficient for daily-use gyms but has a theoretical gap for fully inactive ones).

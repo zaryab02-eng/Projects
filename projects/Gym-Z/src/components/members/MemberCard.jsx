@@ -2,9 +2,12 @@ import { Link } from "react-router-dom";
 import Card from "../ui/Card.jsx";
 import ValidityBar from "../ui/ValidityBar.jsx";
 import Badge from "../ui/Badge.jsx";
+import ReminderMenu from "./ReminderMenu.jsx";
 import { daysUntil } from "../../utils/dateUtils.js";
 
-export default function MemberCard({ member }) {
+// showRemind is set by UrgencyMemberGroups for expired / expiring-within-3-days
+// buckets only, so the 4 to 7 day cards stay clean.
+export default function MemberCard({ member, showRemind = false }) {
   const remaining = daysUntil(member.expiryDate);
   const initial = member.fullName?.trim()?.[0]?.toUpperCase() || "?";
 
@@ -43,6 +46,10 @@ export default function MemberCard({ member }) {
             {remaining >= 0 ? `${remaining}d left` : `${-remaining}d overdue`}
           </span>
         </div>
+
+        {showRemind && !member.blacklisted && (
+          <ReminderMenu member={member} className="mt-3" />
+        )}
       </Card>
     </Link>
   );

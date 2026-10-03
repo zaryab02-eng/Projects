@@ -1,7 +1,6 @@
-// Shared "grouped by urgency" member list — the polished card-with-
-// validity-bar style, grouped under urgency headers. Used by both the
-// Members page (includeHealthy=true, shows everyone) and the Dashboard's
-// Needs Attention section (includeHealthy=false, only urgent buckets).
+// Grouped-by-urgency member list: the polished card-with-validity-bar
+// style, grouped under urgency headers. Used by the Dashboard's Needs
+// Attention section (includeHealthy=false, only urgent buckets).
 import { groupByUrgency, bucketLabel } from "../../utils/membershipUtils.js";
 import Badge from "../ui/Badge.jsx";
 import MemberCard from "./MemberCard.jsx";
@@ -23,6 +22,14 @@ const ATTENTION_ORDER = [
   "within_7_days",
 ];
 const FULL_ORDER = [...ATTENTION_ORDER, "healthy"];
+
+// Buckets whose cards get a Remind button (expired or expiring within 3 days).
+const REMIND_BUCKETS = new Set([
+  "expired",
+  "expires_today",
+  "expires_tomorrow",
+  "within_3_days",
+]);
 
 export default function UrgencyMemberGroups({
   members,
@@ -56,7 +63,11 @@ export default function UrgencyMemberGroups({
               </div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {groups[bucket].map((m) => (
-                  <MemberCard key={m.id} member={m} />
+                  <MemberCard
+                    key={m.id}
+                    member={m}
+                    showRemind={REMIND_BUCKETS.has(bucket)}
+                  />
                 ))}
               </div>
             </div>

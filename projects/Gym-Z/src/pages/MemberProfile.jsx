@@ -9,6 +9,7 @@ import Spinner from "../components/ui/Spinner.jsx";
 import Modal from "../components/ui/Modal.jsx";
 import Select from "../components/ui/Select.jsx";
 import RenewalHistory from "../components/members/RenewalHistory.jsx";
+import ReminderMenu from "../components/members/ReminderMenu.jsx";
 import AddToBlacklistModal from "../components/blacklist/AddToBlacklistModal.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import {
@@ -159,10 +160,22 @@ export default function MemberProfile() {
             <p className="text-ink-500 font-mono text-sm mt-0.5">
               {member.phone}
             </p>
+            {member.lastRemindedAt && (
+              <p className="text-[11px] text-ink-500 mt-0.5">
+                Last reminded: {formatDisplayDate(member.lastRemindedAt)}
+              </p>
+            )}
           </div>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          {!member.blacklisted && (
+            <ReminderMenu
+              member={member}
+              showLastReminded={false}
+              onReminded={load}
+            />
+          )}
           <Button size="sm" onClick={openRenewModal}>
             Renew
           </Button>
