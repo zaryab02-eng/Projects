@@ -2,12 +2,10 @@ import { Link } from "react-router-dom";
 import Card from "../ui/Card.jsx";
 import ValidityBar from "../ui/ValidityBar.jsx";
 import Badge from "../ui/Badge.jsx";
-import { formatStreak } from "../../utils/streakUtils.js";
 import { daysUntil } from "../../utils/dateUtils.js";
 
 export default function MemberCard({ member }) {
   const remaining = daysUntil(member.expiryDate);
-  const streakLabel = formatStreak(member.streakDays);
   const initial = member.fullName?.trim()?.[0]?.toUpperCase() || "?";
 
   return (
@@ -24,16 +22,11 @@ export default function MemberCard({ member }) {
               </p>
               <p className="text-xs text-ink-500 font-mono">{member.phone}</p>
             </div>
-            <div className="flex flex-col items-end gap-1 shrink-0">
-              {member.blacklisted && (
+            {member.blacklisted && (
+              <div className="flex flex-col items-end gap-1 shrink-0">
                 <Badge variant="critical">Blacklisted</Badge>
-              )}
-              {streakLabel && (
-                <span className="text-xs font-mono text-copper-400 whitespace-nowrap">
-                  🔥 {streakLabel}
-                </span>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
 

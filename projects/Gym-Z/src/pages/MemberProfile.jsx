@@ -23,14 +23,10 @@ import {
   deleteMember,
 } from "../firebase/firestore.js";
 import { formatDisplayDate, daysUntil } from "../utils/dateUtils.js";
-import {
-  formatStreak,
-  DEFAULT_GRACE_PERIOD_DAYS,
-} from "../utils/streakUtils.js";
 
 export default function MemberProfile() {
   const { memberId } = useParams();
-  const { gymId, gym } = useAuth();
+  const { gymId } = useAuth();
   const navigate = useNavigate();
   const [member, setMember] = useState(null);
   const [renewals, setRenewals] = useState([]);
@@ -71,7 +67,6 @@ export default function MemberProfile() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
 
-  const gracePeriodDays = gym?.gracePeriodDays ?? DEFAULT_GRACE_PERIOD_DAYS;
   const isExpired = member ? daysUntil(member.expiryDate) < 0 : false;
 
   const openRenewModal = () => {
@@ -86,23 +81,11 @@ export default function MemberProfile() {
     setSubmitting(true);
     try {
       if (isExpired) {
-        await renewExpiredMembership(
-          gymId,
-          memberId,
-          member,
-          plan,
-          gracePeriodDays,
-        );
+        await renewExpiredMembership(gymId, memberId, member, plan);
       } else if (renewMode === "extend") {
-        await extendMembership(gymId, memberId, member, plan, gracePeriodDays);
+        await extendMembership(gymId, memberId, member, plan);
       } else {
-        await renewMembershipImmediately(
-          gymId,
-          memberId,
-          member,
-          plan,
-          gracePeriodDays,
-        );
+        await renewMembershipImmediately(gymId, memberId, member, plan);
       }
       setRenewOpen(false);
       await load();
@@ -154,7 +137,6 @@ export default function MemberProfile() {
   }
 
   const remaining = daysUntil(member.expiryDate);
-  const streakLabel = formatStreak(member.streakDays);
   const initial = member.fullName?.trim()?.[0]?.toUpperCase() || "?";
 
   return (
@@ -231,7 +213,7 @@ export default function MemberProfile() {
         </div>
       </div>
 
-      {/* Membership + quick stats — replaces 3 separate big cards */}
+      {/* Membership + quick stats */}
       <Card className="p-5 mb-5">
         <div className="flex items-center justify-between mb-3">
           <p className="text-sm font-semibold">{member.planName}</p>
@@ -244,10 +226,9 @@ export default function MemberProfile() {
           expiryDate={member.expiryDate}
         />
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5 pt-4 border-t border-ink-700/60">
+        <div className="grid grid-cols-3 gap-4 mt-5 pt-4 border-t border-ink-700/60">
           <Info label="Joined" value={formatDisplayDate(member.joiningDate)} />
           <Info label="Expires" value={formatDisplayDate(member.expiryDate)} />
-          <Info label="Streak" value={`🔥 ${streakLabel || "New"}`} accent />
           <Info
             label="Lifetime Paid"
             value={`₹${member.lifetimeAmountPaid || 0}`}

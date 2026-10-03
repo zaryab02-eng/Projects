@@ -1,5 +1,13 @@
 import Card from "../ui/Card.jsx";
 
+const MEMBER_COUNT_CAP = 20;
+
+// Shows the real count up to 20, then "20+" so exact sizes stay private.
+function formatMemberCount(count) {
+  const n = count || 0;
+  return n > MEMBER_COUNT_CAP ? `${MEMBER_COUNT_CAP}+` : n;
+}
+
 export default function GymRankCard({ gym, rank }) {
   return (
     <Card className="p-5 flex items-center gap-4 hover:border-copper-500/40 transition-colors">
@@ -15,7 +23,7 @@ export default function GymRankCard({ gym, rank }) {
       </div>
       <div className="text-right shrink-0">
         <p className="font-mono text-xl font-semibold text-copper-400">
-          {gym.activeMemberCount || 0}
+          {formatMemberCount(gym.activeMemberCount)}
         </p>
         <p className="text-[11px] text-ink-500 uppercase">Active</p>
       </div>

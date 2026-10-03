@@ -25,10 +25,6 @@ import {
 } from "firebase/firestore";
 import { db } from "./config.js";
 import { addDays, todayStr } from "../utils/dateUtils.js";
-import {
-  computeStreakOnRenewal,
-  DEFAULT_GRACE_PERIOD_DAYS,
-} from "../utils/streakUtils.js";
 
 // ---------- Gyms ----------
 
@@ -37,7 +33,6 @@ export async function createGymDoc(uid, gymData) {
   await setDoc(ref, {
     ...gymData,
     ownerUid: uid,
-    gracePeriodDays: DEFAULT_GRACE_PERIOD_DAYS,
     createdAt: serverTimestamp(),
   });
   await setDoc(
@@ -163,11 +158,6 @@ export async function addMember(gymId, memberData) {
     ...memberData,
     lifetimeAmountPaid: memberData.membershipFee || 0,
     scheduledMembership: null,
-    // Streak starts at 0 and stays hidden ("New Member") until the first
-    // renewal — streakStartDate is set lazily on that first renewal, using
-    // this member's original joiningDate as the continuity anchor.
-    streakDays: 0,
-    streakStartDate: null,
     status: "active",
     createdAt: serverTimestamp(),
   });
@@ -283,14 +273,13 @@ export function subscribeToMembers(gymId, callback) {
 }
 
 /** Shared write path for every renewal type: writes a history record,
- * updates lifetime paid, recomputes the streak, and either updates the
- * current membership fields directly or queues a scheduledMembership. */
+ * updates lifetime paid, and either updates the current membership
+ * fields directly or queues a scheduledMembership. */
 async function writeRenewal(
   gymId,
   memberId,
-  member,
   { planName, membershipFee, startDate, expiryDate },
-  { schedule, gracePeriodDays = DEFAULT_GRACE_PERIOD_DAYS },
+  { schedule },
 ) {
   const batch = writeBatch(db);
   const memberRef = doc(db, "gyms", gymId, "members", memberId);
@@ -307,19 +296,8 @@ async function writeRenewal(
     createdAt: serverTimestamp(),
   });
 
-  const streak = computeStreakOnRenewal({
-    previousCoverageEndDate: coverageEnd(member),
-    newStartDate: startDate,
-    newExpiryDate: expiryDate,
-    streakStartDate: member.streakStartDate,
-    streakAnchorDate: member.joiningDate,
-    gracePeriodDays,
-  });
-
   const updates = {
     lifetimeAmountPaid: increment(membershipFee || 0),
-    streakStartDate: streak.streakStartDate,
-    streakDays: streak.streakDays,
     status: "active",
   };
 
@@ -343,43 +321,29 @@ async function writeRenewal(
 }
 
 /** Membership had already expired: new plan always starts today. */
-export async function renewExpiredMembership(
-  gymId,
-  memberId,
-  member,
-  plan,
-  gracePeriodDays,
-) {
+export async function renewExpiredMembership(gymId, memberId, member, plan) {
   const startDate = todayStr();
   const expiryDate = addDays(startDate, plan.durationDays);
   await writeRenewal(
     gymId,
     memberId,
-    member,
     { planName: plan.name, membershipFee: plan.fee, startDate, expiryDate },
-    { schedule: false, gracePeriodDays },
+    { schedule: false },
   );
 }
 
 /** Membership still active — "Extend" option: queues the new plan to begin
  * the day after current coverage ends (chaining off any already-scheduled
  * membership so nothing overlaps). Lifetime paid increases immediately. */
-export async function extendMembership(
-  gymId,
-  memberId,
-  member,
-  plan,
-  gracePeriodDays,
-) {
+export async function extendMembership(gymId, memberId, member, plan) {
   const baseEnd = coverageEnd(member);
   const startDate = addDays(baseEnd, 1);
   const expiryDate = addDays(startDate, plan.durationDays);
   await writeRenewal(
     gymId,
     memberId,
-    member,
     { planName: plan.name, membershipFee: plan.fee, startDate, expiryDate },
-    { schedule: true, gracePeriodDays },
+    { schedule: true },
   );
 }
 
@@ -391,16 +355,14 @@ export async function renewMembershipImmediately(
   memberId,
   member,
   plan,
-  gracePeriodDays,
 ) {
   const startDate = todayStr();
   const expiryDate = addDays(startDate, plan.durationDays);
   await writeRenewal(
     gymId,
     memberId,
-    member,
     { planName: plan.name, membershipFee: plan.fee, startDate, expiryDate },
-    { schedule: false, gracePeriodDays },
+    { schedule: false },
   );
 }
 

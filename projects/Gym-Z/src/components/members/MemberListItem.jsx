@@ -1,13 +1,11 @@
 import { Link } from "react-router-dom";
 import Card from "../ui/Card.jsx";
 import Badge from "../ui/Badge.jsx";
-import { formatStreak } from "../../utils/streakUtils.js";
 import { formatDisplayDate, daysUntil } from "../../utils/dateUtils.js";
 import { getEffectiveExpiryDate } from "../../utils/membershipUtils.js";
 
 export default function MemberListItem({ member }) {
   const remaining = daysUntil(getEffectiveExpiryDate(member));
-  const streakLabel = formatStreak(member.streakDays);
   const initial = member.fullName?.trim()?.[0]?.toUpperCase() || "?";
 
   return (
@@ -32,15 +30,10 @@ export default function MemberListItem({ member }) {
           </p>
         </div>
 
-        <div className="flex flex-col items-end gap-1 shrink-0 text-right">
+        <div className="shrink-0 text-right">
           <span className="text-xs font-mono text-ink-500">
             {remaining >= 0 ? `${remaining}d left` : `${-remaining}d overdue`}
           </span>
-          {streakLabel && (
-            <span className="text-xs font-mono text-copper-400">
-              🔥 {streakLabel}
-            </span>
-          )}
         </div>
       </Card>
     </Link>

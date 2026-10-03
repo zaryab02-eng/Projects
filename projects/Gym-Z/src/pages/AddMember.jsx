@@ -16,10 +16,9 @@ import {
   extendMembership,
 } from "../firebase/firestore.js";
 import { addDays, daysUntil } from "../utils/dateUtils.js";
-import { DEFAULT_GRACE_PERIOD_DAYS } from "../utils/streakUtils.js";
 
 export default function AddMember() {
-  const { gymId, gym } = useAuth();
+  const { gymId } = useAuth();
   const navigate = useNavigate();
   const [plans, setPlans] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -70,21 +69,14 @@ export default function AddMember() {
 
   const handleRenewFromDuplicate = async (member) => {
     const plan = plans.find((p) => p.id === pendingValues.planId);
-    const gracePeriodDays = gym?.gracePeriodDays ?? DEFAULT_GRACE_PERIOD_DAYS;
     const isExpired = daysUntil(member.expiryDate) < 0;
 
     if (isExpired) {
-      await renewExpiredMembership(
-        gymId,
-        member.id,
-        member,
-        plan,
-        gracePeriodDays,
-      );
+      await renewExpiredMembership(gymId, member.id, member, plan);
     } else {
       // Existing member's membership is still active: default to Extend
       // (no days lost) rather than silently discarding remaining coverage.
-      await extendMembership(gymId, member.id, member, plan, gracePeriodDays);
+      await extendMembership(gymId, member.id, member, plan);
     }
     navigate(`/members/${member.id}`);
   };
