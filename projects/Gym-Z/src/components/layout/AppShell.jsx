@@ -6,6 +6,7 @@ import Navbar from "./Navbar.jsx";
 import Sidebar from "./Sidebar.jsx";
 import BottomNav from "./BottomNav.jsx";
 import Footer from "./Footer.jsx";
+import OfflineBanner from "./OfflineBanner.jsx";
 
 export default function AppShell({ children }) {
   const { pathname } = useLocation();
@@ -21,6 +22,7 @@ export default function AppShell({ children }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-ink-900">
+      <OfflineBanner />
       <Navbar />
       <div className="flex flex-1">
         <Sidebar />

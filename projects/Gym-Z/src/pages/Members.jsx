@@ -15,6 +15,7 @@ import {
   getEffectiveExpiryDate,
 } from "../utils/membershipUtils.js";
 import { daysUntil } from "../utils/dateUtils.js";
+import { downloadMembersListPdf } from "../utils/pdfUtils.js";
 
 const FILTER_LABELS = {
   active: "Active",
@@ -29,10 +30,11 @@ const SORT_OPTIONS = [
 ];
 
 export default function Members() {
-  const { gymId } = useAuth();
+  const { gymId, gym } = useAuth();
   const [members, setMembers] = useState(null);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("urgency");
+  const [downloading, setDownloading] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const filter = searchParams.get("filter") || "";
 
@@ -87,13 +89,43 @@ export default function Members() {
 
   const clearFilter = () => setSearchParams({});
 
+  // Exports exactly what is on screen (current filter + search + sort).
+  // With no filter or search, that is the whole member list.
+  const handleDownloadPdf = async () => {
+    if (!filtered.length) return;
+    setDownloading(true);
+    try {
+      await downloadMembersListPdf(
+        filtered,
+        gym?.gymName || "Gym-Z",
+        filter && FILTER_LABELS[filter] ? FILTER_LABELS[filter] : "All Members",
+      );
+    } catch (error) {
+      console.error("PDF export failed:", error);
+      alert("Could not create the PDF. Please try again.");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <AppShell>
       <div className="flex items-center justify-between mb-5 gap-3">
         <h1 className="font-display text-2xl sm:text-3xl">Members</h1>
-        <Link to="/members/add">
-          <Button size="sm">+ Add Member</Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="secondary"
+            loading={downloading}
+            disabled={!filtered.length}
+            onClick={handleDownloadPdf}
+          >
+            PDF
+          </Button>
+          <Link to="/members/add">
+            <Button size="sm">+ Add Member</Button>
+          </Link>
+        </div>
       </div>
 
       {filter && FILTER_LABELS[filter] ? (

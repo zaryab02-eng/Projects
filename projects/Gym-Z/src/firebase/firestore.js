@@ -3,6 +3,12 @@
 // workspace private: security rules only allow a gym's own auth uid to
 // read/write inside its own gyms/{gymId} document tree (see firestore.rules
 // in the project root for the enforced version of this contract).
+//
+// OFFLINE: Firestore's persistent cache (config.js) queues writes made
+// offline. A write promise only resolves once the SERVER confirms, so
+// awaiting it offline would hang the UI forever. Every write therefore
+// goes through commit(), which returns immediately when offline (or if
+// the server is slow) while the write stays queued and syncs later.
 import {
   collection,
   doc,
@@ -26,19 +32,45 @@ import {
 import { db } from "./config.js";
 import { addDays, todayStr } from "../utils/dateUtils.js";
 
+const SYNC_WAIT_MS = 4000;
+
+/** Waits for a write to reach the server only while online and fast.
+ * Offline / slow network: resolves right away; the write stays queued in
+ * the local cache and syncs automatically later. Real errors (e.g.
+ * permission denied) that arrive while waiting still throw. */
+async function commit(promise) {
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    promise.catch((error) => console.warn("Queued write failed:", error));
+    return;
+  }
+  let timer;
+  const timeout = new Promise((resolve) => {
+    timer = setTimeout(resolve, SYNC_WAIT_MS);
+  });
+  try {
+    await Promise.race([promise, timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // ---------- Gyms ----------
 
 export async function createGymDoc(uid, gymData) {
   const ref = doc(collection(db, "gyms"));
-  await setDoc(ref, {
-    ...gymData,
-    ownerUid: uid,
-    createdAt: serverTimestamp(),
-  });
-  await setDoc(
-    doc(db, "users", uid),
-    { gymIds: arrayUnion(ref.id) },
-    { merge: true },
+  await commit(
+    setDoc(ref, {
+      ...gymData,
+      ownerUid: uid,
+      createdAt: serverTimestamp(),
+    }),
+  );
+  await commit(
+    setDoc(
+      doc(db, "users", uid),
+      { gymIds: arrayUnion(ref.id) },
+      { merge: true },
+    ),
   );
   return ref;
 }
@@ -49,7 +81,7 @@ export async function getGym(gymId) {
 }
 
 export async function updateGym(gymId, data) {
-  await updateDoc(doc(db, "gyms", gymId), data);
+  await commit(updateDoc(doc(db, "gyms", gymId), data));
 }
 
 export async function getOwnerPrimaryGym(ownerUid) {
@@ -112,18 +144,24 @@ export function plansCollection(gymId) {
 }
 
 export async function addPlan(gymId, plan) {
-  return addDoc(plansCollection(gymId), {
-    ...plan,
-    createdAt: serverTimestamp(),
-  });
+  const ref = doc(plansCollection(gymId));
+  await commit(
+    setDoc(ref, {
+      ...plan,
+      createdAt: serverTimestamp(),
+    }),
+  );
+  return ref;
 }
 
 export async function updatePlan(gymId, planId, data) {
-  await updateDoc(doc(db, "gyms", gymId, "membershipPlans", planId), data);
+  await commit(
+    updateDoc(doc(db, "gyms", gymId, "membershipPlans", planId), data),
+  );
 }
 
 export async function deletePlan(gymId, planId) {
-  await deleteDoc(doc(db, "gyms", gymId, "membershipPlans", planId));
+  await commit(deleteDoc(doc(db, "gyms", gymId, "membershipPlans", planId)));
 }
 
 export function subscribeToPlans(gymId, callback) {
@@ -141,7 +179,8 @@ export function membersCollection(gymId) {
   return collection(db, "gyms", gymId, "members");
 }
 
-/** Duplicate detection: phone number is the unique identifier per gym. */
+/** Duplicate detection: phone number is the unique identifier per gym.
+ * Works offline too (reads the local cache, including pending adds). */
 export async function findMemberByPhone(gymId, phone) {
   const q = query(
     membersCollection(gymId),
@@ -154,7 +193,13 @@ export async function findMemberByPhone(gymId, phone) {
 }
 
 export async function addMember(gymId, memberData) {
-  const ref = await addDoc(membersCollection(gymId), {
+  const batch = writeBatch(db);
+  const memberRef = doc(membersCollection(gymId));
+  const renewalRef = doc(
+    collection(db, "gyms", gymId, "members", memberRef.id, "renewals"),
+  );
+
+  batch.set(memberRef, {
     ...memberData,
     lifetimeAmountPaid: memberData.membershipFee || 0,
     scheduledMembership: null,
@@ -162,7 +207,7 @@ export async function addMember(gymId, memberData) {
     createdAt: serverTimestamp(),
   });
   // First payment also becomes the first renewal history entry
-  await addDoc(collection(db, "gyms", gymId, "members", ref.id, "renewals"), {
+  batch.set(renewalRef, {
     type: "new",
     planName: memberData.planName,
     amount: memberData.membershipFee,
@@ -170,8 +215,10 @@ export async function addMember(gymId, memberData) {
     expiryDate: memberData.expiryDate,
     createdAt: serverTimestamp(),
   });
-  await updateDoc(doc(db, "gyms", gymId), { activeMemberCount: increment(1) });
-  return ref;
+  batch.update(doc(db, "gyms", gymId), { activeMemberCount: increment(1) });
+
+  await commit(batch.commit());
+  return memberRef;
 }
 
 /** The end date of whatever the member is currently "paid through" —
@@ -209,9 +256,9 @@ function computeScheduledPromotion(member) {
 
 /** Applies a promotion (if due) to Firestore. Safe to call redundantly —
  * it's a plain field overwrite, not an increment, so repeat calls are
- * idempotent. */
-async function persistScheduledPromotion(gymId, memberId, updates) {
-  await updateDoc(doc(db, "gyms", gymId, "members", memberId), updates);
+ * idempotent. Returns the raw write promise. */
+function persistScheduledPromotion(gymId, memberId, updates) {
+  return updateDoc(doc(db, "gyms", gymId, "members", memberId), updates);
 }
 
 /**
@@ -227,7 +274,7 @@ export async function getMember(gymId, memberId) {
   const promotion = computeScheduledPromotion(member);
   if (!promotion) return member;
 
-  await persistScheduledPromotion(gymId, memberId, promotion);
+  await commit(persistScheduledPromotion(gymId, memberId, promotion));
   return { ...member, ...promotion };
 }
 
@@ -317,7 +364,7 @@ async function writeRenewal(
   }
 
   batch.update(memberRef, updates);
-  await batch.commit();
+  await commit(batch.commit());
 }
 
 /** Membership had already expired: new plan always starts today. */
@@ -367,17 +414,22 @@ export async function renewMembershipImmediately(
 }
 
 export async function updateMember(gymId, memberId, data) {
-  await updateDoc(doc(db, "gyms", gymId, "members", memberId), data);
+  await commit(updateDoc(doc(db, "gyms", gymId, "members", memberId), data));
 }
 
 export async function getMemberRenewals(gymId, memberId) {
   const snap = await getDocs(
-    query(
-      collection(db, "gyms", gymId, "members", memberId, "renewals"),
-      orderBy("createdAt", "desc"),
-    ),
+    collection(db, "gyms", gymId, "members", memberId, "renewals"),
   );
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+  // Newest first. Renewals written offline have no server timestamp yet
+  // (createdAt is null), so they are treated as newest.
+  const millis = (r) =>
+    typeof r.createdAt?.toMillis === "function"
+      ? r.createdAt.toMillis()
+      : Number.MAX_SAFE_INTEGER;
+  return rows.sort((a, b) => millis(b) - millis(a));
 }
 
 export async function deleteMember(gymId, memberId) {
@@ -395,9 +447,8 @@ export async function deleteMember(gymId, memberId) {
   blacklistSnap.docs.forEach((blacklistDoc) => batch.delete(blacklistDoc.ref));
 
   batch.delete(memberRef);
-  await batch.commit();
-
-  await updateDoc(doc(db, "gyms", gymId), { activeMemberCount: increment(-1) });
+  batch.update(doc(db, "gyms", gymId), { activeMemberCount: increment(-1) });
+  await commit(batch.commit());
 }
 
 // ---------- Blacklist ----------
@@ -407,15 +458,17 @@ export function blacklistCollection(gymId) {
 }
 
 export async function addToBlacklist(gymId, memberId, entry) {
-  await addDoc(blacklistCollection(gymId), {
+  const batch = writeBatch(db);
+  batch.set(doc(blacklistCollection(gymId)), {
     memberId,
     reason: entry.reason,
     notes: entry.notes || "",
     dateAdded: serverTimestamp(),
   });
-  await updateDoc(doc(db, "gyms", gymId, "members", memberId), {
+  batch.update(doc(db, "gyms", gymId, "members", memberId), {
     blacklisted: true,
   });
+  await commit(batch.commit());
 }
 
 /**
@@ -433,7 +486,7 @@ export async function removeFromBlacklist(gymId, memberId) {
   batch.update(doc(db, "gyms", gymId, "members", memberId), {
     blacklisted: false,
   });
-  await batch.commit();
+  await commit(batch.commit());
 }
 
 export function subscribeToBlacklist(gymId, callback) {

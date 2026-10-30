@@ -1,10 +1,58 @@
 // Provides the current Firebase user + the matching gym document (the
 // gym's private workspace) to the whole app. Every protected page reads
 // `gymId` from here to scope its Firestore queries to gyms/{gymId}/...
+//
+// OFFLINE: the gym document is also saved in localStorage. If the gym
+// can't be loaded (no internet, cache miss), the saved copy is used so
+// the owner is never wrongly sent to "Create Gym" while offline.
 import { createContext, useContext, useEffect, useState } from "react";
 import { getRedirectResult, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebase/config.js";
 import { getOwnerPrimaryGym } from "../firebase/firestore.js";
+
+const GYM_CACHE_KEY = "gymz:gym";
+
+function readCachedGym(uid) {
+  try {
+    const raw = localStorage.getItem(GYM_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed?.uid === uid ? parsed.gym : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedGym(uid, gym) {
+  try {
+    if (gym) {
+      localStorage.setItem(GYM_CACHE_KEY, JSON.stringify({ uid, gym }));
+    } else {
+      localStorage.removeItem(GYM_CACHE_KEY);
+    }
+  } catch {
+    // Storage unavailable — offline fallback simply won't be available.
+  }
+}
+
+async function loadGym(uid) {
+  const cached = readCachedGym(uid);
+  if (
+    typeof navigator !== "undefined" &&
+    navigator.onLine === false &&
+    cached
+  ) {
+    return cached;
+  }
+  try {
+    const gym = await getOwnerPrimaryGym(uid);
+    writeCachedGym(uid, gym);
+    return gym;
+  } catch (error) {
+    if (cached) return cached;
+    throw error;
+  }
+}
 
 function getSafeAuthState() {
   if (!auth) {
@@ -38,7 +86,7 @@ export function AuthProvider({ children }) {
       setUser(firebaseUser);
       if (firebaseUser) {
         try {
-          const gymDoc = await getOwnerPrimaryGym(firebaseUser.uid);
+          const gymDoc = await loadGym(firebaseUser.uid);
           if (isMounted) {
             setGym(gymDoc);
           }
@@ -87,7 +135,7 @@ export function AuthProvider({ children }) {
   const refreshGym = async () => {
     if (user) {
       try {
-        const gymDoc = await getOwnerPrimaryGym(user.uid);
+        const gymDoc = await loadGym(user.uid);
         setGym(gymDoc);
         return gymDoc;
       } catch (error) {

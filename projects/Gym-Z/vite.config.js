@@ -3,8 +3,10 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
 // Gym-Z build configuration.
-// The PWA plugin auto-generates the service worker (precaching + runtime
-// caching for Firestore reads) so the app keeps working on flaky gym wifi.
+// The PWA plugin auto-generates the service worker (precaching the whole
+// app shell + fonts) so the app opens and works with no internet.
+// Data offline is handled by Firestore's own persistent local cache
+// (see src/firebase/config.js), not by the service worker.
 export default defineConfig({
   plugins: [
     react(),
@@ -38,14 +40,15 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest}"],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        navigateFallback: "/index.html",
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/firestore\.googleapis\.com\/.*/i,
-            handler: "NetworkFirst",
+            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
+            handler: "StaleWhileRevalidate",
             options: {
-              cacheName: "firestore-cache",
-              networkTimeoutSeconds: 5,
-              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 },
+              cacheName: "google-fonts",
+              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
             },
           },
         ],

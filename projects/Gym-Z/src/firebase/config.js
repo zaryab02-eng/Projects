@@ -1,6 +1,11 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import {
+  getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY ?? "",
@@ -32,7 +37,23 @@ let db;
 try {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
-  db = getFirestore(app);
+
+  // Persistent (IndexedDB) cache: data stays readable offline, and any
+  // writes made offline are queued on the device and sync automatically
+  // when the connection returns — even if the app is closed in between.
+  try {
+    db = initializeFirestore(app, {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager(),
+      }),
+    });
+  } catch (cacheError) {
+    console.warn(
+      "Offline persistence unavailable, using memory cache:",
+      cacheError,
+    );
+    db = getFirestore(app);
+  }
 } catch (error) {
   console.error("Firebase initialization failed:", error);
   app = null;

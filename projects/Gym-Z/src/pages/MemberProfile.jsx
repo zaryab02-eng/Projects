@@ -24,10 +24,11 @@ import {
   deleteMember,
 } from "../firebase/firestore.js";
 import { formatDisplayDate, daysUntil } from "../utils/dateUtils.js";
+import { downloadMemberPdf } from "../utils/pdfUtils.js";
 
 export default function MemberProfile() {
   const { memberId } = useParams();
-  const { gymId } = useAuth();
+  const { gymId, gym } = useAuth();
   const navigate = useNavigate();
   const [member, setMember] = useState(null);
   const [renewals, setRenewals] = useState([]);
@@ -42,12 +43,16 @@ export default function MemberProfile() {
   const menuRef = useRef(null);
 
   const load = useCallback(async () => {
-    const [m, r] = await Promise.all([
-      getMember(gymId, memberId),
-      getMemberRenewals(gymId, memberId),
-    ]);
-    setMember(m);
-    setRenewals(r);
+    try {
+      const [m, r] = await Promise.all([
+        getMember(gymId, memberId),
+        getMemberRenewals(gymId, memberId),
+      ]);
+      setMember(m);
+      setRenewals(r);
+    } catch (error) {
+      console.warn("Unable to load member:", error);
+    }
   }, [gymId, memberId]);
 
   useEffect(() => {
@@ -127,6 +132,15 @@ export default function MemberProfile() {
     }
   };
 
+  const handleDownloadPdf = async () => {
+    try {
+      await downloadMemberPdf(member, renewals, gym?.gymName || "Gym-Z");
+    } catch (error) {
+      console.error("PDF export failed:", error);
+      alert("Could not create the PDF. Please try again.");
+    }
+  };
+
   if (!member) {
     return (
       <AppShell>
@@ -190,6 +204,15 @@ export default function MemberProfile() {
             </button>
             {menuOpen ? (
               <div className="absolute right-0 mt-2 w-48 rounded-lg border border-ink-700 bg-ink-800 shadow-card py-1 overflow-hidden z-10">
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
+                    handleDownloadPdf();
+                  }}
+                  className="w-full text-left px-4 py-2.5 text-sm text-ink-50 hover:bg-ink-700 transition-colors"
+                >
+                  Download PDF
+                </button>
                 {member.blacklisted ? (
                   <button
                     onClick={() => {
