@@ -3,25 +3,67 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    color-scheme: dark;
+    --ink-950: 0 0 0;
+    --ink-900: 10 10 12;
+    --ink-800: 28 28 30;
+    --ink-700: 44 44 46;
+    --ink-600: 62 62 66;
+    --ink-500: 142 142 147;
+    --ink-300: 174 174 178;
+    --ink-200: 209 209 214;
+    --ink-100: 235 235 240;
+    --ink-50: 245 245 247;
+    --copper-400: 255 149 77;
+    --steel-300: 143 180 199;
+    --ok: 76 195 138;
+    --warn: 240 180 41;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35);
+  }
+
+  html.light {
+    color-scheme: light;
+    --ink-950: 255 255 255;
+    --ink-900: 245 245 247;
+    --ink-800: 255 255 255;
+    --ink-700: 232 232 237;
+    --ink-600: 210 210 215;
+    --ink-500: 115 115 120;
+    --ink-300: 99 99 102;
+    --ink-200: 72 72 74;
+    --ink-100: 44 44 46;
+    --ink-50: 29 29 31;
+    --copper-400: 214 82 12;
+    --steel-300: 57 102 130;
+    --ok: 27 127 84;
+    --warn: 176 112 0;
+    --shadow-card:
+      0 1px 2px rgba(16, 16, 20, 0.04), 0 8px 24px -8px rgba(16, 16, 20, 0.08);
+  }
+
   html {
     -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
   }
   body {
     @apply bg-ink-900 text-ink-50 font-body antialiased;
-    color: #f2f1ed;
+    text-rendering: optimizeLegibility;
   }
   h1,
   h2,
   h3,
   h4 {
-    @apply font-display tracking-wide;
+    @apply font-display font-semibold tracking-tight;
+  }
+  .font-mono {
+    font-variant-numeric: tabular-nums;
   }
   ::selection {
-    background: rgba(193, 98, 43, 0.35);
+    background: rgba(232, 93, 18, 0.3);
   }
-  /* Visible keyboard focus everywhere — accessibility floor */
   :focus-visible {
-    outline: 2px solid #c1622b;
+    outline: 2px solid #e85d12;
     outline-offset: 2px;
   }
   @media (prefers-reduced-motion: reduce) {
@@ -32,80 +74,36 @@
       transition-duration: 0.001ms !important;
     }
   }
-}
-
-@layer components {
-  .light .surface {
-    background-color: #ffffff;
-    color: #12141a;
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--ink-600));
+    border-radius: 8px;
   }
 }
 
-:root {
-  color-scheme: dark;
+@layer components {
+  .select-chevron {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%238E8E93' stroke-width='2.2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.85rem center;
+    background-size: 16px;
+    padding-right: 2.5rem;
+  }
 }
 
-html.light {
-  color-scheme: light;
-}
-
-html.light body {
-  background-color: #f4f3ef;
-  color: #12141a;
-}
-
-html.light .bg-ink-950 {
-  background-color: #f4f3ef !important;
-}
-html.light .bg-ink-900 {
-  background-color: #f7f5f0 !important;
-}
-html.light .bg-ink-800 {
-  background-color: #efece4 !important;
-}
-html.light .bg-ink-700 {
-  background-color: #e5dfd2 !important;
-}
-html.light .bg-ink-900\/85 {
-  background-color: rgba(247, 245, 240, 0.85) !important;
-}
-html.light .bg-ink-800\/95 {
-  background-color: rgba(239, 236, 228, 0.95) !important;
-}
-html.light .border-ink-800 {
-  border-color: #d9d3c7 !important;
-}
-html.light .border-ink-700 {
-  border-color: #d1c8b7 !important;
-}
-html.light .border-ink-600 {
-  border-color: #c5bcae !important;
-}
-html.light .text-ink-50 {
-  color: #1f1d1a !important;
-}
-html.light .text-ink-500 {
-  color: #5d564f !important;
-}
-html.light .text-ink-900 {
-  color: #12141a !important;
-}
-html.light .hover\:bg-ink-700:hover {
-  background-color: #e5dfd2 !important;
-}
-html.light .hover\:bg-ink-800:hover {
-  background-color: #efece4 !important;
-}
-
-/* Custom scrollbar to match the ink theme */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #333844;
-  border-radius: 8px;
+@layer utilities {
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }

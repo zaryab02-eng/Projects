@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AppShell from "../components/layout/AppShell.jsx";
 import StatCard from "../components/dashboard/StatCard.jsx";
 import ExpiryAttentionList from "../components/dashboard/ExpiryAttentionList.jsx";
@@ -22,9 +22,8 @@ export default function Dashboard() {
 
   const stats = useMemo(() => {
     if (!members) return null;
-    // Blacklisted members are on a separate track — they shouldn't count
-    // toward Active/Expiring/Expired, since a blacklisted member isn't
-    // someone the owner is expected to renew or act on.
+    // Blacklisted members are on a separate track — they don't count toward
+    // Active/Expiring/Expired.
     const nonBlacklisted = members.filter((m) => !m.blacklisted);
 
     const total = members.length;
@@ -42,13 +41,21 @@ export default function Dashboard() {
     return { total, active, expiringSoon, expired, blacklisted };
   }, [members]);
 
+  const today = new Date().toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+  const attentionCount = stats ? stats.expired + stats.expiringSoon : 0;
+
   return (
     <AppShell>
-      <div className="mb-6">
-        <h1 className="font-display text-2xl sm:text-3xl">
+      <div className="mb-7 sm:mb-9">
+        <p className="text-sm font-medium text-ink-500">{today}</p>
+        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight mt-1">
           Welcome back{gym?.ownerName ? `, ${gym.ownerName.split(" ")[0]}` : ""}
         </h1>
-        <p className="text-ink-500 text-sm mt-1">
+        <p className="text-ink-500 text-[15px] mt-1.5">
           {gym?.gymName} · {gym?.city}, {gym?.state}
         </p>
       </div>
@@ -59,44 +66,63 @@ export default function Dashboard() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 mb-10">
             <StatCard
+              featured
+              className="col-span-2 sm:col-span-4 lg:col-span-1"
               label="Total Members"
               value={stats.total}
-              icon="👥"
+              icon="users"
               onClick={() => navigate("/members")}
             />
             <StatCard
               label="Active"
               value={stats.active}
               tone="copper"
-              icon="✅"
+              icon="check"
               onClick={() => navigate("/members?filter=active")}
             />
             <StatCard
               label="Expiring Soon"
               value={stats.expiringSoon}
               tone="warn"
-              icon="⏰"
+              icon="clock"
               onClick={() => navigate("/members?filter=expiring")}
             />
             <StatCard
               label="Expired"
               value={stats.expired}
               tone="critical"
-              icon="⚠️"
+              icon="alert"
               onClick={() => navigate("/members?filter=expired")}
             />
             <StatCard
               label="Blacklisted"
               value={stats.blacklisted}
               tone="steel"
-              icon="🚫"
+              icon="ban"
               onClick={() => navigate("/blacklist")}
             />
           </div>
 
-          <h2 className="font-display text-lg mb-3">Needs Attention</h2>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <h2 className="text-xl font-semibold tracking-tight">
+                Needs Attention
+              </h2>
+              {attentionCount > 0 && (
+                <span className="text-xs font-semibold font-mono px-2 py-0.5 rounded-full bg-copper-500/15 text-copper-400">
+                  {attentionCount}
+                </span>
+              )}
+            </div>
+            <Link
+              to="/members"
+              className="text-sm font-medium text-copper-400 hover:underline"
+            >
+              See all
+            </Link>
+          </div>
           {/* Blacklisted members don't need renewal attention either */}
           <ExpiryAttentionList
             members={members.filter((m) => !m.blacklisted)}

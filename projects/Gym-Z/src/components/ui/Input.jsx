@@ -1,16 +1,28 @@
-export default function Input({ label, error, className = '', required, ...props }) {
+export default function Input({
+  label,
+  error,
+  className = "",
+  wrapperClassName = "",
+  required,
+  ...props
+}) {
   return (
-    <label className="block">
+    <label className={`block ${wrapperClassName}`}>
       {label && (
-        <span className="block text-xs font-semibold uppercase tracking-wide text-ink-500 mb-1.5">
-          {label}{required && <span className="text-copper-400"> *</span>}
+        <span className="block text-[13px] font-medium text-ink-300 mb-1.5">
+          {label}
+          {required && <span className="text-copper-400"> *</span>}
         </span>
       )}
       <input
-        className={`w-full bg-ink-900 border ${error ? 'border-vitality-critical' : 'border-ink-600'} rounded-lg px-3.5 py-2.5 text-sm text-ink-50 placeholder:text-ink-500 focus:border-copper-500 focus:ring-1 focus:ring-copper-500 outline-none transition-colors ${className}`}
+        className={`w-full h-11 bg-ink-900 border ${error ? "border-vitality-critical" : "border-ink-600"} rounded-xl px-3.5 text-[15px] text-ink-50 placeholder:text-ink-500/70 focus:border-copper-500 focus:ring-4 focus:ring-copper-500/15 outline-none transition ${className}`}
         {...props}
       />
-      {error && <span className="block mt-1 text-xs text-vitality-critical">{error}</span>}
+      {error && (
+        <span className="block mt-1.5 text-xs text-vitality-critical">
+          {error}
+        </span>
+      )}
     </label>
-  )
+  );
 }

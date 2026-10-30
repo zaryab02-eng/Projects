@@ -5,8 +5,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import AppShell from "../components/layout/AppShell.jsx";
 import MemberListItem from "../components/members/MemberListItem.jsx";
-import Input from "../components/ui/Input.jsx";
 import Button from "../components/ui/Button.jsx";
+import Card from "../components/ui/Card.jsx";
+import Icon from "../components/ui/Icon.jsx";
 import Spinner from "../components/ui/Spinner.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { subscribeToMembers } from "../firebase/firestore.js";
@@ -22,6 +23,13 @@ const FILTER_LABELS = {
   expiring: "Expiring Soon",
   expired: "Expired",
 };
+
+const FILTER_CHIPS = [
+  { key: "", label: "All" },
+  { key: "active", label: "Active" },
+  { key: "expiring", label: "Expiring" },
+  { key: "expired", label: "Expired" },
+];
 
 const SORT_OPTIONS = [
   { value: "urgency", label: "Needs Attention" },
@@ -87,10 +95,9 @@ export default function Members() {
     return list;
   }, [members, search, filter, sortBy]);
 
-  const clearFilter = () => setSearchParams({});
+  const setFilter = (key) => setSearchParams(key ? { filter: key } : {});
 
   // Exports exactly what is on screen (current filter + search + sort).
-  // With no filter or search, that is the whole member list.
   const handleDownloadPdf = async () => {
     if (!filtered.length) return;
     setDownloading(true);
@@ -110,8 +117,17 @@ export default function Members() {
 
   return (
     <AppShell>
-      <div className="flex items-center justify-between mb-5 gap-3">
-        <h1 className="font-display text-2xl sm:text-3xl">Members</h1>
+      <div className="flex items-end justify-between mb-6 gap-3">
+        <div>
+          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">
+            Members
+          </h1>
+          <p className="text-sm text-ink-500 mt-1">
+            {members
+              ? `${filtered.length} ${filtered.length === 1 ? "member" : "members"}`
+              : "Loading…"}
+          </p>
+        </div>
         <div className="flex items-center gap-2">
           <Button
             size="sm"
@@ -120,47 +136,40 @@ export default function Members() {
             disabled={!filtered.length}
             onClick={handleDownloadPdf}
           >
+            {!downloading && <Icon name="file" size={15} />}
             PDF
           </Button>
           <Link to="/members/add">
-            <Button size="sm">+ Add Member</Button>
+            <Button size="sm">
+              <Icon name="plus" size={15} strokeWidth={2.4} />
+              <span>
+                Add<span className="hidden sm:inline"> Member</span>
+              </span>
+            </Button>
           </Link>
         </div>
       </div>
 
-      {filter && FILTER_LABELS[filter] ? (
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-xs font-semibold uppercase tracking-wide text-copper-400 bg-copper-500/10 px-3 py-1.5 rounded-full">
-            {FILTER_LABELS[filter]}
-          </span>
-          <button
-            onClick={clearFilter}
-            className="text-xs font-semibold text-ink-500 hover:text-ink-50"
-          >
-            Clear filter
-          </button>
+      <div className="flex items-center gap-2 mb-3">
+        <div className="relative flex-1 min-w-0">
+          <Icon
+            name="search"
+            size={17}
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-500 pointer-events-none"
+          />
+          <input
+            type="search"
+            placeholder="Search name or phone"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full h-11 rounded-xl bg-ink-800 border border-ink-700/60 pl-10 pr-4 text-[15px] placeholder:text-ink-500 outline-none focus:border-copper-500 focus:ring-4 focus:ring-copper-500/15 transition"
+          />
         </div>
-      ) : null}
-
-      <div className="flex items-center gap-2 mb-6">
-        <Input
-          placeholder="Search by name or phone..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="flex-1"
-        />
-        {/* Small native select, not the shared <Select> component —
-            keeps this compact and inline instead of full-width with a
-            label block, which is how <Select> renders everywhere else. */}
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
           aria-label="Sort members"
-          className="shrink-0 bg-ink-900 border border-ink-600 rounded-lg pl-3 pr-7 py-2.5 text-xs font-medium text-ink-50 focus:border-copper-500 focus:ring-1 focus:ring-copper-500 outline-none appearance-none bg-no-repeat bg-[right_0.5rem_center] bg-[length:14px]"
-          style={{
-            backgroundImage:
-              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E\")",
-          }}
+          className="select-chevron shrink-0 h-11 rounded-xl bg-ink-800 border border-ink-700/60 pl-3.5 text-[13px] font-medium text-ink-50 outline-none focus:border-copper-500 focus:ring-4 focus:ring-copper-500/15 transition"
         >
           {SORT_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -170,20 +179,45 @@ export default function Members() {
         </select>
       </div>
 
+      <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 mb-5 pb-1">
+        {FILTER_CHIPS.map((chip) => {
+          const active = (filter || "") === chip.key;
+          return (
+            <button
+              key={chip.key || "all"}
+              onClick={() => setFilter(chip.key)}
+              className={`shrink-0 h-9 px-4 rounded-full text-[13px] font-semibold transition-colors ${
+                active
+                  ? "bg-ink-50 text-ink-900"
+                  : "bg-ink-800 border border-ink-700/60 text-ink-300 hover:text-ink-50"
+              }`}
+            >
+              {chip.label}
+            </button>
+          );
+        })}
+      </div>
+
       {!members ? (
         <div className="flex justify-center py-20">
           <Spinner size="lg" />
         </div>
       ) : filtered.length === 0 ? (
-        <p className="text-center text-ink-500 py-16 text-sm">
-          No members found.
-        </p>
+        <Card className="py-16 px-6 text-center">
+          <div className="h-12 w-12 rounded-full bg-ink-700 text-ink-500 flex items-center justify-center mx-auto mb-3">
+            <Icon name="users" size={22} />
+          </div>
+          <p className="font-semibold">No members found</p>
+          <p className="text-sm text-ink-500 mt-1">
+            Try a different search or filter.
+          </p>
+        </Card>
       ) : (
-        <div className="space-y-2.5">
+        <Card className="overflow-hidden divide-y divide-ink-700/60">
           {filtered.map((m) => (
             <MemberListItem key={m.id} member={m} />
           ))}
-        </div>
+        </Card>
       )}
     </AppShell>
   );

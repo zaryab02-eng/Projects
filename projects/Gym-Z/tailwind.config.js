@@ -1,63 +1,93 @@
 /** @type {import('tailwindcss').Config} */
+const v = (name) => `rgb(var(--${name}) / <alpha-value>)`;
+
 export default {
   darkMode: "class",
   content: ["./index.html", "./src/**/*.{js,jsx}"],
   theme: {
     extend: {
       colors: {
-        // Ink surfaces — the "gym floor at night" backdrop
         ink: {
-          50: "#F2F1ED",
-          950: "#0B0C10",
-          900: "#12141A",
-          800: "#1A1D24",
-          700: "#242832",
-          600: "#333844",
-          500: "#4A5060",
+          50: v("ink-50"),
+          100: v("ink-100"),
+          200: v("ink-200"),
+          300: v("ink-300"),
+          500: v("ink-500"),
+          600: v("ink-600"),
+          700: v("ink-700"),
+          800: v("ink-800"),
+          900: v("ink-900"),
+          950: v("ink-950"),
         },
-        // Forged copper — the primary brand accent (heated metal, not clay)
         copper: {
-          50: "#FDF1EA",
-          100: "#FAE0CE",
-          300: "#E89A6C",
-          400: "#DD7C48",
-          500: "#C1622B",
-          600: "#A34E20",
-          700: "#7F3C18",
+          50: "#FFF3EA",
+          100: "#FFE1CC",
+          300: "#FFB17A",
+          400: v("copper-400"),
+          500: "#E85D12",
+          600: "#C44A0A",
+          700: "#9A3A08",
         },
-        // Cool steel — secondary accent for verified badges / links
         steel: {
-          300: "#8FB4C7",
+          300: v("steel-300"),
           400: "#649BB4",
           500: "#4A7A96",
           600: "#396078",
         },
-        // Membership validity scale (functional, not brand)
         vitality: {
-          full: "#1B6E4C",
+          full: v("ok"),
           good: "#3C9A5C",
           fair: "#8FBF4E",
-          warn: "#E0B93B",
+          warn: v("warn"),
           soon: "#DE8A3A",
-          critical: "#C6462F",
+          critical: "#E0422F",
           expired: "#5B616E",
         },
       },
       fontFamily: {
-        display: ['"Oswald"', "sans-serif"],
-        body: ['"Manrope"', "sans-serif"],
-        mono: ['"IBM Plex Mono"', "monospace"],
+        display: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          '"SF Pro Display"',
+          "Inter",
+          '"Segoe UI"',
+          "Roboto",
+          "sans-serif",
+        ],
+        body: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          '"SF Pro Text"',
+          "Inter",
+          '"Segoe UI"',
+          "Roboto",
+          "sans-serif",
+        ],
+        mono: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          '"SF Pro Text"',
+          "Inter",
+          '"Segoe UI"',
+          "Roboto",
+          "sans-serif",
+        ],
       },
       borderRadius: {
         xl2: "1.25rem",
       },
       boxShadow: {
-        card: "0 1px 2px rgba(0,0,0,0.4), 0 8px 24px -8px rgba(0,0,0,0.5)",
-        glow: "0 0 0 1px rgba(193,98,43,0.25), 0 0 24px -4px rgba(193,98,43,0.35)",
+        card: "var(--shadow-card)",
+        glow: "none",
+        sheet: "0 24px 64px -12px rgba(0,0,0,0.45)",
       },
       keyframes: {
         "fade-up": {
           "0%": { opacity: 0, transform: "translateY(8px)" },
+          "100%": { opacity: 1, transform: "translateY(0)" },
+        },
+        "sheet-up": {
+          "0%": { opacity: 0, transform: "translateY(32px)" },
           "100%": { opacity: 1, transform: "translateY(0)" },
         },
         shimmer: {
@@ -66,7 +96,8 @@ export default {
         },
       },
       animation: {
-        "fade-up": "fade-up 0.35s ease-out both",
+        "fade-up": "fade-up 0.35s cubic-bezier(0.22,1,0.36,1) both",
+        "sheet-up": "sheet-up 0.34s cubic-bezier(0.32,0.72,0,1) both",
         shimmer: "shimmer 1.6s linear infinite",
       },
     },

@@ -8,6 +8,7 @@ import ValidityBar from "../components/ui/ValidityBar.jsx";
 import Spinner from "../components/ui/Spinner.jsx";
 import Modal from "../components/ui/Modal.jsx";
 import Select from "../components/ui/Select.jsx";
+import Icon from "../components/ui/Icon.jsx";
 import RenewalHistory from "../components/members/RenewalHistory.jsx";
 import ReminderMenu from "../components/members/ReminderMenu.jsx";
 import AddToBlacklistModal from "../components/blacklist/AddToBlacklistModal.jsx";
@@ -40,6 +41,7 @@ export default function MemberProfile() {
   const [selectedPlanId, setSelectedPlanId] = useState("");
   const [renewMode, setRenewMode] = useState("extend");
   const [submitting, setSubmitting] = useState(false);
+  const [pdfBusy, setPdfBusy] = useState(false);
   const menuRef = useRef(null);
 
   const load = useCallback(async () => {
@@ -133,11 +135,14 @@ export default function MemberProfile() {
   };
 
   const handleDownloadPdf = async () => {
+    setPdfBusy(true);
     try {
       await downloadMemberPdf(member, renewals, gym?.gymName || "Gym-Z");
     } catch (error) {
       console.error("PDF export failed:", error);
       alert("Could not create the PDF. Please try again.");
+    } finally {
+      setPdfBusy(false);
     }
   };
 
@@ -153,176 +158,228 @@ export default function MemberProfile() {
 
   const remaining = daysUntil(member.expiryDate);
   const initial = member.fullName?.trim()?.[0]?.toUpperCase() || "?";
+  const daysTone =
+    remaining < 0
+      ? "bg-vitality-critical/15 text-vitality-critical"
+      : remaining <= 7
+        ? "bg-vitality-warn/15 text-vitality-warn"
+        : "bg-ink-700 text-ink-300";
 
   return (
     <AppShell>
-      {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="h-12 w-12 rounded-full bg-ink-800 border border-ink-700 flex items-center justify-center font-display text-lg text-copper-400 shrink-0">
-            {initial}
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="font-display text-xl sm:text-2xl truncate">
-                {member.fullName}
-              </h1>
-              {member.blacklisted && (
-                <Badge variant="critical">Blacklisted</Badge>
-              )}
+      <button
+        onClick={() => navigate("/members")}
+        className="inline-flex items-center gap-0.5 text-sm font-medium text-copper-400 mb-4 -ml-1"
+      >
+        <Icon name="chevronLeft" size={18} strokeWidth={2.2} />
+        Members
+      </button>
+
+      <div className="grid lg:grid-cols-5 gap-5 lg:gap-6 items-start">
+        {/* Left column */}
+        <div className="lg:col-span-3 space-y-5">
+          {/* Identity + actions */}
+          <Card className="p-5 sm:p-6">
+            <div className="flex flex-col items-center text-center sm:flex-row sm:text-left gap-4 sm:gap-5">
+              <div className="h-20 w-20 rounded-full bg-gradient-to-br from-copper-400 to-copper-600 text-white flex items-center justify-center text-3xl font-semibold shrink-0">
+                {initial}
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+                  <h1 className="text-2xl font-semibold tracking-tight break-words">
+                    {member.fullName}
+                  </h1>
+                  {member.blacklisted && (
+                    <Badge variant="critical">Blacklisted</Badge>
+                  )}
+                </div>
+                <p className="text-ink-500 font-mono text-[15px] mt-1">
+                  {member.phone}
+                </p>
+                {member.lastRemindedAt && (
+                  <p className="text-xs text-ink-500 mt-1">
+                    Last reminded {formatDisplayDate(member.lastRemindedAt)}
+                  </p>
+                )}
+              </div>
             </div>
-            <p className="text-ink-500 font-mono text-sm mt-0.5">
-              {member.phone}
-            </p>
-            {member.lastRemindedAt && (
-              <p className="text-[11px] text-ink-500 mt-0.5">
-                Last reminded: {formatDisplayDate(member.lastRemindedAt)}
-              </p>
+
+            <div className="mt-6 pt-5 border-t border-ink-700/60 flex justify-center sm:justify-start items-start gap-3 sm:gap-6">
+              <ActionTile
+                icon="refresh"
+                label="Renew"
+                primary
+                onClick={openRenewModal}
+              />
+              {!member.blacklisted && (
+                <ReminderMenu
+                  member={member}
+                  layout="tile"
+                  showLastReminded={false}
+                  onReminded={load}
+                />
+              )}
+              <ActionTile
+                icon="file"
+                label={pdfBusy ? "Preparing…" : "PDF"}
+                onClick={handleDownloadPdf}
+              />
+              <div className="relative" ref={menuRef}>
+                <ActionTile
+                  icon="more"
+                  label="More"
+                  onClick={() => setMenuOpen((open) => !open)}
+                />
+                {menuOpen ? (
+                  <div className="absolute right-0 top-full mt-2 w-56 rounded-2xl border border-ink-700/60 bg-ink-800 shadow-sheet p-1.5 z-20 animate-fade-up">
+                    {member.blacklisted ? (
+                      <button
+                        onClick={() => {
+                          setMenuOpen(false);
+                          handleUnblacklist();
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-ink-700/60 transition-colors"
+                      >
+                        <Icon name="check" size={17} />
+                        Remove from Blacklist
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setMenuOpen(false);
+                          setBlacklistOpen(true);
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-ink-700/60 transition-colors"
+                      >
+                        <Icon name="ban" size={17} />
+                        Blacklist Member
+                      </button>
+                    )}
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setDeleteOpen(true);
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-vitality-critical hover:bg-ink-700/60 transition-colors"
+                    >
+                      <Icon name="trash" size={17} />
+                      Remove Member
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </Card>
+
+          {/* Membership */}
+          <Card className="p-5 sm:p-6">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wider text-ink-500">
+                  Current Plan
+                </p>
+                <p className="text-lg font-semibold tracking-tight truncate mt-0.5">
+                  {member.planName}
+                </p>
+              </div>
+              <span
+                className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full font-mono ${daysTone}`}
+              >
+                {remaining >= 0
+                  ? `${remaining} days left`
+                  : `${-remaining} days overdue`}
+              </span>
+            </div>
+            <ValidityBar
+              joiningDate={member.joiningDate}
+              expiryDate={member.expiryDate}
+            />
+
+            <div className="grid grid-cols-3 gap-4 mt-6 pt-5 border-t border-ink-700/60">
+              <Info
+                label="Joined"
+                value={formatDisplayDate(member.joiningDate)}
+              />
+              <Info
+                label="Expires"
+                value={formatDisplayDate(member.expiryDate)}
+              />
+              <Info
+                label="Lifetime Paid"
+                value={`₹${member.lifetimeAmountPaid || 0}`}
+                accent
+              />
+            </div>
+
+            {member.scheduledMembership && (
+              <div className="mt-5 rounded-2xl bg-copper-500/10 p-4 flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-copper-400">
+                    Up Next
+                  </p>
+                  <p className="text-[15px] font-semibold mt-0.5">
+                    {member.scheduledMembership.planName}
+                  </p>
+                </div>
+                <p className="text-xs text-ink-300 font-mono">
+                  {formatDisplayDate(member.scheduledMembership.startDate)} →{" "}
+                  {formatDisplayDate(member.scheduledMembership.expiryDate)}
+                </p>
+              </div>
             )}
-          </div>
+          </Card>
+
+          {/* Personal info */}
+          <Card className="p-5 sm:p-6">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-ink-500 mb-4">
+              Personal Information
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-5">
+              <Info label="Alt Phone" value={member.altPhone || "—"} />
+              <Info label="Age" value={member.age || "—"} />
+              <Info
+                label="Gender"
+                value={
+                  member.gender
+                    ? member.gender[0].toUpperCase() + member.gender.slice(1)
+                    : "—"
+                }
+              />
+              <Info label="Address" value={member.address || "—"} />
+            </div>
+            {member.notes && (
+              <div className="mt-5 pt-5 border-t border-ink-700/60">
+                <p className="text-xs text-ink-500 mb-1">Notes</p>
+                <p className="text-[15px] text-ink-100 leading-relaxed">
+                  {member.notes}
+                </p>
+              </div>
+            )}
+          </Card>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          {!member.blacklisted && (
-            <ReminderMenu
-              member={member}
-              showLastReminded={false}
-              onReminded={load}
-            />
-          )}
-          <Button size="sm" onClick={openRenewModal}>
-            Renew
-          </Button>
-          <div className="relative" ref={menuRef}>
-            <button
-              onClick={() => setMenuOpen((open) => !open)}
-              aria-label="Member menu"
-              aria-expanded={menuOpen}
-              className="h-9 w-9 rounded-lg border border-ink-700 flex items-center justify-center hover:bg-ink-800 transition-colors"
-            >
-              ⋮
-            </button>
-            {menuOpen ? (
-              <div className="absolute right-0 mt-2 w-48 rounded-lg border border-ink-700 bg-ink-800 shadow-card py-1 overflow-hidden z-10">
-                <button
-                  onClick={() => {
-                    setMenuOpen(false);
-                    handleDownloadPdf();
-                  }}
-                  className="w-full text-left px-4 py-2.5 text-sm text-ink-50 hover:bg-ink-700 transition-colors"
-                >
-                  Download PDF
-                </button>
-                {member.blacklisted ? (
-                  <button
-                    onClick={() => {
-                      setMenuOpen(false);
-                      handleUnblacklist();
-                    }}
-                    className="w-full text-left px-4 py-2.5 text-sm text-ink-50 hover:bg-ink-700 transition-colors"
-                  >
-                    Remove from Blacklist
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setMenuOpen(false);
-                      setBlacklistOpen(true);
-                    }}
-                    className="w-full text-left px-4 py-2.5 text-sm text-ink-50 hover:bg-ink-700 transition-colors"
-                  >
-                    Blacklist Member
-                  </button>
-                )}
-                <button
-                  onClick={() => {
-                    setMenuOpen(false);
-                    setDeleteOpen(true);
-                  }}
-                  className="w-full text-left px-4 py-2.5 text-sm text-vitality-critical hover:bg-ink-700 transition-colors"
-                >
-                  Remove Member
-                </button>
-              </div>
-            ) : null}
-          </div>
+        {/* Right column: history */}
+        <div className="lg:col-span-2 lg:sticky lg:top-20">
+          <Card className="p-5 sm:p-6">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-ink-500 mb-4">
+              Renewal History
+            </h2>
+            <RenewalHistory renewals={renewals} />
+          </Card>
         </div>
       </div>
-
-      {/* Membership + quick stats */}
-      <Card className="p-5 mb-5">
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-semibold">{member.planName}</p>
-          <span className="text-xs font-mono text-ink-500">
-            {remaining >= 0 ? `${remaining}d left` : `${-remaining}d overdue`}
-          </span>
-        </div>
-        <ValidityBar
-          joiningDate={member.joiningDate}
-          expiryDate={member.expiryDate}
-        />
-
-        <div className="grid grid-cols-3 gap-4 mt-5 pt-4 border-t border-ink-700/60">
-          <Info label="Joined" value={formatDisplayDate(member.joiningDate)} />
-          <Info label="Expires" value={formatDisplayDate(member.expiryDate)} />
-          <Info
-            label="Lifetime Paid"
-            value={`₹${member.lifetimeAmountPaid || 0}`}
-            accent
-          />
-        </div>
-
-        {member.scheduledMembership && (
-          <div className="mt-4 pt-4 border-t border-ink-700/60 flex items-center justify-between flex-wrap gap-2">
-            <div>
-              <p className="text-xs uppercase text-copper-400 mb-0.5">
-                Next Membership Scheduled
-              </p>
-              <p className="text-sm font-semibold">
-                {member.scheduledMembership.planName}
-              </p>
-            </div>
-            <p className="text-xs text-ink-500 font-mono">
-              {formatDisplayDate(member.scheduledMembership.startDate)} →{" "}
-              {formatDisplayDate(member.scheduledMembership.expiryDate)}
-            </p>
-          </div>
-        )}
-      </Card>
-
-      {/* Personal info */}
-      <Card className="p-5 mb-5">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-500 mb-3">
-          Personal Information
-        </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-          <Info label="Alt Phone" value={member.altPhone || "—"} />
-          <Info label="Age" value={member.age || "—"} />
-          <Info label="Gender" value={member.gender || "—"} />
-          <Info label="Address" value={member.address || "—"} />
-        </div>
-        {member.notes && (
-          <div className="mt-4 pt-4 border-t border-ink-700/60">
-            <p className="text-[11px] uppercase text-ink-500 mb-1">Notes</p>
-            <p className="text-sm text-ink-100">{member.notes}</p>
-          </div>
-        )}
-      </Card>
-
-      {/* Renewal history */}
-      <Card className="p-5">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-500 mb-3">
-          Membership & Renewal History
-        </h2>
-        <RenewalHistory renewals={renewals} />
-      </Card>
 
       <Modal
         open={renewOpen}
         onClose={() => setRenewOpen(false)}
         title="Renew Membership"
+        footer={
+          <Button className="w-full" loading={submitting} onClick={handleRenew}>
+            Confirm Renewal
+          </Button>
+        }
       >
-        <div className="space-y-4">
+        <div className="space-y-5">
           <Select
             label="Select Plan"
             value={selectedPlanId}
@@ -334,46 +391,36 @@ export default function MemberProfile() {
           />
 
           {isExpired ? (
-            <p className="text-xs text-ink-500 bg-ink-900/50 rounded-lg p-3">
+            <p className="text-[13px] text-ink-300 bg-ink-900 rounded-2xl p-4 leading-relaxed">
               This membership has expired. The new plan will start{" "}
-              <span className="text-ink-100 font-medium">today</span>.
+              <span className="text-ink-50 font-semibold">today</span>.
             </p>
           ) : (
-            <div className="space-y-2">
-              <p className="text-xs uppercase text-ink-500">Renewal Mode</p>
-              <button
-                type="button"
+            <div className="space-y-2.5">
+              <p className="text-[13px] font-medium text-ink-300">
+                Renewal Mode
+              </p>
+              <ModeOption
+                selected={renewMode === "extend"}
                 onClick={() => setRenewMode("extend")}
-                className={`w-full text-left p-3 rounded-lg border transition-colors ${renewMode === "extend" ? "border-copper-500 bg-copper-500/10" : "border-ink-700 hover:bg-ink-800"}`}
+                title="Extend Current Membership"
+                badge="Recommended"
               >
-                <p className="text-sm font-semibold">
-                  Extend Current Membership{" "}
-                  <span className="text-copper-400 text-xs">(Recommended)</span>
-                </p>
-                <p className="text-xs text-ink-500 mt-1">
-                  Starts right after the current plan ends on{" "}
-                  {formatDisplayDate(
-                    member.scheduledMembership?.expiryDate || member.expiryDate,
-                  )}
-                  . No remaining days are lost.
-                </p>
-              </button>
-              <button
-                type="button"
+                Starts right after the current plan ends on{" "}
+                {formatDisplayDate(
+                  member.scheduledMembership?.expiryDate || member.expiryDate,
+                )}
+                . No remaining days are lost.
+              </ModeOption>
+              <ModeOption
+                selected={renewMode === "immediate"}
                 onClick={() => setRenewMode("immediate")}
-                className={`w-full text-left p-3 rounded-lg border transition-colors ${renewMode === "immediate" ? "border-copper-500 bg-copper-500/10" : "border-ink-700 hover:bg-ink-800"}`}
+                title="Start Immediately"
               >
-                <p className="text-sm font-semibold">Start Immediately</p>
-                <p className="text-xs text-ink-500 mt-1">
-                  Ends the current plan today. Any remaining days are discarded.
-                </p>
-              </button>
+                Ends the current plan today. Any remaining days are discarded.
+              </ModeOption>
             </div>
           )}
-
-          <Button className="w-full" loading={submitting} onClick={handleRenew}>
-            Confirm Renewal
-          </Button>
         </div>
       </Modal>
 
@@ -388,17 +435,8 @@ export default function MemberProfile() {
         open={deleteOpen}
         onClose={() => setDeleteOpen(false)}
         title="Remove Member"
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-ink-500">
-            This will permanently delete{" "}
-            <span className="font-semibold text-ink-100">
-              {member.fullName}
-            </span>
-            , including their full renewal history and blacklist record. This
-            cannot be undone.
-          </p>
-          <div className="flex gap-2">
+        footer={
+          <>
             <Button
               variant="ghost"
               className="w-full"
@@ -413,21 +451,88 @@ export default function MemberProfile() {
               loading={submitting}
               onClick={handleDelete}
             >
-              Delete Permanently
+              Delete
             </Button>
-          </div>
-        </div>
+          </>
+        }
+      >
+        <p className="text-[15px] text-ink-300 leading-relaxed">
+          This will permanently delete{" "}
+          <span className="font-semibold text-ink-50">{member.fullName}</span>,
+          including their full renewal history and blacklist record. This cannot
+          be undone.
+        </p>
       </Modal>
     </AppShell>
   );
 }
 
+function ActionTile({ icon, label, onClick, primary = false }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group flex flex-col items-center gap-1.5 w-16"
+    >
+      <span
+        className={`h-12 w-12 rounded-2xl flex items-center justify-center transition-all group-active:scale-95 ${
+          primary
+            ? "bg-copper-500 text-white group-hover:bg-copper-600"
+            : "bg-ink-700 text-ink-100 group-hover:bg-ink-600"
+        }`}
+      >
+        <Icon name={icon} size={22} />
+      </span>
+      <span className="text-[11px] font-medium text-ink-300 whitespace-nowrap">
+        {label}
+      </span>
+    </button>
+  );
+}
+
+function ModeOption({ selected, onClick, title, badge, children }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`w-full text-left p-4 rounded-2xl border transition-colors flex gap-3 ${
+        selected
+          ? "border-copper-500 bg-copper-500/10"
+          : "border-ink-700 hover:bg-ink-700/40"
+      }`}
+    >
+      <span
+        className={`mt-0.5 h-5 w-5 rounded-full border-2 shrink-0 flex items-center justify-center ${
+          selected ? "border-copper-500" : "border-ink-600"
+        }`}
+      >
+        {selected && (
+          <span className="h-2.5 w-2.5 rounded-full bg-copper-500" />
+        )}
+      </span>
+      <span className="min-w-0">
+        <span className="flex items-center gap-2 flex-wrap">
+          <span className="text-[15px] font-semibold">{title}</span>
+          {badge && (
+            <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-copper-500/15 text-copper-400">
+              {badge}
+            </span>
+          )}
+        </span>
+        <span className="block text-xs text-ink-500 mt-1 leading-relaxed">
+          {children}
+        </span>
+      </span>
+    </button>
+  );
+}
+
 function Info({ label, value, accent }) {
   return (
-    <div>
-      <p className="text-[11px] uppercase text-ink-500">{label}</p>
+    <div className="min-w-0">
+      <p className="text-xs text-ink-500">{label}</p>
       <p
-        className={`font-medium mt-0.5 break-words ${accent ? "text-copper-400 font-mono text-sm" : ""}`}
+        className={`font-medium mt-0.5 break-words text-[15px] ${accent ? "text-copper-400 font-mono" : ""}`}
       >
         {value}
       </p>
