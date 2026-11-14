@@ -2,16 +2,17 @@
 // <Card className="divide-y ..."> so they form one grouped list.
 import { Link } from "react-router-dom";
 import Badge from "../ui/Badge.jsx";
+import Avatar from "../ui/Avatar.jsx";
 import Icon from "../ui/Icon.jsx";
-import { formatDisplayDate, daysUntil } from "../../utils/dateUtils.js";
-import { getEffectiveExpiryDate } from "../../utils/membershipUtils.js";
+import { formatDisplayDate } from "../../utils/dateUtils.js";
+import { getDaysLeft } from "../../utils/membershipUtils.js";
 
 export default function MemberListItem({ member }) {
-  const remaining = daysUntil(getEffectiveExpiryDate(member));
-  const initial = member.fullName?.trim()?.[0]?.toUpperCase() || "?";
+  const remaining = getDaysLeft(member);
 
-  const pill =
-    remaining < 0
+  const pill = member.frozen
+    ? "bg-steel-500/15 text-steel-300"
+    : remaining < 0
       ? "bg-vitality-critical/15 text-vitality-critical"
       : remaining <= 7
         ? "bg-vitality-warn/15 text-vitality-warn"
@@ -22,9 +23,11 @@ export default function MemberListItem({ member }) {
       to={`/members/${member.id}`}
       className="flex items-center gap-3.5 px-4 py-3.5 hover:bg-ink-700/40 active:bg-ink-700/60 transition-colors"
     >
-      <div className="h-11 w-11 rounded-full bg-gradient-to-br from-copper-400/25 to-copper-600/25 flex items-center justify-center text-base font-semibold text-copper-400 shrink-0">
-        {initial}
-      </div>
+      <Avatar
+        member={member}
+        size={44}
+        fallbackClassName="bg-gradient-to-br from-copper-400/25 to-copper-600/25 text-copper-400"
+      />
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
@@ -32,6 +35,7 @@ export default function MemberListItem({ member }) {
             {member.fullName}
           </p>
           {member.blacklisted && <Badge variant="critical">Blacklisted</Badge>}
+          {member.frozen && <Badge variant="steel">Frozen</Badge>}
         </div>
         <p className="text-xs text-ink-500 mt-0.5 truncate">
           <span className="font-mono">{member.phone}</span> · {member.planName}

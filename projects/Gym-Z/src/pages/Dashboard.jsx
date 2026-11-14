@@ -3,11 +3,15 @@ import { Link, useNavigate } from "react-router-dom";
 import AppShell from "../components/layout/AppShell.jsx";
 import StatCard from "../components/dashboard/StatCard.jsx";
 import ExpiryAttentionList from "../components/dashboard/ExpiryAttentionList.jsx";
+import Icon from "../components/ui/Icon.jsx";
 import Spinner from "../components/ui/Spinner.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { subscribeToMembers } from "../firebase/firestore.js";
 import { daysUntil } from "../utils/dateUtils.js";
-import { getEffectiveExpiryDate } from "../utils/membershipUtils.js";
+import {
+  getEffectiveExpiryDate,
+  getMemberStatus,
+} from "../utils/membershipUtils.js";
 
 export default function Dashboard() {
   const { gymId, gym } = useAuth();
@@ -22,23 +26,24 @@ export default function Dashboard() {
 
   const stats = useMemo(() => {
     if (!members) return null;
-    // Blacklisted members are on a separate track — they don't count toward
-    // Active/Expiring/Expired.
-    const nonBlacklisted = members.filter((m) => !m.blacklisted);
-
+    // Blacklisted and frozen members are on separate tracks — they don't
+    // count toward Active / Expiring / Expired (see getMemberStatus).
     const total = members.length;
-    const active = nonBlacklisted.filter(
-      (m) => daysUntil(getEffectiveExpiryDate(m)) >= 0,
+    const activeMembers = members.filter(
+      (m) => getMemberStatus(m) === "active",
+    );
+    const active = activeMembers.length;
+    const expiringSoon = activeMembers.filter(
+      (m) => daysUntil(getEffectiveExpiryDate(m)) <= 7,
     ).length;
-    const expiringSoon = nonBlacklisted.filter((m) => {
-      const d = daysUntil(getEffectiveExpiryDate(m));
-      return d >= 0 && d <= 7;
-    }).length;
-    const expired = nonBlacklisted.filter(
-      (m) => daysUntil(getEffectiveExpiryDate(m)) < 0,
+    const expired = members.filter(
+      (m) => getMemberStatus(m) === "expired",
     ).length;
     const blacklisted = members.filter((m) => m.blacklisted).length;
-    return { total, active, expiringSoon, expired, blacklisted };
+    const frozen = members.filter(
+      (m) => getMemberStatus(m) === "frozen",
+    ).length;
+    return { total, active, expiringSoon, expired, blacklisted, frozen };
   }, [members]);
 
   const today = new Date().toLocaleDateString("en-IN", {
@@ -66,7 +71,7 @@ export default function Dashboard() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 mb-10">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 mb-4">
             <StatCard
               featured
               className="col-span-2 sm:col-span-4 lg:col-span-1"
@@ -105,7 +110,18 @@ export default function Dashboard() {
             />
           </div>
 
-          <div className="flex items-center justify-between mb-4">
+          {stats.frozen > 0 && (
+            <button
+              onClick={() => navigate("/members?filter=frozen")}
+              className="mb-2 inline-flex items-center gap-2 h-9 px-3.5 rounded-full bg-steel-500/15 text-steel-300 text-sm font-semibold"
+            >
+              <Icon name="snow" size={15} />
+              {stats.frozen} frozen
+              <Icon name="chevronRight" size={14} />
+            </button>
+          )}
+
+          <div className="flex items-center justify-between mt-6 mb-4">
             <div className="flex items-center gap-2.5">
               <h2 className="text-xl font-semibold tracking-tight">
                 Needs Attention
@@ -123,7 +139,8 @@ export default function Dashboard() {
               See all
             </Link>
           </div>
-          {/* Blacklisted members don't need renewal attention either */}
+          {/* Blacklisted members don't need renewal attention either;
+              frozen members are skipped inside groupByUrgency. */}
           <ExpiryAttentionList
             members={members.filter((m) => !m.blacklisted)}
           />

@@ -3,6 +3,7 @@ const VARIANTS = {
   warn: "bg-vitality-warn/15 text-vitality-warn",
   critical: "bg-vitality-critical/15 text-vitality-critical",
   success: "bg-vitality-full/15 text-vitality-full",
+  steel: "bg-steel-500/15 text-steel-300",
 };
 
 export default function Badge({

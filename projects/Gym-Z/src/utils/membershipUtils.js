@@ -1,5 +1,6 @@
 // Membership status classification + the color gradient for the horizontal
 // validity indicator on member cards (dark green -> red -> grey/expired).
+// Frozen members are handled here, in one central place.
 import { daysUntil } from "./dateUtils.js";
 
 export const URGENCY_BUCKETS = {
@@ -31,6 +32,39 @@ export function getEffectiveExpiryDate(member) {
   return member?.scheduledMembership?.expiryDate || member?.expiryDate;
 }
 
+export const isFrozen = (member) => Boolean(member?.frozen);
+
+/**
+ * The single source of truth for a member's state:
+ * "blacklisted" | "frozen" | "expired" | "active".
+ * Blacklisted wins (separate track), then frozen (paused, never counted as
+ * active/expired), then date-based expired/active.
+ */
+export function getMemberStatus(member) {
+  if (member?.blacklisted) return "blacklisted";
+  if (member?.frozen) return "frozen";
+  return daysUntil(getEffectiveExpiryDate(member)) < 0 ? "expired" : "active";
+}
+
+/** Whole days frozen so far (0 if not frozen or frozen today). */
+export function getDaysFrozenSoFar(member) {
+  if (!member?.frozen || !member.freezeStartDate) return 0;
+  return Math.max(0, -daysUntil(member.freezeStartDate));
+}
+
+/**
+ * Days left until `expiryStr` (defaults to the effective expiry). For a
+ * frozen member the clock is paused, so this is the days that were left
+ * on the day the freeze started.
+ */
+export function getDaysLeft(
+  member,
+  expiryStr = getEffectiveExpiryDate(member),
+) {
+  const days = daysUntil(expiryStr);
+  return member?.frozen ? days + getDaysFrozenSoFar(member) : days;
+}
+
 export function getUrgencyBucket(expiryDateStr) {
   const diff = daysUntil(expiryDateStr);
   if (diff < 0) return URGENCY_BUCKETS.EXPIRED;
@@ -48,17 +82,22 @@ export function bucketLabel(bucket) {
 // Urgency sort order: most urgent first (expired first, then soonest expiry).
 // Uses effective expiry so already-renewed (scheduled) members sort by
 // their real coverage end, not their soon-to-lapse current segment.
+// Frozen members always sort last: they need no attention.
 export function sortByUrgency(members) {
-  return [...members].sort(
-    (a, b) =>
+  return [...members].sort((a, b) => {
+    const fa = isFrozen(a) ? 1 : 0;
+    const fb = isFrozen(b) ? 1 : 0;
+    if (fa !== fb) return fa - fb;
+    return (
       daysUntil(getEffectiveExpiryDate(a)) -
-      daysUntil(getEffectiveExpiryDate(b)),
-  );
+      daysUntil(getEffectiveExpiryDate(b))
+    );
+  });
 }
 
-// Buckets EVERY member, including fully healthy ones (the 'healthy'
-// group) — callers that only want urgent members (e.g. the Dashboard's
-// Needs Attention list) simply skip that key when iterating.
+// Buckets every NON-FROZEN member, including fully healthy ones (the
+// 'healthy' group) — callers that only want urgent members (e.g. the
+// Dashboard's Needs Attention list) simply skip that key when iterating.
 export function groupByUrgency(members) {
   const groups = {
     [URGENCY_BUCKETS.EXPIRED]: [],
@@ -69,6 +108,7 @@ export function groupByUrgency(members) {
     [URGENCY_BUCKETS.HEALTHY]: [],
   };
   members.forEach((m) => {
+    if (isFrozen(m)) return;
     const bucket = getUrgencyBucket(getEffectiveExpiryDate(m));
     if (groups[bucket]) groups[bucket].push(m);
   });

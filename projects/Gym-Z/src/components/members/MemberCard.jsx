@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import Card from "../ui/Card.jsx";
 import ValidityBar from "../ui/ValidityBar.jsx";
 import Badge from "../ui/Badge.jsx";
+import Avatar from "../ui/Avatar.jsx";
 import ReminderMenu from "./ReminderMenu.jsx";
 import { daysUntil } from "../../utils/dateUtils.js";
 import { getValidityIndicator } from "../../utils/membershipUtils.js";
@@ -10,7 +11,6 @@ import { getValidityIndicator } from "../../utils/membershipUtils.js";
 // buckets only, so the 4 to 7 day cards stay clean.
 export default function MemberCard({ member, showRemind = false }) {
   const remaining = daysUntil(member.expiryDate);
-  const initial = member.fullName?.trim()?.[0]?.toUpperCase() || "?";
   const { hex } = getValidityIndicator(member.joiningDate, member.expiryDate);
 
   const chip =
@@ -24,12 +24,12 @@ export default function MemberCard({ member, showRemind = false }) {
     <Link to={`/members/${member.id}`} className="block group">
       <Card className="p-4 hover:border-ink-600 active:scale-[0.99] transition-all duration-200">
         <div className="flex items-center gap-3">
-          <div
-            className="h-11 w-11 rounded-full flex items-center justify-center text-base font-semibold shrink-0"
-            style={{ backgroundColor: `${hex}26`, color: hex }}
-          >
-            {initial}
-          </div>
+          <Avatar
+            member={member}
+            size={44}
+            fallbackClassName=""
+            fallbackStyle={{ backgroundColor: `${hex}26`, color: hex }}
+          />
           <div className="min-w-0 flex-1">
             <p className="font-semibold text-[15px] truncate">
               {member.fullName}
@@ -61,8 +61,9 @@ export default function MemberCard({ member, showRemind = false }) {
             {member.blacklisted && (
               <Badge variant="critical">Blacklisted</Badge>
             )}
+            {member.frozen && <Badge variant="steel">Frozen</Badge>}
           </div>
-          {showRemind && !member.blacklisted && (
+          {showRemind && !member.blacklisted && !member.frozen && (
             <ReminderMenu member={member} />
           )}
         </div>

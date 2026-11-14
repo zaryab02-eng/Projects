@@ -28,7 +28,8 @@ export default function ReminderMenu({
   const [open, setOpen] = useState(false);
   const [localLast, setLocalLast] = useState(null);
 
-  if (!member || member.blacklisted) return null;
+  // Blacklisted and frozen members never get reminders.
+  if (!member || member.blacklisted || member.frozen) return null;
 
   const number = normalizePhone(member.phone);
   const message = buildReminderMessage(member, gym?.gymName);

@@ -58,7 +58,10 @@ export default function AddMember() {
       }
       const plan = plans.find((p) => p.id === values.planId);
       const expiryDate = addDays(values.joiningDate, plan.durationDays);
-      await addMember(gymId, { ...values, expiryDate });
+      // Documents are stored in their own subcollection, never in the
+      // member document.
+      const { documents = [], ...memberValues } = values;
+      await addMember(gymId, { ...memberValues, expiryDate }, documents);
       navigate("/members");
     } catch (err) {
       alert("Could not add member. Please try again.");
@@ -68,6 +71,13 @@ export default function AddMember() {
   };
 
   const handleRenewFromDuplicate = async (member) => {
+    if (member.frozen) {
+      alert(
+        "This member's membership is frozen. Unfreeze it first, then renew.",
+      );
+      navigate(`/members/${member.id}`);
+      return;
+    }
     const plan = plans.find((p) => p.id === pendingValues.planId);
     const isExpired = daysUntil(member.expiryDate) < 0;
 

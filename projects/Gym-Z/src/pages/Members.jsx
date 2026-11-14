@@ -14,6 +14,7 @@ import { subscribeToMembers } from "../firebase/firestore.js";
 import {
   sortByUrgency,
   getEffectiveExpiryDate,
+  getMemberStatus,
 } from "../utils/membershipUtils.js";
 import { daysUntil } from "../utils/dateUtils.js";
 import { downloadMembersListPdf } from "../utils/pdfUtils.js";
@@ -22,6 +23,7 @@ const FILTER_LABELS = {
   active: "Active",
   expiring: "Expiring Soon",
   expired: "Expired",
+  frozen: "Frozen",
 };
 
 const FILTER_CHIPS = [
@@ -29,6 +31,7 @@ const FILTER_CHIPS = [
   { key: "active", label: "Active" },
   { key: "expiring", label: "Expiring" },
   { key: "expired", label: "Expired" },
+  { key: "frozen", label: "Frozen" },
 ];
 
 const SORT_OPTIONS = [
@@ -54,21 +57,20 @@ export default function Members() {
   const filtered = useMemo(() => {
     if (!members) return [];
 
+    // getMemberStatus keeps blacklisted and frozen members out of
+    // Active / Expiring / Expired.
     let list = members;
     if (filter === "active") {
-      list = list.filter(
-        (m) => !m.blacklisted && daysUntil(getEffectiveExpiryDate(m)) >= 0,
-      );
+      list = list.filter((m) => getMemberStatus(m) === "active");
     } else if (filter === "expiring") {
       list = list.filter((m) => {
-        if (m.blacklisted) return false;
-        const d = daysUntil(getEffectiveExpiryDate(m));
-        return d >= 0 && d <= 7;
+        if (getMemberStatus(m) !== "active") return false;
+        return daysUntil(getEffectiveExpiryDate(m)) <= 7;
       });
     } else if (filter === "expired") {
-      list = list.filter(
-        (m) => !m.blacklisted && daysUntil(getEffectiveExpiryDate(m)) < 0,
-      );
+      list = list.filter((m) => getMemberStatus(m) === "expired");
+    } else if (filter === "frozen") {
+      list = list.filter((m) => getMemberStatus(m) === "frozen");
     }
 
     if (search.trim()) {

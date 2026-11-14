@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import Modal from "../ui/Modal.jsx";
 import Button from "../ui/Button.jsx";
 import Badge from "../ui/Badge.jsx";
+import Avatar from "../ui/Avatar.jsx";
 import { formatDisplayDate } from "../../utils/dateUtils.js";
 
 export default function DuplicateMemberModal({
@@ -18,12 +19,18 @@ export default function DuplicateMemberModal({
   return (
     <Modal open={open} onClose={onClose} title="Member Already Exists">
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-semibold text-lg">{member.fullName}</p>
+        <div className="flex items-center gap-3">
+          <Avatar member={member} size={48} />
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold text-lg truncate">{member.fullName}</p>
             <p className="text-xs text-ink-500 font-mono">{member.phone}</p>
           </div>
-          {member.blacklisted && <Badge variant="critical">Blacklisted</Badge>}
+          <div className="flex flex-col items-end gap-1">
+            {member.blacklisted && (
+              <Badge variant="critical">Blacklisted</Badge>
+            )}
+            {member.frozen && <Badge variant="steel">Frozen</Badge>}
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3 text-sm">

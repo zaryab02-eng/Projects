@@ -2,11 +2,14 @@
 // demand so they don't slow down the first page load, and they are
 // precached by the service worker so exports also work offline.
 // Note: jsPDF's built-in fonts can't draw the ₹ symbol, so "Rs." is used.
-import { formatDisplayDate, daysUntil } from "./dateUtils.js";
-import { getEffectiveExpiryDate } from "./membershipUtils.js";
+// Documents (ID scans) are intentionally never included in PDFs.
+import { formatDisplayDate } from "./dateUtils.js";
+import { getMemberStatus } from "./membershipUtils.js";
+import { formatAadhaar } from "./aadhaarUtils.js";
 
 const BRAND = [184, 115, 51]; // copper
 const DARK = [18, 20, 26];
+const FROZEN_BLUE = [40, 90, 170];
 
 async function loadPdfLibs() {
   const [{ jsPDF }, autoTableModule] = await Promise.all([
@@ -20,10 +23,19 @@ const rs = (amount) => `Rs. ${Number(amount || 0).toLocaleString("en-IN")}`;
 
 const safeDate = (value) => (value ? formatDisplayDate(value) : "-");
 
+const STATUS_LABEL = {
+  blacklisted: "Blacklisted",
+  frozen: "Frozen",
+  expired: "Expired",
+  active: "Active",
+};
+
 function getStatus(member) {
-  if (member.blacklisted) return "Blacklisted";
-  const days = daysUntil(getEffectiveExpiryDate(member));
-  return days < 0 ? "Expired" : "Active";
+  const status = getMemberStatus(member);
+  const label = STATUS_LABEL[status];
+  return status === "blacklisted" && member.frozen
+    ? `${label} (Frozen)`
+    : label;
 }
 
 function fileSafe(text) {
@@ -68,12 +80,42 @@ function drawFooters(doc) {
   }
 }
 
-/** One member's full information + renewal history. */
-export async function downloadMemberPdf(member, renewals, gymName) {
+/** Section title that starts a new page when there is no room left. */
+function sectionTitle(doc, text, y) {
+  const pageHeight = doc.internal.pageSize.getHeight();
+  let top = y;
+  if (top > pageHeight - 40) {
+    doc.addPage();
+    top = 20;
+  }
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.setTextColor(0, 0, 0);
+  doc.text(text, 14, top);
+  return top;
+}
+
+/** One member's full information + renewal history + freeze history. */
+export async function downloadMemberPdf(
+  member,
+  renewals,
+  gymName,
+  freezes = [],
+) {
   const { jsPDF, autoTable } = await loadPdfLibs();
   const doc = new jsPDF({ unit: "mm", format: "a4" });
 
   drawHeader(doc, gymName, "Member Report");
+
+  // Small profile photo on the right of the header band.
+  if (member.photoUrl) {
+    try {
+      const pageWidth = doc.internal.pageSize.getWidth();
+      doc.addImage(member.photoUrl, "JPEG", pageWidth - 14 - 18, 4, 18, 18);
+    } catch (error) {
+      console.warn("Could not add photo to PDF:", error);
+    }
+  }
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(15);
@@ -89,6 +131,10 @@ export async function downloadMemberPdf(member, renewals, gymName) {
     ["Alt Phone", member.altPhone || "-"],
     ["Age", member.age ? String(member.age) : "-"],
     ["Gender", member.gender || "-"],
+    [
+      "Aadhaar",
+      member.aadhaarNumber ? formatAadhaar(member.aadhaarNumber) : "-",
+    ],
     ["Address", member.address || "-"],
     ["Current Plan", member.planName || "-"],
     ["Plan Fee", rs(member.membershipFee)],
@@ -98,12 +144,22 @@ export async function downloadMemberPdf(member, renewals, gymName) {
     ["Notes", member.notes || "-"],
   ];
 
+  // Index 10 = just before "Lifetime Paid".
   if (member.scheduledMembership) {
     const s = member.scheduledMembership;
-    rows.splice(9, 0, [
+    rows.splice(10, 0, [
       "Next Membership",
       `${s.planName} (${safeDate(s.startDate)} to ${safeDate(s.expiryDate)})`,
     ]);
+  }
+
+  if (member.frozen) {
+    rows.splice(
+      10,
+      0,
+      ["Frozen Since", safeDate(member.freezeStartDate)],
+      ["Freeze Reason", member.freezeReason || "-"],
+    );
   }
 
   autoTable(doc, {
@@ -117,13 +173,16 @@ export async function downloadMemberPdf(member, renewals, gymName) {
   });
 
   const afterInfoY = doc.lastAutoTable.finalY + 10;
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.text("Membership & Renewal History", 14, afterInfoY);
+  const renewalTitleY = sectionTitle(
+    doc,
+    "Membership & Renewal History",
+    afterInfoY,
+  );
 
+  let endY;
   if (renewals?.length) {
     autoTable(doc, {
-      startY: afterInfoY + 3,
+      startY: renewalTitleY + 3,
       head: [["Type", "Plan", "Start", "Expiry", "Amount"]],
       body: renewals.map((r) => [
         r.type === "new" ? "Joined" : "Renewed",
@@ -137,10 +196,30 @@ export async function downloadMemberPdf(member, renewals, gymName) {
       styles: { fontSize: 9.5, cellPadding: 2.5 },
       columnStyles: { 4: { halign: "right" } },
     });
+    endY = doc.lastAutoTable.finalY;
   } else {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.text("No renewal history yet.", 14, afterInfoY + 8);
+    doc.text("No renewal history yet.", 14, renewalTitleY + 8);
+    endY = renewalTitleY + 8;
+  }
+
+  if (freezes?.length) {
+    const freezeTitleY = sectionTitle(doc, "Freeze History", endY + 10);
+    autoTable(doc, {
+      startY: freezeTitleY + 3,
+      head: [["Start", "End", "Days Frozen", "Reason"]],
+      body: freezes.map((f) => [
+        safeDate(f.startDate),
+        safeDate(f.endDate),
+        String(f.daysFrozen ?? 0),
+        f.reason || "-",
+      ]),
+      theme: "striped",
+      headStyles: { fillColor: FROZEN_BLUE },
+      styles: { fontSize: 9.5, cellPadding: 2.5 },
+      columnStyles: { 2: { halign: "right" } },
+    });
   }
 
   drawFooters(doc);
@@ -170,7 +249,7 @@ export async function downloadMembersListPdf(members, gymName, label) {
       m.phone || "-",
       m.planName || "-",
       safeDate(m.joiningDate),
-      safeDate(getEffectiveExpiryDate(m)),
+      safeDate(m.scheduledMembership?.expiryDate || m.expiryDate),
       getStatus(m),
       rs(m.lifetimeAmountPaid),
     ]),
@@ -180,9 +259,11 @@ export async function downloadMembersListPdf(members, gymName, label) {
     columnStyles: { 0: { cellWidth: 8 }, 7: { halign: "right" } },
     didParseCell: (data) => {
       if (data.section === "body" && data.column.index === 6) {
-        const v = data.cell.raw;
-        if (v === "Expired" || v === "Blacklisted") {
+        const v = String(data.cell.raw);
+        if (v === "Expired" || v.startsWith("Blacklisted")) {
           data.cell.styles.textColor = [200, 40, 40];
+        } else if (v === "Frozen") {
+          data.cell.styles.textColor = FROZEN_BLUE;
         }
       }
     },

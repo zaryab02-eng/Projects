@@ -12,7 +12,6 @@
 import {
   collection,
   doc,
-  addDoc,
   updateDoc,
   deleteDoc,
   getDoc,
@@ -28,11 +27,16 @@ import {
   increment,
   arrayUnion,
   arrayRemove,
+  deleteField,
 } from "firebase/firestore";
 import { db } from "./config.js";
-import { addDays, todayStr } from "../utils/dateUtils.js";
+import { addDays, todayStr, daysUntil } from "../utils/dateUtils.js";
 
 const SYNC_WAIT_MS = 4000;
+
+// Each member has at most two documents, stored under fixed ids so they can
+// be replaced/deleted without reading them (they are large).
+export const DOCUMENT_SLOT_IDS = ["slot1", "slot2"];
 
 /** Waits for a write to reach the server only while online and fast.
  * Offline / slow network: resolves right away; the write stays queued in
@@ -121,9 +125,48 @@ export async function listOwnerGyms(ownerUid) {
     : [];
 }
 
+/** Deletes refs in batches (Firestore allows 500 operations per batch). */
+async function deleteInChunks(refs) {
+  for (let i = 0; i < refs.length; i += 400) {
+    const batch = writeBatch(db);
+    refs.slice(i, i + 400).forEach((ref) => batch.delete(ref));
+    await commit(batch.commit());
+  }
+}
+
+/** Deletes the gym AND everything under it (members with their renewals,
+ * freezes and documents, plans, blacklist). Firestore never cascades, so
+ * children go first; the gym document goes last because security rules
+ * check ownership through it. */
 export async function deleteGym(gymId, ownerUid) {
-  await deleteDoc(doc(db, "gyms", gymId));
-  await updateDoc(doc(db, "users", ownerUid), { gymIds: arrayRemove(gymId) });
+  const refs = [];
+
+  const membersSnap = await getDocs(membersCollection(gymId));
+  for (const memberDoc of membersSnap.docs) {
+    const [renewalsSnap, freezesSnap] = await Promise.all([
+      getDocs(collection(memberDoc.ref, "renewals")),
+      getDocs(collection(memberDoc.ref, "freezes")),
+    ]);
+    renewalsSnap.docs.forEach((d) => refs.push(d.ref));
+    freezesSnap.docs.forEach((d) => refs.push(d.ref));
+    DOCUMENT_SLOT_IDS.forEach((slotId) =>
+      refs.push(doc(memberDoc.ref, "documents", slotId)),
+    );
+    refs.push(memberDoc.ref);
+  }
+
+  const [plansSnap, blacklistSnap] = await Promise.all([
+    getDocs(plansCollection(gymId)),
+    getDocs(blacklistCollection(gymId)),
+  ]);
+  plansSnap.docs.forEach((d) => refs.push(d.ref));
+  blacklistSnap.docs.forEach((d) => refs.push(d.ref));
+
+  await deleteInChunks(refs);
+  await commit(deleteDoc(doc(db, "gyms", gymId)));
+  await commit(
+    updateDoc(doc(db, "users", ownerUid), { gymIds: arrayRemove(gymId) }),
+  );
 }
 
 /** Public, unauthenticated read for the Gym Rankings page. */
@@ -192,7 +235,9 @@ export async function findMemberByPhone(gymId, phone) {
   return { id: snap.docs[0].id, ...snap.docs[0].data() };
 }
 
-export async function addMember(gymId, memberData) {
+/** `documents` (optional) is a list of { id: "slot1"|"slot2", label,
+ * imageData }, written in the same batch as the member. */
+export async function addMember(gymId, memberData, documents = []) {
   const batch = writeBatch(db);
   const memberRef = doc(membersCollection(gymId));
   const renewalRef = doc(
@@ -215,6 +260,15 @@ export async function addMember(gymId, memberData) {
     expiryDate: memberData.expiryDate,
     createdAt: serverTimestamp(),
   });
+  documents
+    .filter((d) => DOCUMENT_SLOT_IDS.includes(d.id) && d.imageData)
+    .forEach((d) => {
+      batch.set(doc(memberRef, "documents", d.id), {
+        label: d.label || "",
+        imageData: d.imageData,
+        createdAt: serverTimestamp(),
+      });
+    });
   batch.update(doc(db, "gyms", gymId), { activeMemberCount: increment(1) });
 
   await commit(batch.commit());
@@ -236,9 +290,11 @@ function coverageEnd(member) {
  * single-member read path (getMember) and the live list path
  * (subscribeToMembers) call this, so Dashboard, Members list, and Member
  * Profile can never disagree about whether a membership has activated.
+ * Frozen members are never promoted (their dates only move on unfreeze).
  */
 function computeScheduledPromotion(member) {
   if (!member?.scheduledMembership) return null;
+  if (member.frozen) return null;
   const today = todayStr();
   if (member.scheduledMembership.startDate > today) return null;
 
@@ -319,6 +375,12 @@ export function subscribeToMembers(gymId, callback) {
   );
 }
 
+function assertNotFrozen(member) {
+  if (member?.frozen) {
+    throw new Error("This member is frozen. Unfreeze the membership first.");
+  }
+}
+
 /** Shared write path for every renewal type: writes a history record,
  * updates lifetime paid, and either updates the current membership
  * fields directly or queues a scheduledMembership. */
@@ -369,6 +431,7 @@ async function writeRenewal(
 
 /** Membership had already expired: new plan always starts today. */
 export async function renewExpiredMembership(gymId, memberId, member, plan) {
+  assertNotFrozen(member);
   const startDate = todayStr();
   const expiryDate = addDays(startDate, plan.durationDays);
   await writeRenewal(
@@ -383,6 +446,7 @@ export async function renewExpiredMembership(gymId, memberId, member, plan) {
  * the day after current coverage ends (chaining off any already-scheduled
  * membership so nothing overlaps). Lifetime paid increases immediately. */
 export async function extendMembership(gymId, memberId, member, plan) {
+  assertNotFrozen(member);
   const baseEnd = coverageEnd(member);
   const startDate = addDays(baseEnd, 1);
   const expiryDate = addDays(startDate, plan.durationDays);
@@ -403,6 +467,7 @@ export async function renewMembershipImmediately(
   member,
   plan,
 ) {
+  assertNotFrozen(member);
   const startDate = todayStr();
   const expiryDate = addDays(startDate, plan.durationDays);
   await writeRenewal(
@@ -415,6 +480,15 @@ export async function renewMembershipImmediately(
 
 export async function updateMember(gymId, memberId, data) {
   await commit(updateDoc(doc(db, "gyms", gymId, "members", memberId), data));
+}
+
+/** Sets or removes (null/empty) the member's profile photo. */
+export async function setMemberPhoto(gymId, memberId, photoUrl) {
+  await commit(
+    updateDoc(doc(db, "gyms", gymId, "members", memberId), {
+      photoUrl: photoUrl || deleteField(),
+    }),
+  );
 }
 
 export async function getMemberRenewals(gymId, memberId) {
@@ -436,10 +510,17 @@ export async function deleteMember(gymId, memberId) {
   const batch = writeBatch(db);
   const memberRef = doc(db, "gyms", gymId, "members", memberId);
 
-  const renewalsSnap = await getDocs(
-    collection(db, "gyms", gymId, "members", memberId, "renewals"),
+  const [renewalsSnap, freezesSnap] = await Promise.all([
+    getDocs(collection(db, "gyms", gymId, "members", memberId, "renewals")),
+    getDocs(collection(db, "gyms", gymId, "members", memberId, "freezes")),
+  ]);
+  renewalsSnap.docs.forEach((d) => batch.delete(d.ref));
+  freezesSnap.docs.forEach((d) => batch.delete(d.ref));
+
+  // Fixed ids: deleted without reading the (large) documents.
+  DOCUMENT_SLOT_IDS.forEach((slotId) =>
+    batch.delete(doc(memberRef, "documents", slotId)),
   );
-  renewalsSnap.docs.forEach((renewalDoc) => batch.delete(renewalDoc.ref));
 
   const blacklistSnap = await getDocs(
     query(blacklistCollection(gymId), where("memberId", "==", memberId)),
@@ -449,6 +530,108 @@ export async function deleteMember(gymId, memberId) {
   batch.delete(memberRef);
   batch.update(doc(db, "gyms", gymId), { activeMemberCount: increment(-1) });
   await commit(batch.commit());
+}
+
+// ---------- Member documents (loaded only on the Member Profile) ----------
+
+function documentsCollection(gymId, memberId) {
+  return collection(db, "gyms", gymId, "members", memberId, "documents");
+}
+
+/** Live list of a member's documents (max 2). Served from the local cache
+ * first, so repeat visits and offline use don't re-download the images. */
+export function subscribeToMemberDocuments(gymId, memberId, callback) {
+  return onSnapshot(
+    documentsCollection(gymId, memberId),
+    (snap) => {
+      callback(
+        snap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => a.id.localeCompare(b.id)),
+      );
+    },
+    (error) => console.warn("Documents listener error:", error),
+  );
+}
+
+/** Creates or replaces one document slot ("slot1" | "slot2"). */
+export async function saveMemberDocument(gymId, memberId, slotId, data) {
+  if (!DOCUMENT_SLOT_IDS.includes(slotId)) {
+    throw new Error("A member can have at most 2 documents.");
+  }
+  await commit(
+    setDoc(doc(db, "gyms", gymId, "members", memberId, "documents", slotId), {
+      label: data.label || "",
+      imageData: data.imageData,
+      createdAt: serverTimestamp(),
+    }),
+  );
+}
+
+export async function deleteMemberDocument(gymId, memberId, slotId) {
+  await commit(
+    deleteDoc(doc(db, "gyms", gymId, "members", memberId, "documents", slotId)),
+  );
+}
+
+// ---------- Freeze / Unfreeze ----------
+
+/** Pauses the membership. The expiry date is NOT changed while frozen. */
+export async function freezeMember(gymId, memberId, reason = "") {
+  await commit(
+    updateDoc(doc(db, "gyms", gymId, "members", memberId), {
+      frozen: true,
+      freezeStartDate: todayStr(),
+      freezeReason: reason || "",
+    }),
+  );
+}
+
+/** Resumes the membership: pushes expiry (and any scheduled membership)
+ * forward by the days frozen, clears the freeze fields and appends a
+ * permanent freeze-history record, all in one batch. Returns days frozen. */
+export async function unfreezeMember(gymId, memberId, member) {
+  const startDate = member.freezeStartDate || todayStr();
+  const endDate = todayStr();
+  const daysFrozen = Math.max(0, -daysUntil(startDate));
+
+  const memberRef = doc(db, "gyms", gymId, "members", memberId);
+  const batch = writeBatch(db);
+
+  const updates = {
+    frozen: false,
+    freezeStartDate: deleteField(),
+    freezeReason: deleteField(),
+    expiryDate: addDays(member.expiryDate, daysFrozen),
+  };
+  if (member.scheduledMembership) {
+    updates.scheduledMembership = {
+      ...member.scheduledMembership,
+      startDate: addDays(member.scheduledMembership.startDate, daysFrozen),
+      expiryDate: addDays(member.scheduledMembership.expiryDate, daysFrozen),
+    };
+  }
+  batch.update(memberRef, updates);
+
+  batch.set(doc(collection(memberRef, "freezes")), {
+    startDate,
+    endDate,
+    daysFrozen,
+    reason: member.freezeReason || "",
+    createdAt: serverTimestamp(),
+  });
+
+  await commit(batch.commit());
+  return daysFrozen;
+}
+
+export async function getMemberFreezes(gymId, memberId) {
+  const snap = await getDocs(
+    collection(db, "gyms", gymId, "members", memberId, "freezes"),
+  );
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }))
+    .sort((a, b) => (b.endDate || "").localeCompare(a.endDate || ""));
 }
 
 // ---------- Blacklist ----------

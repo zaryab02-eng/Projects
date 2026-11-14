@@ -8,23 +8,42 @@ import ValidityBar from "../components/ui/ValidityBar.jsx";
 import Spinner from "../components/ui/Spinner.jsx";
 import Modal from "../components/ui/Modal.jsx";
 import Select from "../components/ui/Select.jsx";
+import Input from "../components/ui/Input.jsx";
 import Icon from "../components/ui/Icon.jsx";
 import RenewalHistory from "../components/members/RenewalHistory.jsx";
 import ReminderMenu from "../components/members/ReminderMenu.jsx";
+import AvatarPicker from "../components/members/AvatarPicker.jsx";
+import MemberDocuments from "../components/members/MemberDocuments.jsx";
+import EditMemberModal from "../components/members/EditMemberModal.jsx";
 import AddToBlacklistModal from "../components/blacklist/AddToBlacklistModal.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import {
   getMember,
   getMemberRenewals,
+  getMemberFreezes,
+  findMemberByPhone,
+  updateMember,
   subscribeToPlans,
+  subscribeToMemberDocuments,
+  saveMemberDocument,
+  deleteMemberDocument,
+  setMemberPhoto,
   renewExpiredMembership,
   extendMembership,
   renewMembershipImmediately,
+  freezeMember,
+  unfreezeMember,
   addToBlacklist,
   removeFromBlacklist,
   deleteMember,
 } from "../firebase/firestore.js";
-import { formatDisplayDate, daysUntil } from "../utils/dateUtils.js";
+import { formatDisplayDate, daysUntil, addDays } from "../utils/dateUtils.js";
+import {
+  getDaysLeft,
+  getDaysFrozenSoFar,
+  getEffectiveExpiryDate,
+} from "../utils/membershipUtils.js";
+import { formatAadhaar } from "../utils/aadhaarUtils.js";
 import { downloadMemberPdf } from "../utils/pdfUtils.js";
 
 export default function MemberProfile() {
@@ -33,10 +52,15 @@ export default function MemberProfile() {
   const navigate = useNavigate();
   const [member, setMember] = useState(null);
   const [renewals, setRenewals] = useState([]);
+  const [freezes, setFreezes] = useState([]);
+  const [documents, setDocuments] = useState([]);
   const [plans, setPlans] = useState([]);
   const [renewOpen, setRenewOpen] = useState(false);
   const [blacklistOpen, setBlacklistOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [freezeOpen, setFreezeOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [freezeReason, setFreezeReason] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState("");
   const [renewMode, setRenewMode] = useState("extend");
@@ -46,12 +70,14 @@ export default function MemberProfile() {
 
   const load = useCallback(async () => {
     try {
-      const [m, r] = await Promise.all([
+      const [m, r, f] = await Promise.all([
         getMember(gymId, memberId),
         getMemberRenewals(gymId, memberId),
+        getMemberFreezes(gymId, memberId).catch(() => []),
       ]);
       setMember(m);
       setRenewals(r);
+      setFreezes(f);
     } catch (error) {
       console.warn("Unable to load member:", error);
     }
@@ -63,6 +89,10 @@ export default function MemberProfile() {
   useEffect(() => {
     if (gymId) return subscribeToPlans(gymId, setPlans);
   }, [gymId]);
+  // Documents are loaded only here (never in the members list).
+  useEffect(() => {
+    if (gymId) return subscribeToMemberDocuments(gymId, memberId, setDocuments);
+  }, [gymId, memberId]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -76,6 +106,7 @@ export default function MemberProfile() {
   }, [menuOpen]);
 
   const isExpired = member ? daysUntil(member.expiryDate) < 0 : false;
+  const isFrozen = Boolean(member?.frozen);
 
   const openRenewModal = () => {
     setSelectedPlanId(plans[0]?.id || "");
@@ -85,7 +116,7 @@ export default function MemberProfile() {
 
   const handleRenew = async () => {
     const plan = plans.find((p) => p.id === selectedPlanId);
-    if (!plan) return;
+    if (!plan || isFrozen) return;
     setSubmitting(true);
     try {
       if (isExpired) {
@@ -96,6 +127,43 @@ export default function MemberProfile() {
         await renewMembershipImmediately(gymId, memberId, member, plan);
       }
       setRenewOpen(false);
+      await load();
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleEdit = async (data) => {
+    setSubmitting(true);
+    try {
+      if (data.phone !== member.phone) {
+        const existing = await findMemberByPhone(gymId, data.phone);
+        if (existing && existing.id !== memberId) {
+          alert("Another member already uses this phone number.");
+          return;
+        }
+      }
+      await updateMember(gymId, memberId, data);
+      setMember((m) => ({ ...m, ...data }));
+      setEditOpen(false);
+    } catch (error) {
+      console.warn("Could not update member:", error);
+      alert("Could not save changes. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleFreezeToggle = async () => {
+    setSubmitting(true);
+    try {
+      if (isFrozen) {
+        await unfreezeMember(gymId, memberId, member);
+      } else {
+        await freezeMember(gymId, memberId, freezeReason.trim());
+      }
+      setFreezeOpen(false);
+      setFreezeReason("");
       await load();
     } finally {
       setSubmitting(false);
@@ -137,13 +205,23 @@ export default function MemberProfile() {
   const handleDownloadPdf = async () => {
     setPdfBusy(true);
     try {
-      await downloadMemberPdf(member, renewals, gym?.gymName || "Gym-Z");
+      await downloadMemberPdf(
+        member,
+        renewals,
+        gym?.gymName || "Gym-Z",
+        freezes,
+      );
     } catch (error) {
       console.error("PDF export failed:", error);
       alert("Could not create the PDF. Please try again.");
     } finally {
       setPdfBusy(false);
     }
+  };
+
+  const handlePhotoChange = async (photoUrl) => {
+    await setMemberPhoto(gymId, memberId, photoUrl);
+    setMember((m) => ({ ...m, photoUrl: photoUrl || undefined }));
   };
 
   if (!member) {
@@ -156,14 +234,21 @@ export default function MemberProfile() {
     );
   }
 
-  const remaining = daysUntil(member.expiryDate);
-  const initial = member.fullName?.trim()?.[0]?.toUpperCase() || "?";
-  const daysTone =
-    remaining < 0
+  const remaining = getDaysLeft(member, member.expiryDate);
+  const frozenSoFar = getDaysFrozenSoFar(member);
+  const unfreezeExpiry = isFrozen
+    ? addDays(member.expiryDate, frozenSoFar)
+    : null;
+  const daysTone = isFrozen
+    ? "bg-steel-500/15 text-steel-300"
+    : remaining < 0
       ? "bg-vitality-critical/15 text-vitality-critical"
       : remaining <= 7
         ? "bg-vitality-warn/15 text-vitality-warn"
         : "bg-ink-700 text-ink-300";
+
+  const menuItem =
+    "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-ink-700/60 transition-colors";
 
   return (
     <AppShell>
@@ -179,12 +264,21 @@ export default function MemberProfile() {
         {/* Left column */}
         <div className="lg:col-span-3 space-y-5">
           {/* Identity + actions */}
-          <Card className="p-5 sm:p-6">
+          <Card className="p-5 sm:p-6 relative">
+            <button
+              type="button"
+              onClick={() => setEditOpen(true)}
+              className="absolute top-4 right-4 h-8 px-3.5 rounded-full bg-ink-700 hover:bg-ink-600 text-[13px] font-semibold text-ink-100 transition-colors"
+            >
+              Edit
+            </button>
             <div className="flex flex-col items-center text-center sm:flex-row sm:text-left gap-4 sm:gap-5">
-              <div className="h-20 w-20 rounded-full bg-gradient-to-br from-copper-400 to-copper-600 text-white flex items-center justify-center text-3xl font-semibold shrink-0">
-                {initial}
-              </div>
-              <div className="min-w-0">
+              <AvatarPicker
+                member={member}
+                size={80}
+                onChange={handlePhotoChange}
+              />
+              <div className="min-w-0 sm:pr-14">
                 <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
                   <h1 className="text-2xl font-semibold tracking-tight break-words">
                     {member.fullName}
@@ -192,6 +286,7 @@ export default function MemberProfile() {
                   {member.blacklisted && (
                     <Badge variant="critical">Blacklisted</Badge>
                   )}
+                  {isFrozen && <Badge variant="steel">Frozen</Badge>}
                 </div>
                 <p className="text-ink-500 font-mono text-[15px] mt-1">
                   {member.phone}
@@ -211,7 +306,7 @@ export default function MemberProfile() {
                 primary
                 onClick={openRenewModal}
               />
-              {!member.blacklisted && (
+              {!member.blacklisted && !isFrozen && (
                 <ReminderMenu
                   member={member}
                   layout="tile"
@@ -231,14 +326,25 @@ export default function MemberProfile() {
                   onClick={() => setMenuOpen((open) => !open)}
                 />
                 {menuOpen ? (
-                  <div className="absolute right-0 top-full mt-2 w-56 rounded-2xl border border-ink-700/60 bg-ink-800 shadow-sheet p-1.5 z-20 animate-fade-up">
+                  <div className="absolute right-0 top-full mt-2 w-60 rounded-2xl border border-ink-700/60 bg-ink-800 shadow-sheet p-1.5 z-20 animate-fade-up">
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setFreezeReason("");
+                        setFreezeOpen(true);
+                      }}
+                      className={menuItem}
+                    >
+                      <Icon name="snow" size={17} />
+                      {isFrozen ? "Unfreeze Membership" : "Freeze Membership"}
+                    </button>
                     {member.blacklisted ? (
                       <button
                         onClick={() => {
                           setMenuOpen(false);
                           handleUnblacklist();
                         }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-ink-700/60 transition-colors"
+                        className={menuItem}
                       >
                         <Icon name="check" size={17} />
                         Remove from Blacklist
@@ -249,7 +355,7 @@ export default function MemberProfile() {
                           setMenuOpen(false);
                           setBlacklistOpen(true);
                         }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-ink-700/60 transition-colors"
+                        className={menuItem}
                       >
                         <Icon name="ban" size={17} />
                         Blacklist Member
@@ -260,7 +366,7 @@ export default function MemberProfile() {
                         setMenuOpen(false);
                         setDeleteOpen(true);
                       }}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-vitality-critical hover:bg-ink-700/60 transition-colors"
+                      className={`${menuItem} text-vitality-critical`}
                     >
                       <Icon name="trash" size={17} />
                       Remove Member
@@ -285,15 +391,38 @@ export default function MemberProfile() {
               <span
                 className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full font-mono ${daysTone}`}
               >
-                {remaining >= 0
-                  ? `${remaining} days left`
-                  : `${-remaining} days overdue`}
+                {isFrozen
+                  ? `Frozen · ${remaining} days left`
+                  : remaining >= 0
+                    ? `${remaining} days left`
+                    : `${-remaining} days overdue`}
               </span>
             </div>
-            <ValidityBar
-              joiningDate={member.joiningDate}
-              expiryDate={member.expiryDate}
-            />
+
+            {isFrozen ? (
+              <div className="rounded-2xl bg-steel-500/10 p-4 flex items-start gap-3">
+                <span className="h-9 w-9 rounded-full bg-steel-500/15 text-steel-300 flex items-center justify-center shrink-0">
+                  <Icon name="snow" size={18} />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[15px] font-semibold">
+                    Frozen since {formatDisplayDate(member.freezeStartDate)}
+                  </p>
+                  <p className="text-xs text-ink-500 mt-0.5 leading-relaxed">
+                    {frozenSoFar} {frozenSoFar === 1 ? "day" : "days"} so far.
+                    The expiry date stays the same until you unfreeze.
+                    {member.freezeReason
+                      ? ` Reason: ${member.freezeReason}`
+                      : ""}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <ValidityBar
+                joiningDate={member.joiningDate}
+                expiryDate={member.expiryDate}
+              />
+            )}
 
             <div className="grid grid-cols-3 gap-4 mt-6 pt-5 border-t border-ink-700/60">
               <Info
@@ -334,7 +463,7 @@ export default function MemberProfile() {
             <h2 className="text-xs font-semibold uppercase tracking-wider text-ink-500 mb-4">
               Personal Information
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-5">
               <Info label="Alt Phone" value={member.altPhone || "—"} />
               <Info label="Age" value={member.age || "—"} />
               <Info
@@ -344,6 +473,15 @@ export default function MemberProfile() {
                     ? member.gender[0].toUpperCase() + member.gender.slice(1)
                     : "—"
                 }
+              />
+              <Info
+                label="Aadhaar"
+                value={
+                  member.aadhaarNumber
+                    ? formatAadhaar(member.aadhaarNumber)
+                    : "—"
+                }
+                mono
               />
               <Info label="Address" value={member.address || "—"} />
             </div>
@@ -356,72 +494,224 @@ export default function MemberProfile() {
               </div>
             )}
           </Card>
+
+          {/* Documents */}
+          <Card className="p-5 sm:p-6">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-ink-500 mb-4">
+              Documents
+            </h2>
+            <MemberDocuments
+              documents={documents}
+              onSave={(slotId, data) =>
+                saveMemberDocument(gymId, memberId, slotId, data)
+              }
+              onDelete={(slotId) =>
+                deleteMemberDocument(gymId, memberId, slotId)
+              }
+            />
+          </Card>
         </div>
 
         {/* Right column: history */}
-        <div className="lg:col-span-2 lg:sticky lg:top-20">
+        <div className="lg:col-span-2 lg:sticky lg:top-20 space-y-5">
           <Card className="p-5 sm:p-6">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-ink-500 mb-4">
               Renewal History
             </h2>
             <RenewalHistory renewals={renewals} />
           </Card>
+
+          {freezes.length > 0 && (
+            <Card className="p-5 sm:p-6">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-ink-500 mb-4">
+                Freeze History
+              </h2>
+              <ul className="divide-y divide-ink-700/60 -my-3">
+                {freezes.map((f) => (
+                  <li key={f.id} className="py-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-[15px] font-medium">
+                        {formatDisplayDate(f.startDate)} →{" "}
+                        {formatDisplayDate(f.endDate)}
+                      </p>
+                      <span className="shrink-0 text-xs font-semibold font-mono px-2.5 py-1 rounded-full bg-steel-500/15 text-steel-300">
+                        {f.daysFrozen}d
+                      </span>
+                    </div>
+                    {f.reason && (
+                      <p className="text-xs text-ink-500 mt-0.5">{f.reason}</p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
         </div>
       </div>
+
+      <EditMemberModal
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        member={member}
+        onSubmit={handleEdit}
+        submitting={submitting}
+      />
 
       <Modal
         open={renewOpen}
         onClose={() => setRenewOpen(false)}
         title="Renew Membership"
         footer={
-          <Button className="w-full" loading={submitting} onClick={handleRenew}>
-            Confirm Renewal
-          </Button>
+          isFrozen ? (
+            <>
+              <Button
+                variant="ghost"
+                className="w-full"
+                onClick={() => setRenewOpen(false)}
+              >
+                Close
+              </Button>
+              <Button
+                className="w-full"
+                onClick={() => {
+                  setRenewOpen(false);
+                  setFreezeReason("");
+                  setFreezeOpen(true);
+                }}
+              >
+                Unfreeze
+              </Button>
+            </>
+          ) : (
+            <Button
+              className="w-full"
+              loading={submitting}
+              onClick={handleRenew}
+            >
+              Confirm Renewal
+            </Button>
+          )
         }
       >
-        <div className="space-y-5">
-          <Select
-            label="Select Plan"
-            value={selectedPlanId}
-            onChange={(e) => setSelectedPlanId(e.target.value)}
-            options={plans.map((p) => ({
-              value: p.id,
-              label: `${p.name} — ₹${p.fee}`,
-            }))}
-          />
+        {isFrozen ? (
+          <p className="text-[13px] text-ink-300 bg-ink-900 rounded-2xl p-4 leading-relaxed">
+            This membership is frozen. Unfreeze it first, then renew.
+          </p>
+        ) : (
+          <div className="space-y-5">
+            <Select
+              label="Select Plan"
+              value={selectedPlanId}
+              onChange={(e) => setSelectedPlanId(e.target.value)}
+              options={plans.map((p) => ({
+                value: p.id,
+                label: `${p.name} — ₹${p.fee}`,
+              }))}
+            />
 
-          {isExpired ? (
-            <p className="text-[13px] text-ink-300 bg-ink-900 rounded-2xl p-4 leading-relaxed">
-              This membership has expired. The new plan will start{" "}
-              <span className="text-ink-50 font-semibold">today</span>.
-            </p>
-          ) : (
-            <div className="space-y-2.5">
-              <p className="text-[13px] font-medium text-ink-300">
-                Renewal Mode
+            {isExpired ? (
+              <p className="text-[13px] text-ink-300 bg-ink-900 rounded-2xl p-4 leading-relaxed">
+                This membership has expired. The new plan will start{" "}
+                <span className="text-ink-50 font-semibold">today</span>.
               </p>
-              <ModeOption
-                selected={renewMode === "extend"}
-                onClick={() => setRenewMode("extend")}
-                title="Extend Current Membership"
-                badge="Recommended"
+            ) : (
+              <div className="space-y-2.5">
+                <p className="text-[13px] font-medium text-ink-300">
+                  Renewal Mode
+                </p>
+                <ModeOption
+                  selected={renewMode === "extend"}
+                  onClick={() => setRenewMode("extend")}
+                  title="Extend Current Membership"
+                  badge="Recommended"
+                >
+                  Starts right after the current plan ends on{" "}
+                  {formatDisplayDate(getEffectiveExpiryDate(member))}. No
+                  remaining days are lost.
+                </ModeOption>
+                <ModeOption
+                  selected={renewMode === "immediate"}
+                  onClick={() => setRenewMode("immediate")}
+                  title="Start Immediately"
+                >
+                  Ends the current plan today. Any remaining days are discarded.
+                </ModeOption>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        open={freezeOpen}
+        onClose={() => setFreezeOpen(false)}
+        title={isFrozen ? "Unfreeze Membership" : "Freeze Membership"}
+        footer={
+          !isFrozen && isExpired ? (
+            <Button
+              variant="ghost"
+              className="w-full"
+              onClick={() => setFreezeOpen(false)}
+            >
+              Close
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                className="w-full"
+                onClick={() => setFreezeOpen(false)}
+                disabled={submitting}
               >
-                Starts right after the current plan ends on{" "}
-                {formatDisplayDate(
-                  member.scheduledMembership?.expiryDate || member.expiryDate,
-                )}
-                . No remaining days are lost.
-              </ModeOption>
-              <ModeOption
-                selected={renewMode === "immediate"}
-                onClick={() => setRenewMode("immediate")}
-                title="Start Immediately"
+                Cancel
+              </Button>
+              <Button
+                className="w-full"
+                loading={submitting}
+                onClick={handleFreezeToggle}
               >
-                Ends the current plan today. Any remaining days are discarded.
-              </ModeOption>
-            </div>
-          )}
-        </div>
+                {isFrozen ? "Unfreeze" : "Freeze"}
+              </Button>
+            </>
+          )
+        }
+      >
+        {isFrozen ? (
+          <p className="text-[15px] text-ink-300 leading-relaxed">
+            <span className="font-semibold text-ink-50">{member.fullName}</span>{" "}
+            has been frozen since {formatDisplayDate(member.freezeStartDate)} (
+            {frozenSoFar} {frozenSoFar === 1 ? "day" : "days"}). The expiry date
+            will move forward by {frozenSoFar}{" "}
+            {frozenSoFar === 1 ? "day" : "days"} to{" "}
+            <span className="font-semibold text-ink-50">
+              {formatDisplayDate(unfreezeExpiry)}
+            </span>
+            .
+          </p>
+        ) : isExpired ? (
+          <p className="text-[13px] text-ink-300 bg-ink-900 rounded-2xl p-4 leading-relaxed">
+            This membership has already expired, so it can&apos;t be frozen.
+            Renew it first, then freeze if needed.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-[15px] text-ink-300 leading-relaxed">
+              Pause{" "}
+              <span className="font-semibold text-ink-50">
+                {member.fullName}
+              </span>
+              &apos;s membership from today. The expiry date stays unchanged
+              while frozen and moves forward by the days frozen when you
+              unfreeze. Frozen members get no reminders and no alerts.
+            </p>
+            <Input
+              label="Reason (optional)"
+              value={freezeReason}
+              onChange={(e) => setFreezeReason(e.target.value)}
+              placeholder="e.g. Illness, travelling"
+            />
+          </div>
+        )}
       </Modal>
 
       <AddToBlacklistModal
@@ -459,8 +749,8 @@ export default function MemberProfile() {
         <p className="text-[15px] text-ink-300 leading-relaxed">
           This will permanently delete{" "}
           <span className="font-semibold text-ink-50">{member.fullName}</span>,
-          including their full renewal history and blacklist record. This cannot
-          be undone.
+          including their renewal history, freeze history, documents and
+          blacklist record. This cannot be undone.
         </p>
       </Modal>
     </AppShell>
@@ -527,12 +817,12 @@ function ModeOption({ selected, onClick, title, badge, children }) {
   );
 }
 
-function Info({ label, value, accent }) {
+function Info({ label, value, accent, mono }) {
   return (
     <div className="min-w-0">
       <p className="text-xs text-ink-500">{label}</p>
       <p
-        className={`font-medium mt-0.5 break-words text-[15px] ${accent ? "text-copper-400 font-mono" : ""}`}
+        className={`font-medium mt-0.5 break-words text-[15px] ${accent ? "text-copper-400 font-mono" : ""} ${mono ? "font-mono" : ""}`}
       >
         {value}
       </p>
