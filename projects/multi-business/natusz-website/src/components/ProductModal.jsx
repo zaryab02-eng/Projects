@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import ProductVisual from "./ProductVisual";
 import WhatsAppIcon from "./WhatsAppIcon";
@@ -50,7 +51,9 @@ export default function ProductModal({ product, onClose }) {
     ...getDetails(product).map((d) => [d.label, d.value]),
   ].filter(([, v]) => v);
 
-  return (
+  // The pop-up is drawn directly on the page body (a "portal"), so it always sits in the same
+  // place on the screen, no matter where the product was when you tapped it.
+  return createPortal(
     <div
       className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center sm:p-6"
       role="dialog"
@@ -61,7 +64,9 @@ export default function ProductModal({ product, onClose }) {
         className="absolute inset-0 bg-ink/70 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="relative grid max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-t-3xl bg-paper sm:rounded-3xl md:grid-cols-2">
+
+      {/* This box does not scroll, so the close button always stays visible. Only the content inside scrolls. */}
+      <div className="relative w-full max-w-4xl overflow-hidden rounded-t-3xl bg-paper sm:rounded-3xl">
         <button
           ref={closeRef}
           type="button"
@@ -72,71 +77,74 @@ export default function ProductModal({ product, onClose }) {
           <X className="h-5 w-5" />
         </button>
 
-        <div
-          className={`bg-mist ${product.image ? "p-5 sm:p-8" : "p-8 sm:p-12"}`}
-        >
+        <div className="grid max-h-[92dvh] overflow-y-auto overscroll-contain md:grid-cols-2">
           <div
-            className={`mx-auto aspect-square w-full ${product.image ? "max-w-[400px]" : "max-w-[320px]"}`}
+            className={`bg-mist ${product.image ? "p-5 sm:p-8" : "p-8 sm:p-12"}`}
           >
-            {product.image ? (
-              <img
-                src={product.image}
-                alt={product.name}
-                className="h-full w-full object-contain"
-              />
-            ) : (
-              <ProductVisual product={product} color={cat?.color} />
+            <div
+              className={`mx-auto aspect-square w-full ${product.image ? "max-w-[400px]" : "max-w-[320px]"}`}
+            >
+              {product.image ? (
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="h-full w-full object-contain"
+                />
+              ) : (
+                <ProductVisual product={product} color={cat?.color} />
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col p-7 sm:p-10">
+            <p className="text-sm font-medium text-brand-dark">{cat?.name}</p>
+            <h2 className="mt-2 pr-8 text-3xl leading-tight sm:text-4xl">
+              {product.name}
+            </h2>
+            {product.description && (
+              <p className="mt-4 leading-relaxed text-ink/70">
+                {product.description}
+              </p>
             )}
+
+            <dl className="mt-6 divide-y divide-ink/10 border-y border-ink/10 text-sm">
+              {rows.map(([k, v], i) => (
+                <div
+                  key={`${k}-${i}`}
+                  className="grid grid-cols-[110px_1fr] gap-3 py-3"
+                >
+                  <dt
+                    className={
+                      isPrice(k) ? "font-semibold text-ink" : "text-ink/50"
+                    }
+                  >
+                    {k}
+                  </dt>
+                  <dd
+                    className={`whitespace-pre-line break-words ${isPrice(k) ? "text-base font-bold" : "font-medium"}`}
+                  >
+                    {isPrice(k) ? formatPrice(v) : v}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+
+            <a
+              href={productEnquiryLink(product, cat?.name)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-7 inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-3.5 text-sm font-semibold text-white transition hover:brightness-95"
+            >
+              <WhatsAppIcon className="h-5 w-5" />
+              Enquire on WhatsApp
+            </a>
+            <p className="mt-3 text-xs text-ink/50">
+              Availability and details are shared on request.
+            </p>
           </div>
         </div>
-
-        <div className="flex flex-col p-7 sm:p-10">
-          <p className="text-sm font-medium text-brand-dark">{cat?.name}</p>
-          <h2 className="mt-2 text-3xl leading-tight sm:text-4xl">
-            {product.name}
-          </h2>
-          {product.description && (
-            <p className="mt-4 leading-relaxed text-ink/70">
-              {product.description}
-            </p>
-          )}
-
-          <dl className="mt-6 divide-y divide-ink/10 border-y border-ink/10 text-sm">
-            {rows.map(([k, v], i) => (
-              <div
-                key={`${k}-${i}`}
-                className="grid grid-cols-[110px_1fr] gap-3 py-3"
-              >
-                <dt
-                  className={
-                    isPrice(k) ? "font-semibold text-ink" : "text-ink/50"
-                  }
-                >
-                  {k}
-                </dt>
-                <dd
-                  className={`whitespace-pre-line break-words ${isPrice(k) ? "text-base font-bold" : "font-medium"}`}
-                >
-                  {isPrice(k) ? formatPrice(v) : v}
-                </dd>
-              </div>
-            ))}
-          </dl>
-
-          <a
-            href={productEnquiryLink(product, cat?.name)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-7 inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-3.5 text-sm font-semibold text-white transition hover:brightness-95"
-          >
-            <WhatsAppIcon className="h-5 w-5" />
-            Enquire on WhatsApp
-          </a>
-          <p className="mt-3 text-xs text-ink/50">
-            Availability and details are shared on request.
-          </p>
-        </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

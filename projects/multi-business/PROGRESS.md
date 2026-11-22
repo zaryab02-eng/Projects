@@ -99,7 +99,8 @@ Website folder:
 
 - `src/lib/content.jsx` (adds Others, passes details through)
 - `src/components/ProductCard.jsx` (photo not stretched, shows short details)
-- `src/components/ProductModal.jsx` (photo not stretched, shows all details; price in bold with ₹)
+- `src/components/ProductModal.jsx` (photo not stretched, shows all details; price in bold with ₹; opens in a portal so it
+  always appears in the same place and the close button never scrolls out of view)
 - `src/components/Navbar.jsx` (menu bar solid on every page except the top of Home)
 - `src/lib/ready.js` (fixes the blank hero on the very first visit: waiting animations now start outside the loader's GSAP callback, plus an 8 second safety net)
 - `src/gallery.css` (latest: blur on computers only, darker backdrop on phones, no drop-shadow)
