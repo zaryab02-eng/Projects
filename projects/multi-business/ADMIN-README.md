@@ -237,6 +237,7 @@ natusz-admin/
 - **Forgot password:** _Forgot password?_ on the login screen, or reset it in Firebase → Authentication.
 - **Default categories** for a site that has not set its own: `src/data/products.js` (`categories`).
 - **Update the live app:** change files, then `git add .`, `git commit -m "update"`, `git push`. Cloudflare redeploys by itself.
+  If the website and the admin app share one repo, one push rebuilds both projects. That is normal.
 
 ## 8. Good to know
 

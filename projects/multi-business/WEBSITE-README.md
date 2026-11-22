@@ -59,6 +59,7 @@ natusz-website/
    ├─ lib/firebase.js          Connects to Firebase, reads VITE_SITE_ID
    ├─ lib/content.jsx          Loads products, gallery and categories from Firebase
    ├─ lib/images.js            Asks Cloudinary for web-sized photos
+   ├─ lib/ready.js             Makes the hero and gallery wait for the opening intro to finish
    ├─ pages/                   One file per page (Home, About, Products, Gallery, Contact, NotFound)
    ├─ components/              Reusable pieces (Navbar, Footer, Logo, product cards, animations...)
    ├─ gallery/NatuszGallery.js The gallery engine (your supplied code, adapted)
@@ -207,6 +208,7 @@ The logo is drawn as vectors in `src/components/logoPaths.js` (converted from th
 `index.html` for page links like `/products`, so refreshing those pages works.
 
 To update the live website later: change files, then `git add .`, `git commit -m "update"`, `git push`.
+If the website and the admin app share one repo, one push rebuilds both Cloudflare projects. That is normal.
 
 ---
 
@@ -233,6 +235,13 @@ To update the live website later: change files, then `git add .`, `git commit -m
   the admin app has products saved for that site id.
 - **A detail (like price) added in the admin app does not show:** make sure `ProductCard.jsx`, `ProductModal.jsx` and
   `src/lib/content.jsx` are the new versions that read the `details` list, then refresh.
+- **Hero blank on the very first visit, fine after a refresh:** make sure `src/lib/ready.js` is the current version
+  (it starts the waiting animations outside the intro's own GSAP callback, with an 8 second safety net).
+- **Gallery photo does not open when tapped:** `src/gallery/NatuszGallery.js` needs the `onClick` callback inside
+  `initDraggable` (Draggable can swallow normal taps).
+- **Gallery is slow on a phone:** blur is only used on computers with a mouse. Phones use a darker backdrop (`src/gallery.css`).
+- **Product pop-up opens out of place or its close button is hidden:** make sure `ProductModal.jsx` is the current
+  version. It draws the pop-up directly on the page body so it always appears in the same place.
 
 ---
 
