@@ -32,12 +32,14 @@ export class NatuszGallery {
     this.controlsContainer = document.getElementById("controlsContainer");
     this.soundToggle = document.getElementById("soundToggle");
     // Create custom eases safely (fall back to standards if GSAP CustomEase script is missing)
-    this.customEase = (typeof CustomEase !== "undefined")
-      ? CustomEase.create("smooth", ".87,0,.13,1")
-      : "power2.inOut";
-    this.centerEase = (typeof CustomEase !== "undefined")
-      ? CustomEase.create("center", ".25,.46,.45,.94")
-      : "power2.out";
+    this.customEase =
+      typeof CustomEase !== "undefined"
+        ? CustomEase.create("smooth", ".87,0,.13,1")
+        : "power2.inOut";
+    this.centerEase =
+      typeof CustomEase !== "undefined"
+        ? CustomEase.create("center", ".25,.46,.45,.94")
+        : "power2.out";
     // Configuration
     this.config = {
       itemSize: 320,
@@ -45,20 +47,20 @@ export class NatuszGallery {
       rows: 8,
       cols: 12,
       currentZoom: 0.6,
-      currentGap: 32
+      currentGap: 32,
     };
     // State
     this.zoomState = {
       isActive: false,
       selectedItem: null,
       flipAnimation: null,
-      scalingOverlay: null
+      scalingOverlay: null,
     };
     this.gridItems = [];
     this.gridDimensions = {};
     this.lastValidPosition = {
       x: 0,
-      y: 0
+      y: 0,
     };
     this.draggable = null;
     this.viewportObserver = null;
@@ -75,17 +77,17 @@ export class NatuszGallery {
         open: new Audio("https://assets.codepen.io/7558/click-glitch-001.mp3"),
         close: new Audio("https://assets.codepen.io/7558/click-glitch-001.mp3"),
         "zoom-in": new Audio(
-          "https://assets.codepen.io/7558/whoosh-fx-001.mp3"
+          "https://assets.codepen.io/7558/whoosh-fx-001.mp3",
         ),
         "zoom-out": new Audio(
-          "https://assets.codepen.io/7558/whoosh-fx-001.mp3"
+          "https://assets.codepen.io/7558/whoosh-fx-001.mp3",
         ),
         "drag-start": new Audio(
-          "https://assets.codepen.io/7558/preloader-2s-001.mp3"
+          "https://assets.codepen.io/7558/preloader-2s-001.mp3",
         ),
         "drag-end": new Audio(
-          "https://assets.codepen.io/7558/preloader-2s-001.mp3"
-        )
+          "https://assets.codepen.io/7558/preloader-2s-001.mp3",
+        ),
       },
       play: (soundName) => {
         if (!this.soundSystem.enabled || !this.soundSystem.sounds[soundName])
@@ -109,7 +111,7 @@ export class NatuszGallery {
             this.soundSystem.play("click");
           }, 50);
         }
-      }
+      },
     };
     // Preload sounds
     Object.values(this.soundSystem.sounds).forEach((audio) => {
@@ -189,7 +191,7 @@ export class NatuszGallery {
     this.imageData = this.items.map((item, i) => ({
       number: String(i + 1).padStart(2, "0"),
       title: item.title,
-      description: item.description
+      description: item.description,
     }));
   }
   // Custom line splitting function (since we can't use SplitText)
@@ -250,7 +252,7 @@ export class NatuszGallery {
       height: totalHeight,
       scaledWidth: totalWidth * this.config.currentZoom,
       scaledHeight: totalHeight * this.config.currentZoom,
-      gap: gap
+      gap: gap,
     };
     return this.gridDimensions;
   }
@@ -279,13 +281,14 @@ export class NatuszGallery {
         // Hide initially - will be positioned and shown in playIntroAnimation
         item.style.opacity = "0";
 
-        const imageUrl = this.fashionImages[
-          imageIndex % this.fashionImages.length
-        ];
+        const imageUrl =
+          this.fashionImages[imageIndex % this.fashionImages.length];
         imageIndex++;
         const img = document.createElement("img");
         img.src = imageUrl;
-        img.alt = this.items[(imageIndex - 1) % this.items.length]?.title || `Natusz gallery photo ${imageIndex}`;
+        img.alt =
+          this.items[(imageIndex - 1) % this.items.length]?.title ||
+          `Natusz gallery photo ${imageIndex}`;
         item.appendChild(img);
         const itemData = {
           element: item,
@@ -295,7 +298,7 @@ export class NatuszGallery {
           baseX: x,
           baseY: y,
           imageUrl: imageUrl,
-          index: this.gridItems.length
+          index: this.gridItems.length,
         };
         // Add click event for zoom
         item.addEventListener("click", () => {
@@ -328,14 +331,14 @@ export class NatuszGallery {
             gsap.to(entry.target, {
               opacity: 1,
               duration: 0.6,
-              ease: "power2.out"
+              ease: "power2.out",
             });
           } else {
             entry.target.classList.add("out-of-view");
             gsap.to(entry.target, {
               opacity: 0.1,
               duration: 0.6,
-              ease: "power2.out"
+              ease: "power2.out",
             });
           }
         });
@@ -343,8 +346,8 @@ export class NatuszGallery {
       {
         root: null,
         threshold: 0.15,
-        rootMargin: "10%"
-      }
+        rootMargin: "10%",
+      },
     );
     // Observe all grid items
     this.gridItems.forEach((item) => {
@@ -362,7 +365,7 @@ export class NatuszGallery {
       // Split description into lines
       this.descriptionLines = this.splitTextIntoLines(
         descriptionElement,
-        data.description
+        data.description,
       );
     }
   }
@@ -374,14 +377,16 @@ export class NatuszGallery {
     img.alt = sourceImg.alt;
     overlay.appendChild(img);
     // Added inside the gallery root so it stays below the caption and controls
-    (document.querySelector(".gallery-root") || document.body).appendChild(overlay);
+    (document.querySelector(".gallery-root") || document.body).appendChild(
+      overlay,
+    );
     const sourceRect = sourceImg.getBoundingClientRect();
     gsap.set(overlay, {
       left: sourceRect.left,
       top: sourceRect.top,
       width: sourceRect.width,
       height: sourceRect.height,
-      opacity: 1
+      opacity: 1,
     });
     return overlay;
   }
@@ -399,13 +404,13 @@ export class NatuszGallery {
     gsap.to(splitContainer, {
       opacity: 1,
       duration: 1.2,
-      ease: this.customEase
+      ease: this.customEase,
     });
     this.zoomState.scalingOverlay = this.createScalingOverlay(
-      selectedItemData.img
+      selectedItemData.img,
     );
     gsap.set(selectedItemData.img, {
-      opacity: 0
+      opacity: 0,
     });
     this.zoomState.flipAnimation = Flip.fit(
       this.zoomState.scalingOverlay,
@@ -420,22 +425,22 @@ export class NatuszGallery {
           // Reset positions for animation
           gsap.set("#imageSlideNumber span", {
             y: 20,
-            opacity: 0
+            opacity: 0,
           });
           gsap.set("#imageSlideTitle h1", {
             y: 60,
-            opacity: 0
+            opacity: 0,
           });
           gsap.set(this.descriptionLines, {
             y: 80,
-            opacity: 0
+            opacity: 0,
           });
           // Show overlay container immediately
           imageTitleOverlay.classList.add("active");
           gsap.to(imageTitleOverlay, {
             opacity: 1,
             duration: 0.3,
-            ease: "power2.out"
+            ease: "power2.out",
           });
           // Animate in number - much sooner
           gsap.to("#imageSlideNumber span", {
@@ -443,7 +448,7 @@ export class NatuszGallery {
             y: 0,
             opacity: 1,
             ease: this.customEase,
-            delay: 0.1
+            delay: 0.1,
           });
           // Animate in title - sooner
           gsap.to("#imageSlideTitle h1", {
@@ -451,7 +456,7 @@ export class NatuszGallery {
             y: 0,
             opacity: 1,
             ease: this.customEase,
-            delay: 0.15
+            delay: 0.15,
           });
           // Animate description lines one by one - much sooner
           gsap.to(this.descriptionLines, {
@@ -460,25 +465,25 @@ export class NatuszGallery {
             opacity: 1,
             ease: this.customEase,
             delay: 0.2,
-            stagger: 0.15
+            stagger: 0.15,
           });
-        }
-      }
+        },
+      },
     );
     this.controlsContainer.classList.add("split-mode");
     gsap.fromTo(
       this.closeButton,
       {
         x: 40,
-        opacity: 0
+        opacity: 0,
       },
       {
         x: 0,
         opacity: 1,
         duration: 0.6,
         ease: "power2.out",
-        delay: 0.9
-      }
+        delay: 0.9,
+      },
     );
     this.closeButton.classList.add("active");
     // Add event listeners
@@ -521,19 +526,19 @@ export class NatuszGallery {
     gsap.to(overlayElement, {
       opacity: 0,
       duration: 0.3,
-      ease: "power2.out"
+      ease: "power2.out",
     });
     gsap.to("#imageSlideNumber span", {
       duration: 0.4,
       y: -20,
       opacity: 0,
-      ease: "power2.out"
+      ease: "power2.out",
     });
     gsap.to("#imageSlideTitle h1", {
       duration: 0.4,
       y: -60,
       opacity: 0,
-      ease: "power2.out"
+      ease: "power2.out",
     });
     if (this.descriptionLines) {
       gsap.to(this.descriptionLines, {
@@ -547,31 +552,31 @@ export class NatuszGallery {
           // Reset all text elements
           gsap.set("#imageSlideNumber span", {
             y: 20,
-            opacity: 0
+            opacity: 0,
           });
           gsap.set("#imageSlideTitle h1", {
             y: 60,
-            opacity: 0
+            opacity: 0,
           });
           gsap.set(this.descriptionLines, {
             y: 80,
-            opacity: 0
+            opacity: 0,
           });
-        }
+        },
       });
     }
     gsap.to(this.closeButton, {
       duration: 0.3,
       opacity: 0,
       x: 40,
-      ease: "power2.in"
+      ease: "power2.in",
     });
     splitContainer.classList.remove("active");
     this.controlsContainer.classList.remove("split-mode");
     gsap.to(splitContainer, {
       opacity: 0,
       duration: 0.8,
-      ease: "power2.out"
+      ease: "power2.out",
     });
     Flip.fit(this.zoomState.scalingOverlay, selectedElement, {
       duration: 1.2,
@@ -579,7 +584,7 @@ export class NatuszGallery {
       absolute: true,
       onComplete: () => {
         gsap.set(selectedImg, {
-          opacity: 1
+          opacity: 1,
         });
         if (this.zoomState.scalingOverlay) {
           this.zoomState.scalingOverlay.remove();
@@ -592,13 +597,13 @@ export class NatuszGallery {
         this.zoomState.isActive = false;
         this.zoomState.selectedItem = null;
         this.zoomState.flipAnimation = null;
-      }
+      },
     });
     if (this.zoomState.scalingOverlay) {
       gsap.to(this.zoomState.scalingOverlay, {
         opacity: 0.4,
         duration: 0.8,
-        ease: "power2.out"
+        ease: "power2.out",
       });
     }
   }
@@ -633,7 +638,7 @@ export class NatuszGallery {
       minX,
       maxX,
       minY,
-      maxY
+      maxY,
     };
   }
   initDraggable() {
@@ -642,9 +647,9 @@ export class NatuszGallery {
     }
     this.calculateGridDimensions(this.config.currentGap);
     const bounds = this.calculateBounds();
-    
+
     const hasInertia = typeof InertiaPlugin !== "undefined";
-    
+
     this.draggable = Draggable.create(this.canvasWrapper, {
       type: "x,y",
       bounds: bounds,
@@ -655,14 +660,14 @@ export class NatuszGallery {
           x: {
             velocity: "auto",
             resistance: 300,
-            end: (endValue) => Math.round(endValue)
+            end: (endValue) => Math.round(endValue),
           },
           y: {
             velocity: "auto",
             resistance: 300,
-            end: (endValue) => Math.round(endValue)
-          }
-        }
+            end: (endValue) => Math.round(endValue),
+          },
+        },
       }),
       onDragStart: () => {
         document.body.classList.add("dragging");
@@ -677,7 +682,18 @@ export class NatuszGallery {
       onDragEnd: () => {
         document.body.classList.remove("dragging");
         this.soundSystem.play("drag-end");
-      }
+      },
+      // Draggable can swallow normal taps, so open the photo from its own click callback
+      onClick: (e) => {
+        if (this.zoomState.isActive) return;
+        const el =
+          e.target && e.target.closest ? e.target.closest(".grid-item") : null;
+        const itemData = el && this.gridItems.find((g) => g.element === el);
+        if (itemData) {
+          this.soundSystem.play("click");
+          this.enterZoomMode(itemData);
+        }
+      },
     })[0];
   }
   handleMouseLeave() {
@@ -687,7 +703,7 @@ export class NatuszGallery {
         duration: 0.6,
         x: this.lastValidPosition.x,
         y: this.lastValidPosition.y,
-        ease: "power2.out"
+        ease: "power2.out",
       });
       if (this.draggable) {
         this.draggable.endDrag();
@@ -733,7 +749,7 @@ export class NatuszGallery {
         top: centerY,
         scale: 0.8,
         zIndex: zIndex,
-        opacity: 0 // Keep hidden, will fade in during animation
+        opacity: 0, // Keep hidden, will fade in during animation
       });
     });
 
@@ -750,33 +766,32 @@ export class NatuszGallery {
         stagger: {
           amount: 1.5,
           from: "start",
-          grid: [this.config.rows, this.config.cols]
+          grid: [this.config.rows, this.config.cols],
         },
         onComplete: () => {
           this.gridItems.forEach((itemData) => {
             gsap.set(itemData.element, {
-              zIndex: 1
+              zIndex: 1,
             });
           });
           // Show controls with staggered animation
           const percentageIndicator = this.controlsContainer.querySelector(
-            ".percentage-indicator"
+            ".percentage-indicator",
           );
           const switchElement = this.controlsContainer.querySelector(".switch");
-          const soundToggle = this.controlsContainer.querySelector(
-            ".sound-toggle"
-          );
+          const soundToggle =
+            this.controlsContainer.querySelector(".sound-toggle");
           gsap.set(this.controlsContainer, {
-            opacity: 0
+            opacity: 0,
           });
           gsap.set(percentageIndicator, {
-            x: "-3em"
+            x: "-3em",
           });
           gsap.set(switchElement, {
-            y: "2em"
+            y: "2em",
           });
           gsap.set(soundToggle, {
-            x: "3em"
+            x: "3em",
           });
           const navTimeline = gsap.timeline();
           navTimeline.to(
@@ -784,40 +799,40 @@ export class NatuszGallery {
             {
               opacity: 1,
               duration: 0.5,
-              ease: "power2.out"
+              ease: "power2.out",
             },
-            0
+            0,
           );
           navTimeline.to(
             percentageIndicator,
             {
               x: 0,
               duration: 0.2,
-              ease: "power2.out"
+              ease: "power2.out",
             },
-            0.25
+            0.25,
           );
           navTimeline.to(
             switchElement,
             {
               y: 0,
               duration: 0.2,
-              ease: "power2.out"
+              ease: "power2.out",
             },
-            0.3
+            0.3,
           );
           navTimeline.to(
             soundToggle,
             {
               x: 0,
               duration: 0.2,
-              ease: "power2.out"
+              ease: "power2.out",
             },
-            0.35
+            0.35,
           );
           this.controlsContainer.classList.add("visible");
-        }
-      }
+        },
+      },
     );
   }
   autoFitZoom(buttonElement = null) {
@@ -854,7 +869,7 @@ export class NatuszGallery {
               duration: 1.0,
               left: newX,
               top: newY,
-              ease: this.customEase
+              ease: this.customEase,
             });
           });
           const newWidth =
@@ -865,7 +880,7 @@ export class NatuszGallery {
             duration: 1.0,
             width: newWidth,
             height: newHeight,
-            ease: this.customEase
+            ease: this.customEase,
           });
           this.config.currentGap = newGap;
         }
@@ -884,9 +899,9 @@ export class NatuszGallery {
             this.lastValidPosition.x = finalCenterX;
             this.lastValidPosition.y = finalCenterY;
             this.initDraggable();
-          }
+          },
         });
-      }
+      },
     });
     this.updatePercentageIndicator(fitZoom);
     document.querySelectorAll(".switch-button").forEach((btn) => {
@@ -898,9 +913,8 @@ export class NatuszGallery {
   }
   updatePercentageIndicator(zoomLevel) {
     const percentage = Math.round(zoomLevel * 100);
-    document.getElementById(
-      "percentageIndicator"
-    ).textContent = `${percentage}%`;
+    document.getElementById("percentageIndicator").textContent =
+      `${percentage}%`;
   }
   setZoom(zoomLevel, buttonElement = null) {
     if (this.zoomState.isActive) {
@@ -934,7 +948,7 @@ export class NatuszGallery {
               duration: 1.2,
               left: newX,
               top: newY,
-              ease: this.customEase
+              ease: this.customEase,
             });
           });
           const newWidth =
@@ -945,7 +959,7 @@ export class NatuszGallery {
             duration: 1.2,
             width: newWidth,
             height: newHeight,
-            ease: this.customEase
+            ease: this.customEase,
           });
           this.config.currentGap = newGap;
         }
@@ -965,9 +979,9 @@ export class NatuszGallery {
             this.lastValidPosition.y = finalCenterY;
             this.calculateGridDimensions(newGap);
             this.initDraggable();
-          }
+          },
         });
-      }
+      },
     });
     this.updatePercentageIndicator(zoomLevel);
     document.querySelectorAll(".switch-button").forEach((btn) => {
@@ -1004,7 +1018,7 @@ export class NatuszGallery {
         this.lastValidPosition.x = centerX;
         this.lastValidPosition.y = centerY;
         this.initDraggable();
-      }
+      },
     });
   }
   init() {
@@ -1015,7 +1029,7 @@ export class NatuszGallery {
     gsap.set(this.viewport, { opacity: 0 });
 
     gsap.set(this.canvasWrapper, {
-      scale: this.config.currentZoom
+      scale: this.config.currentZoom,
     });
     this.calculateGridDimensions(this.config.currentGap);
     const vw = window.innerWidth;
@@ -1025,7 +1039,7 @@ export class NatuszGallery {
     const centerY = (vh - scaledHeight) / 2;
     gsap.set(this.canvasWrapper, {
       x: centerX,
-      y: centerY
+      y: centerY,
     });
     this.lastValidPosition.x = centerX;
     this.lastValidPosition.y = centerY;
@@ -1046,7 +1060,7 @@ export class NatuszGallery {
           this.initDraggable();
           this.setupViewportObserver();
         }, 1500);
-      }
+      },
     });
   }
   later(fn, ms) {
@@ -1107,8 +1121,13 @@ export class NatuszGallery {
     if (this.viewportObserver) this.viewportObserver.disconnect();
     if (this.draggable) this.draggable.kill();
     if (this.zoomState.flipAnimation) this.zoomState.flipAnimation.kill();
-    if (this.zoomState.scalingOverlay && this.zoomState.scalingOverlay.parentNode) {
-      this.zoomState.scalingOverlay.parentNode.removeChild(this.zoomState.scalingOverlay);
+    if (
+      this.zoomState.scalingOverlay &&
+      this.zoomState.scalingOverlay.parentNode
+    ) {
+      this.zoomState.scalingOverlay.parentNode.removeChild(
+        this.zoomState.scalingOverlay,
+      );
     }
     gsap.killTweensOf([
       this.viewport,
@@ -1117,7 +1136,7 @@ export class NatuszGallery {
       this.imageTitleOverlay,
       this.closeButton,
       this.controlsContainer,
-      ...this.gridItems.map((g) => g.element)
+      ...this.gridItems.map((g) => g.element),
     ]);
     Object.values(this.soundSystem.sounds).forEach((a) => a.pause());
     document.body.classList.remove("zoom-mode", "dragging");

@@ -67,6 +67,10 @@ VITE_SITE_ID=natusz
 - [x] Settings fixed, sample products loaded (18 products), website shows products, gallery photos show on the website
 - [x] Round 2 changes written (see "Files changed in round 2" below): "Others" category, own product details
       (price etc.), photos shown whole instead of cropped or stretched. Not yet tested by running.
+- [x] Gallery photo view: blurred background and menu bar, photo centred, title and caption underneath (new `gallery.css`)
+- [x] Menu bar solid on every page except the top of Home, bold price with ₹
+- [x] Both projects are in ONE GitHub repo (`zaryab02-eng/Projects`). Website deployed on Cloudflare Pages
+      (Root directory = website folder). Admin app deploy is next.
 
 ## NEXT STEPS (do in order)
 
@@ -78,9 +82,10 @@ VITE_SITE_ID=natusz
        check the name changed.
 4. [ ] Test: add a product with a photo, and add gallery photos (this tests Cloudinary).
 5. [ ] Delete `public/_redirects` in both folders (not needed on Cloudflare).
-6. [ ] Put both folders on GitHub (two separate private repos). See "GitHub commands" below.
-7. [ ] Cloudflare Pages: deploy the website (variables below).
-8. [ ] Cloudflare Pages: deploy the admin app (variables below).
+6. [x] (done) Code is on GitHub in one repo holding both folders.
+7. [x] (done) Cloudflare Pages: website deployed. Open its `.pages.dev` link and check products, gallery, price, menu bar.
+8. [ ] Cloudflare Pages: deploy the admin app as a SECOND Pages project from the same repo, Root directory = admin folder
+       (rename "admin app" to `admin-app` first: `git mv "admin app" admin-app`, then commit and push). Variables below.
 9. [ ] Firebase → Authentication → Settings → **Authorized domains** → add the admin `.pages.dev` address
        (and the website's, and any custom domain). Login fails on the live address without this.
 10. [ ] Install the admin app on Ahmed's phone (Android: Chrome ⋮ → Install app. iPhone: Safari Share → Add to Home Screen).
@@ -96,6 +101,10 @@ Website folder:
 - `src/components/ProductCard.jsx` (photo not stretched, shows short details)
 - `src/components/ProductModal.jsx` (photo not stretched, shows all details; price in bold with ₹)
 - `src/components/Navbar.jsx` (menu bar solid on every page except the top of Home)
+- `src/lib/ready.js` (fixes the blank hero on the very first visit: waiting animations now start outside the loader's GSAP callback, plus an 8 second safety net)
+- `src/gallery.css` (latest: blur on computers only, darker backdrop on phones, no drop-shadow)
+- `src/gallery/NatuszGallery.js`: in `initDraggable`, after `onDragEnd: () => {...}` add a comma and an `onClick` callback
+  that opens the photo (`this.enterZoomMode(itemData)` for the clicked `.grid-item`). This fixes taps that did not open photos.
 
 Admin folder:
 
@@ -156,7 +165,10 @@ Later updates: `git add .` then `git commit -m "update"` then `git push`. Cloudf
 
 ## Cloudflare Pages settings
 
-Workers & Pages → Create → Pages → Connect to Git → pick the repo.
+Workers & Pages → Create → choose **Pages** → Connect to Git → pick the repo. (If only the Workers screen shows, click
+"Looking to deploy Pages? Get started". Do not use the Workers setup screen.)
+Both projects share one repo, so make TWO Pages projects from it, one at a time. For each, set **Root directory
+(advanced)** to that project's folder name. Project names: `natusz-website` and `natusz-admin`.
 
 - Framework preset: Vite (or None)
 - Build command: `npm run build`

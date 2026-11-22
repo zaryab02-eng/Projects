@@ -120,11 +120,18 @@ A phone installs the app only from a secure `https://` address.
    git remote add origin https://github.com/YOURNAME/natusz-admin.git
    git push -u origin main
    ```
-2. Cloudflare dashboard → **Workers & Pages → Create → Pages → Connect to Git** → pick the admin repo.
+2. Cloudflare dashboard → **Workers & Pages → Create**. Choose **Pages → Connect to Git**. If you only see the Workers
+   screen, click the small link "Looking to deploy Pages? Get started". (Do not use the Workers setup screen.)
+   Pick the repo.
 3. Build settings:
-   - Framework preset: **Vite** (or None)
+   - Project name: e.g. `natusz-admin` (this becomes `natusz-admin.pages.dev`)
+   - Framework preset: **Vite**
    - Build command: `npm run build`
    - Build output directory: `dist`
+   - **Root directory (advanced):** if the website and the admin app live in ONE GitHub repo (our setup), type the admin
+     folder's name here exactly as it appears on GitHub (use a name without spaces, like `admin-app`; rename with
+     `git mv "admin app" admin-app` if needed). If the admin app has its own repo, leave it as `/`.
+   - Deploy the website and the admin app as two separate Pages projects from the same repo, one at a time.
 4. Under **Environment variables** add (name = value):
    `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_APP_ID`,
    `VITE_CLOUDINARY_CLOUD_NAME`, `VITE_CLOUDINARY_UPLOAD_PRESET`, and `NODE_VERSION` = `20`.

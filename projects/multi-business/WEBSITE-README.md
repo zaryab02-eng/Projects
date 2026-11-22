@@ -186,11 +186,16 @@ The logo is drawn as vectors in `src/components/logoPaths.js` (converted from th
    git remote add origin https://github.com/YOURNAME/natusz-website.git
    git push -u origin main
    ```
-2. Cloudflare dashboard → **Workers & Pages → Create → Pages → Connect to Git** → pick the website repo.
+2. Cloudflare dashboard → **Workers & Pages → Create**. Choose **Pages → Connect to Git**. If you only see the Workers
+   screen, click the small link "Looking to deploy Pages? Get started". (Do not use the Workers setup screen.)
+   Pick the repo.
 3. Build settings:
-   - Framework preset: **Vite** (or None)
+   - Project name: e.g. `natusz-website` (this becomes `natusz-website.pages.dev`)
+   - Framework preset: **Vite**
    - Build command: `npm run build`
    - Build output directory: `dist`
+   - **Root directory (advanced):** if the website and the admin app live in ONE GitHub repo (our setup), type the website
+     folder's name here exactly as it appears on GitHub. If the website has its own repo, leave it as `/`.
 4. Under **Environment variables** add (name = value):
    `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_APP_ID`,
    `VITE_SITE_ID` = `natusz`, and `NODE_VERSION` = `20`.
