@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Who may edit which website ─────────────────────────────
+    // Every admin login has a document  users/{their user id}  containing a  siteId.
+    // A login can only edit the website whose id matches its siteId.
+    // (You create these users/{uid} documents yourself in the Firebase console, see README.)
+    function canEdit(siteId) {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.siteId == siteId;
+    }
+
+    // A login can read only its own link document, and nobody can change it from the apps.
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // Website content: anyone (the public website) can READ, only that site's admin can WRITE.
+    match /sites/{siteId} {
+      allow read: if true;
+      allow write: if canEdit(siteId);
+
+      match /products/{id} {
+        allow read: if true;
+        allow write: if canEdit(siteId);
+      }
+      match /gallery/{id} {
+        allow read: if true;
+        allow write: if canEdit(siteId);
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
