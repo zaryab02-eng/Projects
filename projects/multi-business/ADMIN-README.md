@@ -1,6 +1,6 @@
 # Website Admin: one phone app for many websites
 
-An installable web app (PWA) that lets a website owner (e.g. **Ahmed**) change his website from his phone:
+An installable web app (PWA) that lets a website owner (the client) change his website from his phone:
 **add, edit, hide or delete products, manage categories, and add or remove gallery photos**, behind a login.
 Changes show on the live website straight away. No code, no redeploy.
 
@@ -102,7 +102,7 @@ You do this in the Firebase console. It takes about 2 minutes per person.
 That's all. The owner opens the admin app, signs in, and sees only their website.
 Two people can manage the same site: give each a `users/{uid}` document with the same `siteId`.
 
-> The first time Ahmed signs in, go to **Settings → Load samples**. It copies the 18 sample products and
+> The first time the owner signs in, go to **Settings → Load samples**. It copies the 18 sample products and
 > their categories into his site so he can edit them instead of typing everything.
 
 ---
@@ -272,3 +272,9 @@ natusz-admin/
   `ProductModal.jsx` must be the new versions that read the `details` list, and `src/lib/content.jsx` must be the new version.
 - **Wide or tall photos look cut off:** the admin `src/components/ui.jsx` (photo preview), `Gallery.jsx` and `Products.jsx`
   use `object-contain` so the whole photo shows.
+
+---
+
+## Note
+
+To pause the public website for a client, see "Pause / resume the website" in WEBSITE-README.md. The admin app is not affected.

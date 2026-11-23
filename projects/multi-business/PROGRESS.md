@@ -4,7 +4,7 @@ Last updated: 23 Nov 2026
 
 ## STATUS: LIVE
 
-Both the website and the admin app are deployed on Cloudflare Pages and working. Ahmed can log in on his phone and
+Both the website and the admin app are deployed on Cloudflare Pages and working. the owner can log in on his phone and
 change products, categories and gallery photos, and the website shows the changes straight away.
 
 ## What we built
@@ -18,16 +18,16 @@ They only connect through **Firebase**. Photos are stored in **Cloudinary**. Eve
 
 ## Accounts and ids (no secrets here)
 
-| Thing                                | Value                                                                              |
-| ------------------------------------ | ---------------------------------------------------------------------------------- |
-| GitHub repo                          | `zaryab02-eng/Projects` (holds both folders)                                       |
-| Cloudflare Pages projects            | website: `natusz-website`, admin: `natusz-admin` (Root directory = each folder)    |
-| Firebase project id                  | `storepilot-8a157` (Firestore in asia-south1, Mumbai)                              |
-| Site id for this website             | `natusz`                                                                           |
-| Firestore `sites/natusz`             | field `name` = `Natusz Healthcare`; also holds `categories` (set by the admin app) |
-| Firestore `users/<Ahmed's User UID>` | field `siteId` = `natusz`                                                          |
-| Cloudinary cloud name                | `lfpnw5u1`                                                                         |
-| Cloudinary upload preset             | `sites_unsigned` (must be **Unsigned**)                                            |
+| Thing                                    | Value                                                                              |
+| ---------------------------------------- | ---------------------------------------------------------------------------------- |
+| GitHub repo                              | `zaryab02-eng/Projects` (holds both folders)                                       |
+| Cloudflare Pages projects                | website: `natusz-website`, admin: `natusz-admin` (Root directory = each folder)    |
+| Firebase project id                      | `storepilot-8a157` (Firestore in asia-south1, Mumbai)                              |
+| Site id for this website                 | `natusz`                                                                           |
+| Firestore `sites/natusz`                 | field `name` = `Natusz Healthcare`; also holds `categories` (set by the admin app) |
+| Firestore `users/<the owner's User UID>` | field `siteId` = `natusz`                                                          |
+| Cloudinary cloud name                    | `lfpnw5u1`                                                                         |
+| Cloudinary upload preset                 | `sites_unsigned` (must be **Unsigned**)                                            |
 
 Live addresses (fill in): website `__________.pages.dev`, admin `__________.pages.dev`
 
@@ -64,7 +64,7 @@ No quotes, no spaces around `=`. After changing a variable on Cloudflare, redepl
 
 ## DONE
 
-- [x] Admin app and website built; Firebase, Cloudinary, Ahmed's login and site records set up
+- [x] Admin app and website built; Firebase, Cloudinary, the owner's login and site records set up
 - [x] Fixed: blank Settings tab (stray line in `Settings.jsx`)
 - [x] Products: own "Product details" list (price, pack size, anything), "Others" category, photos shown whole
 - [x] Website: price in bold with ₹, product pop-up opens centred with the close button always visible,
@@ -72,7 +72,7 @@ No quotes, no spaces around `=`. After changing a variable on Cloudflare, redepl
 - [x] Gallery: blurred, centred photo view with title and caption underneath; back arrow always visible;
       taps open photos reliably (Draggable `onClick`); lighter on phones
 - [x] Fixed: blank hero on the very first visit (`src/lib/ready.js`)
-- [x] Both projects deployed on Cloudflare Pages; Firebase Authorized domains added; admin app installed on Ahmed's phone
+- [x] Both projects deployed on Cloudflare Pages; Firebase Authorized domains added; admin app installed on the owner's phone
 
 ## Key files changed after the first version (for reference)
 
@@ -110,7 +110,7 @@ list like `[{label:"Price", value:"250"}]`. The admin app also still writes `pac
 
 - Buy a domain (for example `natuszhealthcare.com`) and connect it: Cloudflare Pages project → Custom domains.
   Add the domain to Firebase Authorized domains if you also point the admin app at a custom domain.
-- Replace sample content with Ahmed's real products, photos, founder quote and social links.
+- Replace sample content with the owner's real products, photos, founder quote and social links.
 - Give every gallery photo a short title (max 24 characters) in the admin app, so the name shows when it opens.
 - Set `VITE_SITE_URL` on the admin Cloudflare project to show the "View website" button.
 - Ideas: enquiry basket, price list PDF, blog page, Hindi/Marathi, analytics.
@@ -127,3 +127,12 @@ list like `[{label:"Price", value:"250"}]`. The admin app also still writes `pac
 
 Paste this file, then say what you want to do next and any error text you see. Also attach the file the error names
 (for example `Settings.jsx`) so it can be fixed with the real code in front of it.
+
+---
+
+## Update 23 Nov 2026 (name removed from About.jsx and site.js; Footer had none)
+
+- Founder's name removed from Home and the docs; use "team" wording. STILL TO CHECK: About.jsx, config/site.js, Footer.jsx.
+- Home page now swipeable rows on phones (Home.jsx, ProductShowcase.jsx, ProductCard.jsx), spacing tightened.
+- Added pause switch: `VITE_SITE_PAUSED=true` + redeploy pauses the site; remove it + redeploy resumes. See WEBSITE-README.md.
+- To do: spacing pass on About / Products / Contact / Footer.

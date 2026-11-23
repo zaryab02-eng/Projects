@@ -25,8 +25,6 @@ export const site = {
   // Used for the Google Map on the Contact page
   mapQuery: "Manpada Road, Dombivli East, Thane, Maharashtra 421204",
 
-  founder: "Ahmed",
-
   // Leave a link as "" to hide that icon in the footer
   social: {
     instagram: "",

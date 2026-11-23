@@ -167,10 +167,10 @@ The logo is drawn as vectors in `src/components/logoPaths.js` (converted from th
 
 ## 4. Things to replace before going live
 
-1. **Products**: load the samples in the admin app, then edit or replace them with Ahmed's real range. Product details
+1. **Products**: load the samples in the admin app, then edit or replace them with the owner's real range. Product details
    for medicines should be accurate and approved by him.
 2. **Gallery photos**: upload real photos in the admin app (8 or more looks best).
-3. **Founder quote and company story** in `src/pages/About.jsx`: written as a draft; let Ahmed approve or edit the wording.
+3. **Founder quote and company story** in `src/pages/About.jsx`: written as a draft; let the owner approve or edit the wording.
 4. **Social links** in `src/config/site.js` (empty for now).
 5. Optional: add real **business hours** or **GST / drug licence numbers** (many pharma sites show these in the footer).
 
@@ -247,14 +247,14 @@ If the website and the admin app share one repo, one push rebuilds both Cloudfla
 
 ## 8. Connecting the admin app (edit products and gallery from a phone)
 
-A separate project, the **admin app**, lets Ahmed log in on his phone and change products, categories and gallery photos
+A separate project, the **admin app**, lets the owner log in on his phone and change products, categories and gallery photos
 without touching code. It is hosted **separately** from this website, and **one admin app can manage many websites**
 (each website has its own id). This website reads its content from Firebase.
 
-1. Set up the admin app first (see its README, sections 1 to 3), including Ahmed's account linked to site id `natusz`.
+1. Set up the admin app first (see its README, sections 1 to 3), including the owner's account linked to site id `natusz`.
 2. In this project copy `.env.example` to `.env` and fill in:
    - the **same four Firebase values** as the admin app
-   - `VITE_SITE_ID=natusz` (this website's id; it must match the `siteId` given to Ahmed's login)
+   - `VITE_SITE_ID=natusz` (this website's id; it must match the `siteId` given to the owner's login)
 3. Run `npm install`, then `npm run dev`.
 4. When deploying on Cloudflare, add the same five values under **Environment variables** (plus `NODE_VERSION` = `20`),
    then redeploy once.
@@ -282,3 +282,28 @@ categories), `src/lib/images.js` (asks Cloudinary for web-sized photos).
 
 For your next website, copy only the pieces it needs (`src/lib/firebase.js`, `src/lib/content.jsx`, `src/lib/images.js`),
 use a new `VITE_SITE_ID` (e.g. `clientb`), and create that owner's login in the admin app (admin README, section 2).
+
+---
+
+## Pause / resume the website (if the client has not paid)
+
+The website has a built-in "pause switch". Nothing is deleted. Products, photos and the admin app stay safe.
+
+**Pause**
+
+1. Cloudflare → Workers & Pages → the website project → **Settings** → **Variables and secrets**.
+2. Add variable `VITE_SITE_PAUSED` = `true` (Production).
+3. **Deployments** → latest deployment → **Retry deployment** (variables are baked in at build time).
+4. Visitors now see only: "This website is temporarily unavailable. Please check back soon."
+
+**Resume**
+
+1. Same place: delete `VITE_SITE_PAUSED` (or set it to `false`).
+2. **Retry deployment**. The full site is back in about 2 minutes.
+
+Files involved: `src/main.jsx` (checks the switch), `src/pages/Paused.jsx` (the page shown).
+
+## Layout notes
+
+- Home page: category cards and featured products are a sideways swipe row on phones (`ProductShowcase` has a `scroll` prop). On tablets and computers they become a grid.
+- Wording: the site uses "our team". No personal names of the founder are shown.

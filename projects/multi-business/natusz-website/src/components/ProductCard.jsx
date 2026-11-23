@@ -63,9 +63,9 @@ export default function ProductCard({ product, onOpen }) {
         </span>
       </button>
 
-      <div className="flex flex-1 flex-col p-5">
+      <div className="flex flex-1 flex-col p-3.5 sm:p-5">
         <p className="text-xs font-medium text-brand-dark">{cat?.name}</p>
-        <h3 className="mt-1.5 font-display text-xl leading-snug">
+        <h3 className="mt-1 font-display text-base leading-snug sm:mt-1.5 sm:text-xl">
           {product.name}
         </h3>
         {summary.length > 0 && (
@@ -84,10 +84,10 @@ export default function ProductCard({ product, onOpen }) {
           href={productEnquiryLink(product, cat?.name)}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-5 inline-flex items-center justify-center gap-2 rounded-full border border-ink/20 px-4 py-2.5 text-sm font-semibold text-ink transition duration-300 hover:border-[#25D366] hover:bg-[#25D366] hover:text-white"
+          className="mt-3 inline-flex items-center justify-center gap-1.5 rounded-full border border-ink/20 px-3 py-2 text-xs font-semibold text-ink transition duration-300 hover:border-[#25D366] hover:bg-[#25D366] hover:text-white sm:mt-5 sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm"
         >
           <WhatsAppIcon className="h-4 w-4" />
-          Enquire on WhatsApp
+          Enquire<span className="hidden sm:inline"> on WhatsApp</span>
         </a>
       </div>
     </article>

@@ -1,6 +1,18 @@
 import { useLayoutEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Droplets, Sun, ShieldCheck, Waves, Sparkles, Leaf, Stethoscope, FlaskConical, MessageCircle, BookOpenCheck } from "lucide-react";
+import {
+  ArrowRight,
+  Droplets,
+  Sun,
+  ShieldCheck,
+  Waves,
+  Sparkles,
+  Leaf,
+  Stethoscope,
+  FlaskConical,
+  MessageCircle,
+  BookOpenCheck,
+} from "lucide-react";
 import BloomMark from "../components/BloomMark";
 import Marquee from "../components/Marquee";
 import ScrollWords from "../components/ScrollWords";
@@ -23,13 +35,29 @@ const icons = {
 
 // ── Home page copy lives here, edit freely ──
 const statement =
-  "Natusz is a new name in skin care, started by someone who has spent years in the field alongside doctors and chemists, and who knows what they ask of a product.";
+  "Natusz is a new name in skin care, built by a team with years in the field alongside doctors and chemists, who know what they ask of a product.";
 
 const principles = [
-  { Icon: Stethoscope, title: "Chosen with doctors in mind", text: "Every product is selected for how it performs in the clinic, not only how it looks on the shelf." },
-  { Icon: FlaskConical, title: "Clear, honest information", text: "Pack size and composition are listed up front, so a prescriber can check a product at a glance." },
-  { Icon: BookOpenCheck, title: "Gentle on skin", text: "Formulations that respect sensitive, reactive and recovering skin." },
-  { Icon: MessageCircle, title: "A real person to talk to", text: "Ask about a product, a stockist or availability and a person from our team replies on WhatsApp." },
+  {
+    Icon: Stethoscope,
+    title: "Chosen with doctors in mind",
+    text: "Every product is selected for how it performs in the clinic, not only how it looks on the shelf.",
+  },
+  {
+    Icon: FlaskConical,
+    title: "Clear, honest information",
+    text: "Pack size and composition are listed up front, so a prescriber can check a product at a glance.",
+  },
+  {
+    Icon: BookOpenCheck,
+    title: "Gentle on skin",
+    text: "Formulations that respect sensitive, reactive and recovering skin.",
+  },
+  {
+    Icon: MessageCircle,
+    title: "A real person to talk to",
+    text: "Ask about a product, a stockist or availability and a person from our team replies on WhatsApp.",
+  },
 ];
 
 export default function Home() {
@@ -43,8 +71,15 @@ export default function Home() {
       gsap.set(".hero-fade", { opacity: 0, y: 18 });
       const stop = onReady(() => {
         const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
-        tl.to(".hero-line > span", { yPercent: 0, duration: 1.2, stagger: 0.12 }, 0.1)
-          .to(".hero-fade", { opacity: 1, y: 0, duration: 0.9, stagger: 0.1 }, 0.7);
+        tl.to(
+          ".hero-line > span",
+          { yPercent: 0, duration: 1.2, stagger: 0.12 },
+          0.1,
+        ).to(
+          ".hero-fade",
+          { opacity: 1, y: 0, duration: 0.9, stagger: 0.1 },
+          0.7,
+        );
       });
       return stop;
     }, hero);
@@ -56,30 +91,45 @@ export default function Home() {
   return (
     <>
       {/* ───────── Hero ───────── */}
-      <section ref={hero} className="relative isolate overflow-hidden bg-ink text-paper">
+      <section
+        ref={hero}
+        className="relative isolate overflow-hidden bg-ink text-paper"
+      >
         <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(55%_60%_at_75%_42%,rgba(5,158,169,0.30),transparent_70%)]" />
-        <div className="container-x grid min-h-[100svh] items-center gap-6 pb-28 pt-28 lg:grid-cols-12 lg:gap-10 lg:pb-32">
+        <div className="container-x grid min-h-[100svh] items-center gap-4 pb-28 pt-24 lg:grid-cols-12 lg:gap-10 lg:pb-32 lg:pt-28">
           <div className="order-2 lg:order-1 lg:col-span-7">
-            <h1 className="text-[clamp(2.9rem,7.2vw,6.4rem)] leading-[0.98] tracking-tight">
-              <span className="line-mask hero-line"><span className="block">Skin care,</span></span>
-              <span className="line-mask hero-line"><span className="block">practised</span></span>
-              <span className="line-mask hero-line"><span className="block italic text-brand">with care.</span></span>
+            <h1 className="text-[clamp(2.6rem,7.2vw,6.4rem)] leading-[0.98] tracking-tight">
+              <span className="line-mask hero-line">
+                <span className="block">Skin care,</span>
+              </span>
+              <span className="line-mask hero-line">
+                <span className="block">practised</span>
+              </span>
+              <span className="line-mask hero-line">
+                <span className="block italic text-brand">with care.</span>
+              </span>
             </h1>
-            <p className="hero-fade mt-7 max-w-md text-base leading-relaxed text-paper/70 sm:text-lg">
-              {site.legalName} brings carefully chosen skin care and dermatology products to doctors,
-              pharmacists and the families who rely on them.
+            <p className="hero-fade mt-6 max-w-md text-base leading-relaxed text-paper/70 sm:mt-7 sm:text-lg">
+              {site.legalName} brings carefully chosen skin care and dermatology
+              products to doctors, pharmacists and the families who rely on
+              them.
             </p>
-            <div className="hero-fade mt-9 flex flex-wrap gap-3">
+            <div className="hero-fade mt-8 flex flex-wrap gap-3 sm:mt-9">
               <Link to="/products" className="btn-rose">
                 Explore products <ArrowRight className="h-4 w-4" />
               </Link>
-              <a href={generalEnquiryLink()} target="_blank" rel="noopener noreferrer" className="btn-outline-light">
+              <a
+                href={generalEnquiryLink()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-outline-light"
+              >
                 <WhatsAppIcon className="h-4 w-4" /> WhatsApp us
               </a>
             </div>
           </div>
 
-          <div className="order-1 mx-auto w-full max-w-[250px] sm:max-w-[340px] lg:order-2 lg:col-span-5 lg:max-w-[560px]">
+          <div className="order-1 mx-auto w-full max-w-[220px] sm:max-w-[320px] lg:order-2 lg:col-span-5 lg:max-w-[560px]">
             <BloomMark className="h-auto w-full overflow-visible" />
           </div>
         </div>
@@ -87,35 +137,54 @@ export default function Home() {
         <div className="hero-fade absolute inset-x-0 bottom-0 border-t border-white/10">
           <div className="container-x grid grid-cols-1 gap-1 py-4 text-sm text-paper/60 sm:grid-cols-3">
             <span>{site.address.short}, Maharashtra</span>
-            <a href={`tel:${site.phoneTel}`} className="transition hover:text-paper sm:text-center">{site.phoneDisplay}</a>
+            <a
+              href={`tel:${site.phoneTel}`}
+              className="transition hover:text-paper sm:text-center"
+            >
+              {site.phoneDisplay}
+            </a>
             <span className="sm:text-right">Replies on WhatsApp</span>
           </div>
         </div>
       </section>
 
       {/* ───────── Category strip ───────── */}
-      <section className="border-b border-ink/10 bg-mist py-7">
+      <section className="border-b border-ink/10 bg-mist py-6">
         <Marquee items={categories.map((c) => c.name)} />
       </section>
 
       {/* ───────── Statement ───────── */}
-      <section className="py-24 sm:py-32">
+      <section className="py-16 sm:py-24 lg:py-28">
         <div className="container-x">
-          <ScrollWords text={statement} className="max-w-5xl font-display text-3xl leading-[1.2] sm:text-5xl lg:text-6xl" />
-          <Link to="/about" className="mt-10 inline-flex items-center gap-2 text-sm font-semibold text-brand-dark transition hover:gap-3">
+          <ScrollWords
+            text={statement}
+            className="max-w-5xl font-display text-2xl leading-[1.25] sm:text-4xl lg:text-5xl"
+          />
+          <Link
+            to="/about"
+            className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-brand-dark transition hover:gap-3 sm:mt-10"
+          >
             Read our story <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </section>
 
-      {/* ───────── Categories ───────── */}
-      <section className="pb-24 sm:pb-32">
+      {/* ───────── Categories (swipe sideways on phones) ───────── */}
+      <section className="pb-16 sm:pb-24 lg:pb-28">
         <div className="container-x">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <h2 className="max-w-xl text-4xl leading-tight sm:text-5xl">Find what your skin needs</h2>
-            <Link to="/products" className="text-sm font-semibold text-brand-dark">View all products</Link>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <h2 className="max-w-xl text-3xl leading-tight sm:text-5xl">
+              Find what your skin needs
+            </h2>
+            <Link
+              to="/products"
+              className="text-sm font-semibold text-brand-dark"
+            >
+              View all products
+            </Link>
           </div>
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+          <div className="no-scrollbar -mx-5 mt-8 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 sm:mx-0 sm:mt-12 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
             {categories.map((c, i) => {
               const Icon = icons[c.id] || Leaf;
               const count = products.filter((p) => p.category === c.id).length;
@@ -123,16 +192,29 @@ export default function Home() {
                 <Link
                   key={c.id}
                   to={`/products?category=${c.id}`}
-                  className={`group relative flex min-h-[230px] flex-col justify-between overflow-hidden rounded-2xl border border-ink/10 p-7 transition duration-500 hover:border-ink hover:bg-ink hover:text-paper ${
-                    i === 0 ? "bg-ink text-paper sm:col-span-2 lg:col-span-1 lg:row-span-1" : "bg-white"
+                  className={`group relative flex min-h-[170px] w-[68%] shrink-0 snap-start flex-col justify-between overflow-hidden rounded-2xl border border-ink/10 p-5 transition duration-500 hover:border-ink hover:bg-ink hover:text-paper sm:min-h-[210px] sm:w-auto sm:p-7 ${
+                    i === 0 ? "bg-ink text-paper" : "bg-white"
                   }`}
                 >
-                  <Icon className="h-7 w-7 text-brand transition duration-500 group-hover:scale-110" strokeWidth={1.5} />
+                  <Icon
+                    className="h-6 w-6 text-brand transition duration-500 group-hover:scale-110 sm:h-7 sm:w-7"
+                    strokeWidth={1.5}
+                  />
                   <div>
-                    <h3 className="font-display text-2xl leading-snug">{c.name}</h3>
-                    <p className={`mt-2 max-w-xs text-sm leading-relaxed ${i === 0 ? "text-paper/65" : "text-ink/60 group-hover:text-paper/65"}`}>{c.blurb}</p>
-                    <p className="mt-5 flex items-center justify-between text-sm font-semibold">
-                      <span>{count} products</span>
+                    <h3 className="font-display text-xl leading-snug sm:text-2xl">
+                      {c.name}
+                    </h3>
+                    {c.blurb && (
+                      <p
+                        className={`mt-1.5 max-w-xs text-sm leading-relaxed ${i === 0 ? "text-paper/65" : "text-ink/60 group-hover:text-paper/65"}`}
+                      >
+                        {c.blurb}
+                      </p>
+                    )}
+                    <p className="mt-4 flex items-center justify-between text-sm font-semibold">
+                      <span>
+                        {count} {count === 1 ? "product" : "products"}
+                      </span>
                       <ArrowRight className="h-4 w-4 transition duration-300 group-hover:translate-x-1" />
                     </p>
                   </div>
@@ -140,32 +222,53 @@ export default function Home() {
               );
             })}
           </div>
+          <p className="mt-2 text-xs text-ink/45 sm:hidden">
+            Swipe to see more →
+          </p>
         </div>
       </section>
 
-      {/* ───────── Featured products ───────── */}
-      <section className="bg-mist py-24 sm:py-28">
+      {/* ───────── Featured products (swipe sideways on phones) ───────── */}
+      <section className="bg-mist py-14 sm:py-20 lg:py-24">
         <div className="container-x">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <h2 className="text-4xl leading-tight sm:text-5xl">Featured products</h2>
-            <Link to="/products" className="btn-outline-dark">See the full range</Link>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <h2 className="text-3xl leading-tight sm:text-5xl">
+              Featured products
+            </h2>
+            <Link to="/products" className="btn-outline-dark">
+              See the full range
+            </Link>
           </div>
-          <ProductShowcase items={featured} className="mt-12" />
+          <ProductShowcase items={featured} scroll className="mt-8 sm:mt-12" />
+          {featured.length > 1 && (
+            <p className="mt-2 text-xs text-ink/45 sm:hidden">
+              Swipe to see more →
+            </p>
+          )}
         </div>
       </section>
 
       {/* ───────── Principles ───────── */}
-      <section className="bg-ink py-24 text-paper sm:py-32">
-        <div className="container-x grid gap-14 lg:grid-cols-12">
+      <section className="bg-ink py-16 text-paper sm:py-24 lg:py-28">
+        <div className="container-x grid gap-10 lg:grid-cols-12 lg:gap-14">
           <div className="lg:col-span-4">
-            <h2 className="text-4xl leading-tight sm:text-5xl">What you can expect from us</h2>
+            <h2 className="text-3xl leading-tight sm:text-5xl">
+              What you can expect from us
+            </h2>
           </div>
-          <div className="grid gap-x-12 gap-y-10 sm:grid-cols-2 lg:col-span-8">
+          <div className="grid gap-x-12 gap-y-8 sm:grid-cols-2 lg:col-span-8">
             {principles.map(({ Icon, title, text }) => (
-              <div key={title} className="border-t border-white/15 pt-6">
+              <div
+                key={title}
+                className="border-t border-white/15 pt-5 sm:pt-6"
+              >
                 <Icon className="h-6 w-6 text-brand" strokeWidth={1.5} />
-                <h3 className="mt-5 font-display text-2xl">{title}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-paper/65">{text}</p>
+                <h3 className="mt-4 font-display text-xl sm:mt-5 sm:text-2xl">
+                  {title}
+                </h3>
+                <p className="mt-2.5 text-sm leading-relaxed text-paper/65">
+                  {text}
+                </p>
               </div>
             ))}
           </div>
@@ -173,21 +276,29 @@ export default function Home() {
       </section>
 
       {/* ───────── Call to action ───────── */}
-      <section className="py-24 sm:py-32">
+      <section className="py-14 sm:py-24">
         <div className="container-x">
-          <div className="relative overflow-hidden rounded-3xl bg-deep px-7 py-16 text-center text-paper sm:px-16 sm:py-24">
+          <div className="relative overflow-hidden rounded-3xl bg-deep px-6 py-12 text-center text-paper sm:px-16 sm:py-20">
             <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-brand/25 blur-3xl" />
-            <h2 className="relative mx-auto max-w-2xl text-4xl leading-tight sm:text-5xl">
+            <h2 className="relative mx-auto max-w-2xl text-3xl leading-tight sm:text-5xl">
               Looking for a product, or want to stock with us?
             </h2>
-            <p className="relative mx-auto mt-5 max-w-lg text-paper/70">
-              Send a message and we will get back to you with availability and details.
+            <p className="relative mx-auto mt-4 max-w-lg text-paper/70 sm:mt-5">
+              Send a message and we will get back to you with availability and
+              details.
             </p>
-            <div className="relative mt-9 flex flex-wrap justify-center gap-3">
-              <a href={generalEnquiryLink()} target="_blank" rel="noopener noreferrer" className="btn-rose">
+            <div className="relative mt-8 flex flex-wrap justify-center gap-3 sm:mt-9">
+              <a
+                href={generalEnquiryLink()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-rose"
+              >
                 <WhatsAppIcon className="h-4 w-4" /> Message on WhatsApp
               </a>
-              <Link to="/contact" className="btn-outline-light">Contact details</Link>
+              <Link to="/contact" className="btn-outline-light">
+                Contact details
+              </Link>
             </div>
           </div>
         </div>
