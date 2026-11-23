@@ -1,10 +1,11 @@
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import Preloader from "./Preloader";
 import WhatsAppFloat from "./WhatsAppFloat";
 import { gsap, ScrollTrigger, prefersReducedMotion } from "../lib/gsap";
+import { useIsoLayoutEffect } from "../lib/useIsoLayoutEffect";
 
 export default function Layout() {
   const { pathname } = useLocation();
@@ -19,9 +20,13 @@ export default function Layout() {
   }, [pathname]);
 
   // Soft fade-in on page change (opacity only, so fixed elements keep working)
-  useLayoutEffect(() => {
+  useIsoLayoutEffect(() => {
     if (prefersReducedMotion() || !main.current) return;
-    gsap.fromTo(main.current, { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out", clearProps: "opacity" });
+    gsap.fromTo(
+      main.current,
+      { opacity: 0 },
+      { opacity: 1, duration: 0.6, ease: "power2.out", clearProps: "opacity" },
+    );
   }, [pathname]);
 
   return (

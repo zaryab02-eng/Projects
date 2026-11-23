@@ -1,8 +1,14 @@
-import { useLayoutEffect, useRef } from "react";
+import { useRef } from "react";
+import { useIsoLayoutEffect } from "../lib/useIsoLayoutEffect";
 import { gsap, prefersReducedMotion } from "../lib/gsap";
 import { onReady } from "../lib/ready";
 import {
-  LEAF_LEFT, LEAF_RIGHT, LEAF_CENTER, LEAF_INNER, DOT_BIG, DOT_SMALL,
+  LEAF_LEFT,
+  LEAF_RIGHT,
+  LEAF_CENTER,
+  LEAF_INNER,
+  DOT_BIG,
+  DOT_SMALL,
 } from "./logoPaths";
 
 /**
@@ -12,28 +18,80 @@ import {
 export default function BloomMark({ className = "" }) {
   const ref = useRef(null);
 
-  useLayoutEffect(() => {
+  useIsoLayoutEffect(() => {
     const ctx = gsap.context(() => {
       if (prefersReducedMotion()) return;
 
-      gsap.set(".bm-leaf-left", { opacity: 0, rotation: 42, scale: 0.35, svgOrigin: "285 412" });
-      gsap.set(".bm-leaf-right", { opacity: 0, rotation: -42, scale: 0.35, svgOrigin: "309 412" });
-      gsap.set(".bm-leaf-center", { opacity: 0, scaleY: 0.1, scaleX: 0.6, svgOrigin: "302 410" });
-      gsap.set(".bm-leaf-inner", { opacity: 0, scale: 0.1, svgOrigin: "280 368" });
-      gsap.set(".bm-dot", { opacity: 0, y: 70, scale: 0.3, transformOrigin: "50% 50%" });
+      gsap.set(".bm-leaf-left", {
+        opacity: 0,
+        rotation: 42,
+        scale: 0.35,
+        svgOrigin: "285 412",
+      });
+      gsap.set(".bm-leaf-right", {
+        opacity: 0,
+        rotation: -42,
+        scale: 0.35,
+        svgOrigin: "309 412",
+      });
+      gsap.set(".bm-leaf-center", {
+        opacity: 0,
+        scaleY: 0.1,
+        scaleX: 0.6,
+        svgOrigin: "302 410",
+      });
+      gsap.set(".bm-leaf-inner", {
+        opacity: 0,
+        scale: 0.1,
+        svgOrigin: "280 368",
+      });
+      gsap.set(".bm-dot", {
+        opacity: 0,
+        y: 70,
+        scale: 0.3,
+        transformOrigin: "50% 50%",
+      });
 
       let float;
       const stopWaiting = onReady(() => {
         const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-        tl.to(".bm-leaf-center", { opacity: 1, scaleY: 1, scaleX: 1, duration: 1.3 }, 0)
-          .to(".bm-leaf-left", { opacity: 1, rotation: 0, scale: 1, duration: 1.5 }, 0.15)
-          .to(".bm-leaf-right", { opacity: 1, rotation: 0, scale: 1, duration: 1.5 }, 0.15)
+        tl.to(
+          ".bm-leaf-center",
+          { opacity: 1, scaleY: 1, scaleX: 1, duration: 1.3 },
+          0,
+        )
+          .to(
+            ".bm-leaf-left",
+            { opacity: 1, rotation: 0, scale: 1, duration: 1.5 },
+            0.15,
+          )
+          .to(
+            ".bm-leaf-right",
+            { opacity: 1, rotation: 0, scale: 1, duration: 1.5 },
+            0.15,
+          )
           .to(".bm-leaf-inner", { opacity: 1, scale: 1, duration: 1.1 }, 0.55)
-          .to(".bm-dot", { opacity: 1, y: 0, scale: 1, duration: 1.4, stagger: 0.18, ease: "back.out(1.8)" }, 0.8);
+          .to(
+            ".bm-dot",
+            {
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              duration: 1.4,
+              stagger: 0.18,
+              ease: "back.out(1.8)",
+            },
+            0.8,
+          );
         tl.add(() => {
           // gentle, endless float once open
           float = gsap.to(".bm-dot", {
-            y: -7, duration: 2.4, ease: "sine.inOut", yoyo: true, repeat: -1, stagger: 0.4,
+            y: -7,
+            duration: 2.4,
+            ease: "sine.inOut",
+            yoyo: true,
+            repeat: -1,
+            stagger: 0.4,
           });
         });
       });

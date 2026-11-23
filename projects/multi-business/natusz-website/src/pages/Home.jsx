@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from "react";
+import { useRef } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -24,6 +24,7 @@ import { useContent } from "../lib/content";
 import { site } from "../config/site";
 import { generalEnquiryLink } from "../lib/whatsapp";
 import Seo from "../components/Seo";
+import { useIsoLayoutEffect } from "../lib/useIsoLayoutEffect";
 
 const icons = {
   moisturisers: Droplets,
@@ -65,7 +66,7 @@ export default function Home() {
   const hero = useRef(null);
   const { products, categories } = useContent();
 
-  useLayoutEffect(() => {
+  useIsoLayoutEffect(() => {
     const ctx = gsap.context(() => {
       if (prefersReducedMotion()) return;
       gsap.set(".hero-line > span", { yPercent: 115 });

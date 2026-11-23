@@ -1,11 +1,12 @@
-import { useLayoutEffect, useRef } from "react";
+import { useRef } from "react";
+import { useIsoLayoutEffect } from "../lib/useIsoLayoutEffect";
 import { gsap, prefersReducedMotion } from "../lib/gsap";
 
 /** Big statement whose words light up one by one as you scroll past it. */
 export default function ScrollWords({ text, className = "" }) {
   const ref = useRef(null);
 
-  useLayoutEffect(() => {
+  useIsoLayoutEffect(() => {
     if (prefersReducedMotion()) return;
     const ctx = gsap.context(() => {
       gsap.fromTo(
@@ -15,8 +16,13 @@ export default function ScrollWords({ text, className = "" }) {
           opacity: 1,
           ease: "none",
           stagger: 0.12,
-          scrollTrigger: { trigger: ref.current, start: "top 78%", end: "bottom 50%", scrub: true },
-        }
+          scrollTrigger: {
+            trigger: ref.current,
+            start: "top 78%",
+            end: "bottom 50%",
+            scrub: true,
+          },
+        },
       );
     }, ref);
     return () => ctx.revert();
