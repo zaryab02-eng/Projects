@@ -9,9 +9,9 @@ export const site = {
   tagline: "Skin care, practised with care.",
 
   // WhatsApp number: country code + number, digits only (no + or spaces)
-  whatsappNumber: "919278450910",
-  phoneDisplay: "+91 92784 50910",
-  phoneTel: "+919278450910",
+  whatsappNumber: "919278450890",
+  phoneDisplay: "+91 92784 50890",
+  phoneTel: "+919278450890",
   email: "natuszhealthcarellp@gmail.com",
 
   address: {
