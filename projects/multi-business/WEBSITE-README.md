@@ -145,8 +145,8 @@ To change the grid size, open `src/gallery/NatuszGallery.js` and look for `rows:
 
 ### Menu items
 
-**`src/components/Navbar.jsx`** → the `navLinks` list. The footer menu uses the same list.
-The menu bar is see-through only at the very top of the Home page. On every other page it is solid, so the links are always readable.
+**`src/components/Navbar.jsx`** → the `navLinks` list. The footer no longer repeats the menu.
+On phones and tablets the pages are shown as one equal-width row of text tabs under the logo (no drop-down); the current page has a green underline. On computers they sit in the top bar. The menu bar is see-through only at the very top of the Home page. On every other page it is solid, so the links are always readable.
 
 ### Add a new page
 
@@ -161,7 +161,7 @@ The logo is drawn as vectors in `src/components/logoPaths.js` (converted from th
 
 ### Footer disclaimer and copyright
 
-`src/components/Footer.jsx`
+`src/components/Footer.jsx`. The footer shows logo, description, "Reach us" details and the disclaimer. On the About and Contact pages it is shortened (no contact details) because those pages already show them. To change which pages get the short footer, edit the `minimal` line.
 
 ---
 
@@ -307,3 +307,5 @@ Files involved: `src/main.jsx` (checks the switch), `src/pages/Paused.jsx` (the 
 
 - Home page: category cards and featured products are a sideways swipe row on phones (`ProductShowcase` has a `scroll` prop). On tablets and computers they become a grid.
 - Wording: the site uses "our team". No personal names of the founder are shown.
+- No repeated items: WhatsApp enquiry lives in the top bar and the Home call-to-action card; the footer has no WhatsApp button or menu links.
+- Spacing: inner pages use a compact title band (`PageHeader.jsx`); Products' sticky search bar sits at `top-[104px]` on phones (below the two-row menu) and `top-[72px]` on computers. If the menu height changes, update those values and the top padding in `PageHeader.jsx` / the Home hero.

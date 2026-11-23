@@ -132,7 +132,11 @@ Paste this file, then say what you want to do next and any error text you see. A
 
 ## Update 23 Nov 2026 (name removed from About.jsx and site.js; Footer had none)
 
-- Founder's name removed from Home and the docs; use "team" wording. STILL TO CHECK: About.jsx, config/site.js, Footer.jsx.
+- Founder's name removed from Home and the docs; use "team" wording. Done in About.jsx and config/site.js.
 - Home page now swipeable rows on phones (Home.jsx, ProductShowcase.jsx, ProductCard.jsx), spacing tightened.
 - Added pause switch: `VITE_SITE_PAUSED=true` + redeploy pauses the site; remove it + redeploy resumes. See WEBSITE-README.md.
-- To do: spacing pass on About / Products / Contact / Footer.
+- Spacing pass done on Home, About, Products, Contact, PageHeader, Footer.
+- Navbar: no drop-down; equal-width text tabs row on phones/tablets.
+- Footer simplified (no WhatsApp button, no menu); short footer on About and Contact. Home hero WhatsApp button and bottom strip removed (duplicates).
+- Files changed: Home, About, Products, Contact, PageHeader, Footer, Navbar, ProductShowcase, ProductCard, main.jsx, Paused.jsx, site.js.
+- Not yet reviewed: Gallery page spacing.
