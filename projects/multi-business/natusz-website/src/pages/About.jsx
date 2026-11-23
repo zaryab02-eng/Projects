@@ -12,6 +12,7 @@ import Logo from "../components/Logo";
 import { site } from "../config/site";
 import { generalEnquiryLink } from "../lib/whatsapp";
 import WhatsAppIcon from "../components/WhatsAppIcon";
+import Seo from "../components/Seo";
 
 // ── About page copy lives here: edit the text freely ──
 const values = [
