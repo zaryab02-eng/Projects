@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
 import Logo from "./Logo";
 import { site } from "../config/site";
 import { generalEnquiryLink } from "../lib/whatsapp";
@@ -17,7 +16,6 @@ export const navLinks = [
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
 
   useEffect(() => {
@@ -27,19 +25,10 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => setOpen(false), [pathname]);
-
-  useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [open]);
-
   // The bar is see-through only at the very top of the Home page (dark hero).
   // On every other page, and once you scroll, it is solid so the menu is always easy to read.
   const isHome = pathname === "/";
-  const solid = !open && (scrolled || !isHome);
+  const solid = scrolled || !isHome;
 
   return (
     <>
@@ -50,7 +39,7 @@ export default function Navbar() {
             : "text-paper"
         }`}
       >
-        <div className="container-x flex h-[72px] items-center justify-between">
+        <div className="container-x flex h-[60px] items-center justify-between lg:h-[72px]">
           <Link to="/" aria-label={`${site.name} home`} className="block">
             <Logo
               layout="horizontal"
@@ -83,70 +72,41 @@ export default function Navbar() {
               href={generalEnquiryLink()}
               target="_blank"
               rel="noopener noreferrer"
-              className={`hidden items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition duration-300 sm:inline-flex ${
+              className={`inline-flex items-center gap-2 rounded-full px-3 py-2.5 text-sm font-semibold transition duration-300 sm:px-5 ${
                 solid
                   ? "bg-ink text-paper hover:bg-deep"
                   : "bg-paper text-ink hover:bg-white"
               }`}
             >
               <WhatsAppIcon className="h-4 w-4" />
-              Enquire
+              <span className="hidden sm:inline">Enquire</span>
             </a>
-            <button
-              type="button"
-              className="flex h-11 w-11 items-center justify-center rounded-full lg:hidden"
-              onClick={() => setOpen((v) => !v)}
-              aria-label={open ? "Close menu" : "Open menu"}
-              aria-expanded={open}
-            >
-              {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
           </div>
         </div>
-      </header>
 
-      {/* Mobile menu */}
-      <div
-        className={`fixed inset-0 z-40 flex flex-col bg-ink px-6 pb-10 pt-28 text-paper transition duration-500 lg:hidden ${
-          open
-            ? "translate-y-0 opacity-100"
-            : "pointer-events-none -translate-y-4 opacity-0"
-        }`}
-        aria-hidden={!open}
-      >
-        <nav className="flex flex-col gap-1" aria-label="Mobile">
+        {/* Phone & tablet: all pages shown in one row, equal width, no scrolling */}
+        <nav
+          className="container-x grid grid-cols-5 lg:hidden"
+          aria-label="Mobile"
+        >
           {navLinks.map((l) => (
             <NavLink
               key={l.to}
               to={l.to}
               end={l.to === "/"}
-              tabIndex={open ? 0 : -1}
               className={({ isActive }) =>
-                `border-b border-white/10 py-4 font-display text-4xl ${isActive ? "text-brand" : "text-paper"}`
+                `border-b-2 pb-2.5 pt-1.5 text-center text-[13px] tracking-wide transition ${
+                  isActive
+                    ? "border-brand font-semibold"
+                    : `border-transparent font-medium ${solid ? "text-ink/60" : "text-paper/70"}`
+                }`
               }
             >
               {l.label}
             </NavLink>
           ))}
         </nav>
-        <div className="mt-auto space-y-2 text-sm text-paper/70">
-          <a
-            href={`tel:${site.phoneTel}`}
-            className="block text-lg text-paper"
-            tabIndex={open ? 0 : -1}
-          >
-            {site.phoneDisplay}
-          </a>
-          <a
-            href={`mailto:${site.email}`}
-            className="block break-all"
-            tabIndex={open ? 0 : -1}
-          >
-            {site.email}
-          </a>
-          <p>{site.address.short}</p>
-        </div>
-      </div>
+      </header>
     </>
   );
 }

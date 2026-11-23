@@ -96,7 +96,7 @@ export default function Home() {
         className="relative isolate overflow-hidden bg-ink text-paper"
       >
         <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(55%_60%_at_75%_42%,rgba(5,158,169,0.30),transparent_70%)]" />
-        <div className="container-x grid min-h-[100svh] items-center gap-4 pb-28 pt-24 lg:grid-cols-12 lg:gap-10 lg:pb-32 lg:pt-28">
+        <div className="container-x grid min-h-[100svh] items-center gap-4 pb-28 pt-36 lg:grid-cols-12 lg:gap-10 lg:pb-32 lg:pt-28">
           <div className="order-2 lg:order-1 lg:col-span-7">
             <h1 className="text-[clamp(2.6rem,7.2vw,6.4rem)] leading-[0.98] tracking-tight">
               <span className="line-mask hero-line">
