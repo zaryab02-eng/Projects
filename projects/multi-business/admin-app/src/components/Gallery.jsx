@@ -12,10 +12,18 @@ import { db } from "../firebase";
 import { uploadImage } from "../lib/upload";
 import useCollection from "../lib/useCollection";
 import { useSite } from "../lib/site";
-import { Sheet, Field, ImagePicker, Spinner, friendlyError } from "./ui";
+import {
+  Sheet,
+  Field,
+  ImagePicker,
+  Spinner,
+  friendlyError,
+  useConfirm,
+} from "./ui";
 
 function PhotoForm({ item, items, onClose, notify }) {
   const { siteId } = useSite();
+  const [confirmNode, ask] = useConfirm();
   const [title, setTitle] = useState(item.title || "");
   const [description, setDescription] = useState(item.description || "");
   const [file, setFile] = useState(null);
@@ -45,7 +53,11 @@ function PhotoForm({ item, items, onClose, notify }) {
   };
 
   const remove = async () => {
-    if (!window.confirm("Remove this photo from the gallery?")) return;
+    const yes = await ask("Remove this photo from your website?", {
+      yes: "Yes, remove it",
+      no: "No, keep it",
+    });
+    if (!yes) return;
     setBusy(true);
     try {
       await deleteDoc(doc(db, "sites", siteId, "gallery", item.id));
@@ -80,68 +92,78 @@ function PhotoForm({ item, items, onClose, notify }) {
   };
 
   return (
-    <Sheet
-      title="Edit photo"
-      onClose={busy ? () => {} : onClose}
-      footer={
-        <div className="flex gap-3">
-          <button onClick={remove} disabled={busy} className="btn-danger">
-            Delete
-          </button>
-          <button onClick={save} disabled={busy} className="btn-primary flex-1">
-            {busy ? <Spinner /> : "Save changes"}
-          </button>
-        </div>
-      }
-    >
-      <div className="space-y-5">
-        <ImagePicker
-          url={item.src}
-          file={file}
-          onPick={setFile}
-          onClear={() => setFile(null)}
-          aspect="aspect-[4/3]"
-          removable={Boolean(file)}
-        />
-        <Field
-          label="Title"
-          hint={`Shown large when someone opens the photo. Keep it short. ${title.length}/24`}
-        >
-          <input
-            className="input"
-            maxLength={24}
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Our clinic visit"
+    <>
+      <Sheet
+        title="Edit photo"
+        onClose={busy ? () => {} : onClose}
+        footer={
+          <div className="flex gap-3">
+            <button onClick={remove} disabled={busy} className="btn-danger">
+              Delete
+            </button>
+            <button
+              onClick={save}
+              disabled={busy}
+              className="btn-primary flex-1"
+            >
+              {busy ? <Spinner /> : "Save"}
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-6">
+          <ImagePicker
+            url={item.src}
+            file={file}
+            onPick={setFile}
+            onClear={() => setFile(null)}
+            aspect="aspect-[4/3]"
+            removable={Boolean(file)}
           />
-        </Field>
-        <Field label="Caption" hint={`${description.length}/180`}>
-          <textarea
-            className="input"
-            rows={3}
-            maxLength={180}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </Field>
-        <div className="flex gap-3">
-          <button
-            onClick={() => move(-1)}
-            disabled={busy || index <= 0}
-            className="btn-ghost flex-1"
+          <Field
+            label="Title"
+            hint={`Shown large when someone opens the photo. ${title.length}/24`}
           >
-            <ChevronLeft className="h-4 w-4" /> Earlier
-          </button>
-          <button
-            onClick={() => move(1)}
-            disabled={busy || index >= items.length - 1}
-            className="btn-ghost flex-1"
-          >
-            Later <ChevronRight className="h-4 w-4" />
-          </button>
+            <input
+              className="input"
+              maxLength={24}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Our clinic visit"
+            />
+          </Field>
+          <Field label="Caption (optional)" hint={`${description.length}/180`}>
+            <textarea
+              className="input"
+              rows={3}
+              maxLength={180}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </Field>
+          <div>
+            <p className="mb-2 text-base font-bold">Order on the website</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => move(-1)}
+                disabled={busy || index <= 0}
+                className="btn-ghost flex-1"
+              >
+                <ChevronLeft className="h-5 w-5" /> Earlier
+              </button>
+              <button
+                onClick={() => move(1)}
+                disabled={busy || index >= items.length - 1}
+                className="btn-ghost flex-1"
+              >
+                Later <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-    </Sheet>
+      </Sheet>
+      {confirmNode}
+    </>
   );
 }
 
@@ -176,16 +198,11 @@ export default function Gallery({ notify }) {
       }
     }
     setProgress(null);
-    if (done)
-      notify(
-        done === 1
-          ? "Photo added to the gallery"
-          : `${done} photos added to the gallery`,
-      );
+    if (done) notify(done === 1 ? "Photo added" : `${done} photos added`);
   };
 
   return (
-    <div className="px-4 pb-32 pt-4">
+    <div className="px-4 pb-40 pt-4">
       <input
         ref={input}
         type="file"
@@ -198,31 +215,32 @@ export default function Gallery({ notify }) {
         }}
       />
 
-      <p className="text-sm text-ink/60">
-        {items.length} photo{items.length === 1 ? "" : "s"}. Tap a photo to add
-        a title or caption.
-      </p>
+      {items.length > 0 && (
+        <p className="text-base text-ink/70">
+          Tap a photo to give it a title or remove it.
+        </p>
+      )}
       {!loading && items.length > 0 && items.length < 8 && (
-        <p className="mt-3 rounded-xl bg-mist p-3 text-sm text-ink/70">
-          Tip: the website gallery looks best with 8 or more different photos.
+        <p className="mt-3 rounded-2xl bg-mist p-4 text-base text-ink/80">
+          Tip: your website gallery looks best with 8 or more photos.
         </p>
       )}
       {error && (
-        <p className="mt-4 rounded-xl bg-rose/10 p-4 text-sm text-rose">
+        <p className="mt-4 rounded-2xl bg-[#b4141a] p-4 text-base font-semibold text-white">
           {friendlyError(error)}
         </p>
       )}
       {loading && (
-        <div className="mt-16 flex justify-center text-brand">
-          <Spinner className="h-7 w-7" />
+        <div className="mt-16 flex justify-center text-brand-dark">
+          <Spinner className="h-8 w-8" />
         </div>
       )}
 
       {!loading && items.length === 0 && !error && (
-        <div className="mt-10 rounded-3xl border border-dashed border-ink/20 bg-white p-8 text-center">
+        <div className="mt-10 rounded-3xl border-2 border-dashed border-ink/25 bg-white p-8 text-center">
           <h3 className="text-2xl">No photos yet</h3>
-          <p className="mx-auto mt-2 max-w-xs text-sm text-ink/60">
-            Add photos and they will replace the sample pictures in the website
+          <p className="mx-auto mt-2 max-w-xs text-base text-ink/70">
+            Tap <b>Add photos</b> below. They will appear in your website
             gallery.
           </p>
         </div>
@@ -233,7 +251,7 @@ export default function Gallery({ notify }) {
           <button
             key={g.id}
             onClick={() => setEditing(g)}
-            className="group relative aspect-square overflow-hidden rounded-2xl bg-mist text-left"
+            className="relative aspect-square overflow-hidden rounded-2xl bg-mist text-left"
           >
             <img
               src={g.src}
@@ -241,7 +259,7 @@ export default function Gallery({ notify }) {
               loading="lazy"
               className="h-full w-full object-contain"
             />
-            <span className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-ink/80 to-transparent px-3 pb-2 pt-6 text-xs font-semibold text-white">
+            <span className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-ink/85 to-transparent px-3 pb-2 pt-8 text-sm font-bold text-white">
               {g.title || "No title"}
             </span>
           </button>
@@ -251,7 +269,7 @@ export default function Gallery({ notify }) {
       <button
         onClick={() => input.current?.click()}
         disabled={Boolean(progress)}
-        className="fixed bottom-24 right-5 z-30 flex h-14 items-center gap-2 rounded-full bg-rose px-6 text-sm font-semibold text-white shadow-xl transition active:scale-95 disabled:opacity-80"
+        className="fixed bottom-28 left-1/2 z-30 flex h-16 -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-brand-dark px-8 text-lg font-bold text-white shadow-xl transition active:scale-95 disabled:opacity-90"
         style={{ marginBottom: "env(safe-area-inset-bottom)" }}
       >
         {progress ? (
@@ -260,7 +278,7 @@ export default function Gallery({ notify }) {
           </>
         ) : (
           <>
-            <ImagePlus className="h-5 w-5" /> Add photos
+            <ImagePlus className="h-6 w-6" /> Add photos
           </>
         )}
       </button>

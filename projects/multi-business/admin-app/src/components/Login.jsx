@@ -1,13 +1,20 @@
 import { useState } from "react";
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { Eye, EyeOff } from "lucide-react";
+import {
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+} from "firebase/auth";
 import { auth } from "../firebase";
 import { Spinner } from "./ui";
 
 const errorText = (code = "") => {
-  if (code.includes("invalid-credential") || code.includes("wrong-password") || code.includes("user-not-found"))
+  if (
+    code.includes("invalid-credential") ||
+    code.includes("wrong-password") ||
+    code.includes("user-not-found")
+  )
     return "Email or password is not correct.";
-  if (code.includes("too-many-requests")) return "Too many attempts. Please wait a few minutes and try again.";
+  if (code.includes("too-many-requests"))
+    return "Too many attempts. Please wait a few minutes and try again.";
   if (code.includes("network")) return "No internet connection.";
   return "Could not sign in. Please try again.";
 };
@@ -37,10 +44,13 @@ export default function Login() {
   const reset = async () => {
     setError("");
     setInfo("");
-    if (!email.trim()) return setError("Type your email above first, then tap “Forgot password”.");
+    if (!email.trim())
+      return setError("Type your email first, then tap “Forgot password?”.");
     try {
       await sendPasswordResetEmail(auth, email.trim());
-      setInfo("Password reset email sent. Check your inbox (and spam folder).");
+      setInfo(
+        "We sent you an email to reset your password. Please check your inbox and spam folder.",
+      );
     } catch (err) {
       setError(errorText(err.code));
     }
@@ -48,45 +58,75 @@ export default function Login() {
 
   return (
     <div className="safe-top flex min-h-full flex-col bg-ink px-6 text-paper">
-      <div className="flex flex-1 flex-col justify-center py-10">
-        <img src="/icon-192.png" alt="" className="mb-8 h-16 w-16 rounded-2xl" />
+      <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-10">
+        <img
+          src="/icon-192.png"
+          alt=""
+          className="mb-6 h-16 w-16 rounded-2xl"
+        />
         <h1 className="text-4xl leading-tight">Website Admin</h1>
-        <p className="mt-2 text-paper/65">Sign in to update your website’s products and gallery.</p>
+        <p className="mt-2 text-lg text-paper/80">
+          Sign in to change your website.
+        </p>
 
-        <form onSubmit={submit} className="mt-9 space-y-4">
-          <input
-            type="email"
-            required
-            autoComplete="email"
-            inputMode="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3.5 text-paper outline-none placeholder:text-paper/40 focus:border-brand"
-          />
-          <div className="relative">
+        <form onSubmit={submit} className="mt-8 space-y-5">
+          <label className="block">
+            <span className="mb-2 block text-base font-bold">Email</span>
             <input
-              type={show ? "text" : "password"}
+              type="email"
               required
-              autoComplete="current-password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3.5 pr-12 text-paper outline-none placeholder:text-paper/40 focus:border-brand"
+              autoComplete="email"
+              inputMode="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="input"
             />
-            <button type="button" onClick={() => setShow((s) => !s)} aria-label={show ? "Hide password" : "Show password"}
-              className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center text-paper/60">
-              {show ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-            </button>
-          </div>
+          </label>
 
-          {error && <p className="rounded-xl bg-rose/15 px-4 py-3 text-sm text-[#ffb3b6]">{error}</p>}
-          {info && <p className="rounded-xl bg-brand/20 px-4 py-3 text-sm text-[#bfeff2]">{info}</p>}
+          <label className="block">
+            <span className="mb-2 block text-base font-bold">Password</span>
+            <div className="relative">
+              <input
+                type={show ? "text" : "password"}
+                required
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input pr-24"
+              />
+              <button
+                type="button"
+                onClick={() => setShow((s) => !s)}
+                className="absolute right-2 top-1/2 h-11 -translate-y-1/2 rounded-xl px-3 text-base font-bold text-brand-dark"
+              >
+                {show ? "Hide" : "Show"}
+              </button>
+            </div>
+          </label>
 
-          <button type="submit" disabled={busy} className="btn-rose w-full">
+          {error && (
+            <p className="rounded-2xl bg-[#b4141a] px-4 py-3 text-base font-semibold text-white">
+              {error}
+            </p>
+          )}
+          {info && (
+            <p className="rounded-2xl bg-brand-dark px-4 py-3 text-base font-semibold text-white">
+              {info}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={busy}
+            className="btn w-full bg-brand text-ink hover:bg-white"
+          >
             {busy ? <Spinner /> : "Sign in"}
           </button>
-          <button type="button" onClick={reset} className="w-full py-2 text-sm text-paper/65 underline-offset-4 hover:underline">
+          <button
+            type="button"
+            onClick={reset}
+            className="w-full py-3 text-base font-semibold text-paper/80 underline underline-offset-4"
+          >
             Forgot password?
           </button>
         </form>

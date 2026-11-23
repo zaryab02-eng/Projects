@@ -2,14 +2,12 @@ import { useState } from "react";
 import { signOut } from "firebase/auth";
 import { doc, writeBatch, collection, getDocs } from "firebase/firestore";
 import {
+  ChevronDown,
+  ChevronRight,
   Download,
   ExternalLink,
-  LogOut,
-  DatabaseZap,
-  Smartphone,
   Share,
   Tags,
-  Globe,
 } from "lucide-react";
 import { auth, db, siteUrl, cloudinaryReady } from "../firebase";
 import {
@@ -19,42 +17,28 @@ import {
 import { useSite } from "../lib/site";
 import Categories from "./Categories";
 import useInstall from "../lib/useInstall";
-import { Spinner, friendlyError } from "./ui";
+import { Spinner, friendlyError, useConfirm } from "./ui";
 
-function Row({ icon: Icon, title, text, children }) {
-  return (
-    <div className="rounded-2xl border border-ink/10 bg-white p-5">
-      <div className="flex items-start gap-4">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-mist text-brand-dark">
-          <Icon className="h-5 w-5" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <h3 className="text-xl">{title}</h3>
-          {text && (
-            <p className="mt-1 text-sm leading-relaxed text-ink/60">{text}</p>
-          )}
-          {children && <div className="mt-4">{children}</div>}
-        </div>
-      </div>
-    </div>
-  );
-}
+const rowClass =
+  "flex w-full items-center gap-4 rounded-2xl border-2 border-ink/10 bg-white p-4 text-left text-lg font-bold";
 
 export default function Settings({ user, notify }) {
   const { canInstall, install, installed, isIOS } = useInstall();
   const { siteId, siteName, hasCustomCategories } = useSite();
+  const [confirmNode, ask] = useConfirm();
   const [seeding, setSeeding] = useState(false);
   const [editCats, setEditCats] = useState(false);
+  const [more, setMore] = useState(false);
 
   const seed = async () => {
     const snap = await getDocs(collection(db, "sites", siteId, "products"));
-    if (
-      snap.size > 0 &&
-      !window.confirm(
+    if (snap.size > 0) {
+      const yes = await ask(
         "You already have products. Loading the samples will ADD them to your list. Continue?",
-      )
-    )
-      return;
+        { yes: "Yes, add samples", no: "Cancel", danger: false },
+      );
+      if (!yes) return;
+    }
     setSeeding(true);
     try {
       const batch = writeBatch(db);
@@ -74,7 +58,7 @@ export default function Settings({ user, notify }) {
         });
       });
       await batch.commit();
-      notify("Sample products loaded. You can now edit them.");
+      notify("Sample products loaded");
     } catch (e) {
       notify(friendlyError(e), "error");
     }
@@ -83,91 +67,111 @@ export default function Settings({ user, notify }) {
 
   return (
     <div className="space-y-4 px-4 pb-32 pt-4">
-      <Row
-        icon={Globe}
-        title={siteName}
-        text={`You are managing this website. (site id: ${siteId})`}
-      />
+      <div className="rounded-2xl bg-mist p-5">
+        <p className="text-sm font-bold text-ink/70">Your website</p>
+        <p className="mt-1 text-2xl font-bold">{siteName}</p>
+      </div>
 
-      <Row
-        icon={Tags}
-        title="Categories"
-        text="Add, rename, reorder or remove the product categories shown on the website."
-      >
-        <button onClick={() => setEditCats(true)} className="btn-ghost">
-          Edit categories
-        </button>
-      </Row>
-
-      <Row
-        icon={Smartphone}
-        title="Install this app"
-        text={
-          installed ? "Website Admin is installed on this phone." : undefined
-        }
-      >
-        {!installed && canInstall && (
-          <button onClick={install} className="btn-primary">
-            <Download className="h-4 w-4" /> Install app
-          </button>
-        )}
-        {!installed && !canInstall && isIOS && (
-          <p className="flex flex-wrap items-center gap-1 text-sm text-ink/70">
-            On iPhone: tap <Share className="mx-1 inline h-4 w-4" /> Share in
-            Safari, then <b>Add to Home Screen</b>.
-          </p>
-        )}
-        {!installed && !canInstall && !isIOS && (
-          <p className="text-sm text-ink/70">
-            In Chrome, open the ⋮ menu and tap <b>Install app</b> (or{" "}
-            <b>Add to Home screen</b>).
-          </p>
-        )}
-      </Row>
+      <button onClick={() => setEditCats(true)} className={rowClass}>
+        <Tags className="h-6 w-6 shrink-0 text-brand-dark" />
+        <span className="flex-1">Product categories</span>
+        <ChevronRight className="h-6 w-6 text-ink/50" />
+      </button>
 
       {siteUrl && (
-        <Row
-          icon={ExternalLink}
-          title="View website"
-          text="See how your changes look to visitors."
+        <a
+          href={siteUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={rowClass}
         >
-          <a
-            href={siteUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-ghost"
-          >
-            Open website
-          </a>
-        </Row>
+          <ExternalLink className="h-6 w-6 shrink-0 text-brand-dark" />
+          <span className="flex-1">See my website</span>
+          <ChevronRight className="h-6 w-6 text-ink/50" />
+        </a>
       )}
 
-      <Row
-        icon={DatabaseZap}
-        title="Load sample products"
-        text="Adds the 18 Natusz sample products (and their categories) so you can edit or delete them instead of starting from nothing."
-      >
-        <button onClick={seed} disabled={seeding} className="btn-ghost">
-          {seeding ? <Spinner /> : "Load samples"}
-        </button>
-      </Row>
-
       {!cloudinaryReady && (
-        <p className="rounded-2xl bg-rose/10 p-4 text-sm text-rose">
-          Photo uploads are not set up yet. Add the Cloudinary values to the
-          .env file (see README).
+        <p className="rounded-2xl bg-[#b4141a] p-4 text-base font-semibold text-white">
+          Photo uploads are not set up yet. Please contact the person who made
+          your website.
         </p>
       )}
 
-      <Row icon={LogOut} title="Signed in" text={user.email}>
-        <button onClick={() => signOut(auth)} className="btn-danger">
+      <div className="rounded-2xl border-2 border-ink/10 bg-white p-5">
+        <p className="text-sm font-bold text-ink/70">Signed in as</p>
+        <p className="mt-1 break-all text-lg font-bold">{user.email}</p>
+        <button
+          onClick={() => signOut(auth)}
+          className="btn-danger mt-4 w-full"
+        >
           Sign out
         </button>
-      </Row>
+      </div>
+
+      {/* Rarely needed things are tucked away here */}
+      <div>
+        <button
+          onClick={() => setMore((m) => !m)}
+          aria-expanded={more}
+          className="flex w-full items-center justify-between px-2 py-3 text-base font-bold text-ink/70"
+        >
+          More options
+          <ChevronDown
+            className={`h-6 w-6 transition ${more ? "rotate-180" : ""}`}
+          />
+        </button>
+
+        {more && (
+          <div className="space-y-4">
+            <div className="rounded-2xl border-2 border-ink/10 bg-white p-5">
+              <h3 className="text-lg">Put this app on your phone</h3>
+              {installed && (
+                <p className="mt-2 text-base text-ink/70">
+                  It is already installed on this phone.
+                </p>
+              )}
+              {!installed && canInstall && (
+                <button onClick={install} className="btn-primary mt-3 w-full">
+                  <Download className="h-5 w-5" /> Install app
+                </button>
+              )}
+              {!installed && !canInstall && isIOS && (
+                <p className="mt-2 text-base text-ink/70">
+                  On iPhone: tap <Share className="mx-1 inline h-5 w-5" /> Share
+                  in Safari, then <b>Add to Home Screen</b>.
+                </p>
+              )}
+              {!installed && !canInstall && !isIOS && (
+                <p className="mt-2 text-base text-ink/70">
+                  In Chrome, open the ⋮ menu and tap <b>Install app</b> (or{" "}
+                  <b>Add to Home screen</b>).
+                </p>
+              )}
+            </div>
+
+            <div className="rounded-2xl border-2 border-ink/10 bg-white p-5">
+              <h3 className="text-lg">Add sample products</h3>
+              <p className="mt-2 text-base text-ink/70">
+                Adds a ready-made list of sample products that you can edit or
+                delete.
+              </p>
+              <button
+                onClick={seed}
+                disabled={seeding}
+                className="btn-ghost mt-3 w-full"
+              >
+                {seeding ? <Spinner /> : "Add samples"}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {editCats && (
         <Categories onClose={() => setEditCats(false)} notify={notify} />
       )}
+      {confirmNode}
     </div>
   );
 }

@@ -11,7 +11,7 @@ import { SiteProvider, useSite } from "./lib/site";
 
 const tabs = [
   { id: "products", label: "Products", Icon: Package },
-  { id: "gallery", label: "Gallery", Icon: Images },
+  { id: "gallery", label: "Photos", Icon: Images },
   { id: "settings", label: "Settings", Icon: Cog },
 ];
 
@@ -19,9 +19,12 @@ function SetupNeeded() {
   return (
     <div className="flex min-h-full flex-col justify-center bg-ink p-8 text-paper">
       <h1 className="text-3xl">Almost there</h1>
-      <p className="mt-3 text-paper/70">
-        The Firebase details are missing. Copy <code className="rounded bg-white/10 px-1.5">.env.example</code> to{" "}
-        <code className="rounded bg-white/10 px-1.5">.env</code>, fill in the values (README, section 1), then restart <code className="rounded bg-white/10 px-1.5">npm run dev</code>.
+      <p className="mt-3 text-paper/80">
+        The Firebase details are missing. Copy{" "}
+        <code className="rounded bg-white/10 px-1.5">.env.example</code> to{" "}
+        <code className="rounded bg-white/10 px-1.5">.env</code>, fill in the
+        values (README, section 1), then restart{" "}
+        <code className="rounded bg-white/10 px-1.5">npm run dev</code>.
       </p>
     </div>
   );
@@ -35,10 +38,10 @@ function Shell({ user }) {
 
   return (
     <div className="flex h-full flex-col">
-      <header className="safe-top bg-ink text-paper">
-        <div className="flex h-16 items-center justify-between gap-3 px-5">
+      <header className="safe-top border-b-2 border-ink/10 bg-white">
+        <div className="px-5 py-3">
           <h1 className="text-2xl">{title}</h1>
-          <span className="max-w-[55%] truncate rounded-full bg-white/10 px-3 py-1 text-xs font-semibold">{siteName}</span>
+          <p className="truncate text-sm text-ink/70">{siteName}</p>
         </div>
       </header>
 
@@ -48,20 +51,30 @@ function Shell({ user }) {
         {tab === "settings" && <Settings user={user} notify={notify} />}
       </main>
 
-      <nav className="safe-bottom z-40 border-t border-ink/10 bg-paper/95 backdrop-blur" aria-label="Sections">
+      <nav
+        className="safe-bottom z-40 border-t-2 border-ink/10 bg-white"
+        aria-label="Sections"
+      >
         <ul className="grid grid-cols-3">
-          {tabs.map(({ id, label, Icon }) => (
-            <li key={id}>
-              <button
-                onClick={() => setTab(id)}
-                aria-current={tab === id ? "page" : undefined}
-                className={`flex w-full flex-col items-center gap-1 py-3 text-xs font-semibold transition ${tab === id ? "text-brand-dark" : "text-ink/45"}`}
-              >
-                <Icon className="h-6 w-6" strokeWidth={tab === id ? 2.2 : 1.7} />
-                {label}
-              </button>
-            </li>
-          ))}
+          {tabs.map(({ id, label, Icon }) => {
+            const on = tab === id;
+            return (
+              <li key={id}>
+                <button
+                  onClick={() => setTab(id)}
+                  aria-current={on ? "page" : undefined}
+                  className={`flex w-full flex-col items-center gap-1 border-t-4 py-2.5 text-base font-bold transition ${
+                    on
+                      ? "border-brand-dark text-brand-dark"
+                      : "border-transparent text-ink/65"
+                  }`}
+                >
+                  <Icon className="h-7 w-7" strokeWidth={on ? 2.4 : 1.8} />
+                  {label}
+                </button>
+              </li>
+            );
+          })}
         </ul>
       </nav>
       {toastNode}

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { addDoc, collection, deleteDoc, doc, setDoc } from "firebase/firestore";
-import { Plus, Search, Star, EyeOff, X } from "lucide-react";
+import { Plus, Search, EyeOff, ChevronDown } from "lucide-react";
 import { db } from "../firebase";
 import { useSite } from "../lib/site";
 import { uploadImage } from "../lib/upload";
@@ -12,6 +12,7 @@ import {
   ImagePicker,
   Spinner,
   friendlyError,
+  useConfirm,
 } from "./ui";
 
 const emptyProduct = {
@@ -24,8 +25,10 @@ const emptyProduct = {
   image: "",
 };
 
-// Quick suggestions for the "details" list. The owner can also type any label of their own.
-const SUGGESTIONS = ["Pack size", "Composition", "Form", "Price", "How to use"];
+// Quick suggestions for the extra details. The owner can also type any label of their own.
+const SUGGESTIONS = ["Pack size", "Composition", "Form", "How to use"];
+
+const isPriceLabel = (l) => /^\s*price\s*$/i.test(l || "");
 
 // Old products stored pack / form / composition as fixed fields. Turn them into detail rows.
 function detailsFromProduct(p) {
@@ -44,6 +47,12 @@ function detailsFromProduct(p) {
     .map(([label, value]) => ({ label, value }));
 }
 
+const money = (v) => {
+  const s = String(v || "").trim();
+  if (!s) return "";
+  return /^\d[\d,.]*\s*(\/-)?$/.test(s) ? `₹${s}` : s;
+};
+
 function useCategoryName() {
   const { getCategory } = useSite();
   return (id) => getCategory(id)?.name || (id === "others" ? "Others" : "");
@@ -58,7 +67,7 @@ function Thumb({ p }) {
     );
   return (
     <div
-      className="flex h-full w-full items-center justify-center font-display text-2xl text-white"
+      className="flex h-full w-full items-center justify-center text-2xl font-bold text-white"
       style={{ background: cat?.color || "#059EA9" }}
     >
       {p.name?.[0]?.toUpperCase() || "?"}
@@ -68,14 +77,22 @@ function Thumb({ p }) {
 
 function ProductForm({ product, onClose, notify }) {
   const { siteId, categories } = useSite();
+  const [confirmNode, ask] = useConfirm();
   const isNew = !product.id;
   const hasOthers = categories.some((c) => c.id === "others");
+
+  const all = detailsFromProduct(product);
+  const priceRow = all.find((d) => isPriceLabel(d.label));
+  const others = all.filter((d) => !isPriceLabel(d.label));
+
+  const [price, setPrice] = useState(priceRow?.value || "");
   const [f, setF] = useState({
     ...emptyProduct,
     category: categories[0]?.id || "others",
     ...product,
-    details: detailsFromProduct(product),
+    details: others,
   });
+  const [more, setMore] = useState(others.length > 0);
   const [file, setFile] = useState(null);
   const [busy, setBusy] = useState(false);
   const set = (k) => (e) => setF((s) => ({ ...s, [k]: e.target.value }));
@@ -85,8 +102,10 @@ function ProductForm({ product, onClose, notify }) {
       ...s,
       details: s.details.map((d, j) => (j === i ? { ...d, [k]: v } : d)),
     }));
-  const addDetail = (label = "") =>
+  const addDetail = (label = "") => {
+    setMore(true);
     setF((s) => ({ ...s, details: [...s.details, { label, value: "" }] }));
+  };
   const removeDetail = (i) =>
     setF((s) => ({ ...s, details: s.details.filter((_, j) => j !== i) }));
 
@@ -94,9 +113,10 @@ function ProductForm({ product, onClose, notify }) {
   const freeSuggestions = SUGGESTIONS.filter(
     (s) => !usedLabels.includes(s.toLowerCase()),
   );
+  const extraCount = f.details.filter((d) => d.value.trim()).length;
 
   const save = async () => {
-    if (!f.name.trim()) return notify("Please enter the product name", "error");
+    if (!f.name.trim()) return notify("Please type the product name", "error");
     setBusy(true);
     try {
       let image = f.image;
@@ -105,9 +125,13 @@ function ProductForm({ product, onClose, notify }) {
           maxSize: 1200,
           folder: `${siteId}/products`,
         });
-      const rows = f.details
-        .map((d) => ({ label: d.label.trim(), value: d.value.trim() }))
-        .filter((d) => d.label && d.value);
+      const rows = [
+        ...(price.trim() ? [{ label: "Price", value: price.trim() }] : []),
+        ...f.details.map((d) => ({
+          label: d.label.trim(),
+          value: d.value.trim(),
+        })),
+      ].filter((d) => d.label && d.value);
       const find = (re) => rows.find((d) => re.test(d.label))?.value || "";
       const data = {
         name: f.name.trim(),
@@ -133,11 +157,7 @@ function ProductForm({ product, onClose, notify }) {
           merge: true,
         });
       }
-      notify(
-        isNew
-          ? "Product added. It is now live on the website."
-          : "Changes saved",
-      );
+      notify(isNew ? "Product added. It is now on your website." : "Saved");
       onClose();
     } catch (e) {
       notify(friendlyError(e), "error");
@@ -146,12 +166,10 @@ function ProductForm({ product, onClose, notify }) {
   };
 
   const remove = async () => {
-    if (
-      !window.confirm(
-        `Delete “${product.name}” from the website? This cannot be undone.`,
-      )
-    )
-      return;
+    const yes = await ask(
+      `Delete “${product.name}” from your website? This cannot be undone.`,
+    );
+    if (!yes) return;
     setBusy(true);
     try {
       await deleteDoc(doc(db, "sites", siteId, "products", product.id));
@@ -164,164 +182,187 @@ function ProductForm({ product, onClose, notify }) {
   };
 
   return (
-    <Sheet
-      title={isNew ? "New product" : "Edit product"}
-      onClose={busy ? () => {} : onClose}
-      footer={
-        <div className="flex gap-3">
-          {!isNew && (
-            <button
-              type="button"
-              onClick={remove}
-              disabled={busy}
-              className="btn-danger"
-            >
-              Delete
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={save}
-            disabled={busy}
-            className="btn-primary flex-1"
-          >
-            {busy ? <Spinner /> : isNew ? "Add product" : "Save changes"}
-          </button>
-        </div>
-      }
-    >
-      <div className="space-y-5">
-        <Field
-          label="Product photo"
-          hint="Optional. Any photo shape works (wide, tall or square). The whole photo is kept."
-        >
-          <ImagePicker
-            url={f.image}
-            file={file}
-            onPick={setFile}
-            onClear={() => {
-              setFile(null);
-              setF((s) => ({ ...s, image: "" }));
-            }}
-            label="Take or choose a photo"
-          />
-        </Field>
-
-        <Field label="Product name *">
-          <input
-            className="input"
-            value={f.name}
-            onChange={set("name")}
-            placeholder="e.g. Hydra Moist Cream"
-          />
-        </Field>
-
-        <Field label="Category">
-          <select
-            className="input"
-            value={f.category}
-            onChange={set("category")}
-          >
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-            {!hasOthers && <option value="others">Others</option>}
-          </select>
-        </Field>
-
-        <Field label="Short description">
-          <textarea
-            className="input"
-            rows={3}
-            value={f.description}
-            onChange={set("description")}
-          />
-        </Field>
-
-        <div>
-          <p className="mb-1 text-sm font-semibold">Product details</p>
-          <p className="mb-3 text-xs text-ink/55">
-            Add any details you want shown on the website, like pack size,
-            composition or price. Tap a suggestion or make your own.
-          </p>
-
-          <div className="space-y-3">
-            {f.details.map((d, i) => (
-              <div key={i} className="flex items-start gap-2">
-                <input
-                  className="input w-2/5 shrink-0"
-                  value={d.label}
-                  onChange={(e) => setDetail(i, "label", e.target.value)}
-                  placeholder="Name, e.g. Pack size"
-                  aria-label="Detail name"
-                />
-                <textarea
-                  className="input min-w-0 flex-1"
-                  rows={1}
-                  value={d.value}
-                  onChange={(e) => setDetail(i, "value", e.target.value)}
-                  placeholder="Value, e.g. 50 g"
-                  aria-label="Detail value"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeDetail(i)}
-                  aria-label="Remove this detail"
-                  className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink/50 transition hover:bg-mist hover:text-rose"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-3 flex flex-wrap gap-2">
-            {freeSuggestions.map((s) => (
+    <>
+      <Sheet
+        title={isNew ? "New product" : "Edit product"}
+        onClose={busy ? () => {} : onClose}
+        footer={
+          <div className="flex gap-3">
+            {!isNew && (
               <button
-                key={s}
                 type="button"
-                onClick={() => addDetail(s)}
-                className="rounded-full border border-ink/15 bg-white px-3 py-1.5 text-xs font-semibold text-ink/70 transition active:scale-95"
+                onClick={remove}
+                disabled={busy}
+                className="btn-danger"
               >
-                + {s}
+                Delete
               </button>
-            ))}
+            )}
             <button
               type="button"
-              onClick={() => addDetail("")}
-              className="rounded-full border border-brand/40 bg-mist px-3 py-1.5 text-xs font-semibold text-brand-dark transition active:scale-95"
+              onClick={save}
+              disabled={busy}
+              className="btn-primary flex-1"
             >
-              + My own detail
+              {busy ? <Spinner /> : isNew ? "Add product" : "Save"}
             </button>
           </div>
-        </div>
+        }
+      >
+        <div className="space-y-6">
+          <Field
+            label="Photo"
+            hint="The whole photo is kept, nothing is cut off."
+          >
+            <ImagePicker
+              url={f.image}
+              file={file}
+              onPick={setFile}
+              onClear={() => {
+                setFile(null);
+                setF((s) => ({ ...s, image: "" }));
+              }}
+            />
+          </Field>
 
-        {!f.image && !file && (
-          <Field label="Pack drawing (used when there is no photo)">
-            <select className="input" value={f.visual} onChange={set("visual")}>
-              <option value="tube">Tube</option>
-              <option value="jar">Jar</option>
-              <option value="bottle">Bottle</option>
+          <Field label="Product name">
+            <input
+              className="input"
+              value={f.name}
+              onChange={set("name")}
+              placeholder="e.g. Hydra Moist Cream"
+            />
+          </Field>
+
+          <Field
+            label="Price (₹)"
+            hint="Just the number, like 250. Leave empty if you do not want to show a price."
+          >
+            <input
+              className="input"
+              inputMode="decimal"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="e.g. 250"
+            />
+          </Field>
+
+          <Field label="Category">
+            <select
+              className="input"
+              value={f.category}
+              onChange={set("category")}
+            >
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+              {!hasOthers && <option value="others">Others</option>}
             </select>
           </Field>
-        )}
 
-        <Switch
-          checked={f.featured}
-          onChange={(v) => setF((s) => ({ ...s, featured: v }))}
-          label="Feature on home page"
-          hint="The first 4 featured products appear on the Home page."
-        />
-        <Switch
-          checked={f.visible !== false}
-          onChange={(v) => setF((s) => ({ ...s, visible: v }))}
-          label="Show on website"
-          hint="Turn off to hide it without deleting."
-        />
-      </div>
-    </Sheet>
+          <Field label="Short description">
+            <textarea
+              className="input"
+              rows={3}
+              value={f.description}
+              onChange={set("description")}
+              placeholder="One or two lines about this product"
+            />
+          </Field>
+
+          <Switch
+            checked={f.visible !== false}
+            onChange={(v) => setF((s) => ({ ...s, visible: v }))}
+            label="Show on website"
+            hint="Turn off to hide it without deleting."
+          />
+
+          {/* Everything else lives here, so the main form stays short */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setMore((m) => !m)}
+              aria-expanded={more}
+              className="flex w-full items-center justify-between rounded-2xl border-2 border-ink/20 bg-white px-4 py-4 text-left text-base font-bold"
+            >
+              <span>More details{extraCount ? ` (${extraCount})` : ""}</span>
+              <ChevronDown
+                className={`h-6 w-6 transition ${more ? "rotate-180" : ""}`}
+              />
+            </button>
+
+            {more && (
+              <div className="mt-4 space-y-5">
+                <p className="text-sm text-ink/70">
+                  Add pack size, composition or anything else people should
+                  know. It is shown on the website.
+                </p>
+
+                {f.details.map((d, i) => (
+                  <div
+                    key={i}
+                    className="space-y-2 rounded-2xl border-2 border-ink/10 bg-white p-3"
+                  >
+                    <input
+                      className="input"
+                      value={d.label}
+                      onChange={(e) => setDetail(i, "label", e.target.value)}
+                      placeholder="Name, e.g. Pack size"
+                      aria-label="Detail name"
+                    />
+                    <textarea
+                      className="input"
+                      rows={2}
+                      value={d.value}
+                      onChange={(e) => setDetail(i, "value", e.target.value)}
+                      placeholder="e.g. 50 g"
+                      aria-label="Detail value"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeDetail(i)}
+                      className="h-11 rounded-xl px-2 text-sm font-bold text-[#b4141a]"
+                    >
+                      Remove this detail
+                    </button>
+                  </div>
+                ))}
+
+                <div className="flex flex-wrap gap-2">
+                  {freeSuggestions.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => addDetail(s)}
+                      className="min-h-[44px] rounded-full border-2 border-ink/20 bg-white px-4 text-sm font-bold"
+                    >
+                      + {s}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => addDetail("")}
+                    className="min-h-[44px] rounded-full border-2 border-brand-dark bg-mist px-4 text-sm font-bold text-brand-dark"
+                  >
+                    + Other detail
+                  </button>
+                </div>
+
+                <Switch
+                  checked={f.featured}
+                  onChange={(v) => setF((s) => ({ ...s, featured: v }))}
+                  label="Show on home page"
+                  hint="The first 4 chosen products appear on the Home page."
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </Sheet>
+      {confirmNode}
+    </>
   );
 }
 
@@ -346,86 +387,89 @@ export default function Products({ notify }) {
         .toLowerCase()
         .includes(q),
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, query]);
 
   return (
-    <div className="px-4 pb-32 pt-4">
-      <div className="relative">
-        <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" />
-        <input
-          className="input rounded-full pl-11"
-          type="search"
-          placeholder={`Search ${items.length} products`}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-      </div>
+    <div className="px-4 pb-40 pt-4">
+      {items.length > 8 && (
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink/50" />
+          <input
+            className="input pl-12"
+            type="search"
+            placeholder="Search products"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
+      )}
 
       {error && (
-        <p className="mt-4 rounded-xl bg-rose/10 p-4 text-sm text-rose">
+        <p className="mt-4 rounded-2xl bg-[#b4141a] p-4 text-base font-semibold text-white">
           {friendlyError(error)}
         </p>
       )}
       {loading && (
-        <div className="mt-16 flex justify-center text-brand">
-          <Spinner className="h-7 w-7" />
+        <div className="mt-16 flex justify-center text-brand-dark">
+          <Spinner className="h-8 w-8" />
         </div>
       )}
 
       {!loading && items.length === 0 && !error && (
-        <div className="mt-12 rounded-3xl border border-dashed border-ink/20 bg-white p-8 text-center">
+        <div className="mt-10 rounded-3xl border-2 border-dashed border-ink/25 bg-white p-8 text-center">
           <h3 className="text-2xl">No products yet</h3>
-          <p className="mx-auto mt-2 max-w-xs text-sm text-ink/60">
-            Tap the + button to add your first product. Until then the website
-            shows its built-in sample products.
-          </p>
-          <p className="mx-auto mt-2 max-w-xs text-sm text-ink/60">
-            Tip: Settings has a button to load the sample list so you can edit
-            it.
+          <p className="mx-auto mt-2 max-w-xs text-base text-ink/70">
+            Tap <b>Add product</b> below to add your first one.
           </p>
         </div>
       )}
 
-      <ul className="mt-4 space-y-2.5">
-        {filtered.map((p) => (
-          <li key={p.id}>
-            <button
-              onClick={() => setEditing(p)}
-              className="flex w-full items-center gap-4 rounded-2xl border border-ink/10 bg-white p-3 text-left transition active:scale-[0.99]"
-            >
-              <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-mist">
-                <Thumb p={p} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold">{p.name}</p>
-                <p className="truncate text-sm text-ink/55">
-                  {[catName(p.category), p.pack].filter(Boolean).join(", ")}
-                </p>
-                <div className="mt-1 flex gap-2 text-[11px] font-semibold">
-                  {p.featured && (
-                    <span className="flex items-center gap-1 text-brand-dark">
-                      <Star className="h-3 w-3" /> Featured
-                    </span>
-                  )}
+      {!loading && items.length > 0 && filtered.length === 0 && (
+        <p className="mt-8 text-center text-base text-ink/70">
+          Nothing found for “{query}”.
+        </p>
+      )}
+
+      <ul className={`space-y-3 ${items.length > 8 ? "mt-4" : ""}`}>
+        {filtered.map((p) => {
+          const price = detailsFromProduct(p).find((d) =>
+            isPriceLabel(d.label),
+          )?.value;
+          return (
+            <li key={p.id}>
+              <button
+                onClick={() => setEditing(p)}
+                className="flex w-full items-center gap-4 rounded-2xl border-2 border-ink/10 bg-white p-3 text-left transition active:scale-[0.99]"
+              >
+                <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-mist">
+                  <Thumb p={p} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-lg font-bold leading-snug">{p.name}</p>
+                  <p className="mt-0.5 truncate text-base text-ink/70">
+                    {[money(price), catName(p.category)]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
                   {p.visible === false && (
-                    <span className="flex items-center gap-1 text-rose">
-                      <EyeOff className="h-3 w-3" /> Hidden
-                    </span>
+                    <p className="mt-1 flex items-center gap-1.5 text-sm font-bold text-[#b4141a]">
+                      <EyeOff className="h-4 w-4" /> Hidden from website
+                    </p>
                   )}
                 </div>
-              </div>
-            </button>
-          </li>
-        ))}
+              </button>
+            </li>
+          );
+        })}
       </ul>
 
       <button
         onClick={() => setEditing({})}
-        aria-label="Add product"
-        className="fixed bottom-24 right-5 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-rose text-white shadow-xl transition active:scale-95"
+        className="fixed bottom-28 left-1/2 z-30 flex h-16 -translate-x-1/2 items-center gap-2 rounded-full bg-brand-dark px-8 text-lg font-bold text-white shadow-xl transition active:scale-95"
         style={{ marginBottom: "env(safe-area-inset-bottom)" }}
       >
-        <Plus className="h-7 w-7" />
+        <Plus className="h-6 w-6" strokeWidth={2.6} /> Add product
       </button>
 
       {editing && (

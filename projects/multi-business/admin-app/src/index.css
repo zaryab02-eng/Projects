@@ -3,27 +3,54 @@
 @tailwind utilities;
 
 @layer base {
-  html, body, #root { height: 100%; }
+  html {
+    font-size: 18px;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
   body {
     @apply bg-paper font-sans text-ink antialiased;
     overscroll-behavior-y: none;
     -webkit-tap-highlight-color: transparent;
   }
-  h1, h2, h3 { font-family: "Fraunces", Georgia, serif; font-weight: 400; letter-spacing: -0.01em; }
-  input, select, textarea { font-size: 16px; } /* stops iPhone zooming into fields */
+  h1,
+  h2,
+  h3 {
+    @apply font-sans font-bold tracking-tight;
+  }
+  input,
+  select,
+  textarea {
+    font-size: 1rem;
+  } /* stops iPhone zooming into fields */
 }
 
 @layer components {
   .input {
-    @apply w-full rounded-xl border border-ink/15 bg-white px-4 py-3 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20;
+    @apply w-full rounded-2xl border-2 border-ink/20 bg-white px-4 py-3.5 text-base text-ink outline-none transition placeholder:text-ink/40 focus:border-brand-dark;
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex min-h-[56px] items-center justify-center gap-2 rounded-2xl px-6 py-3 text-base font-bold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
   }
-  .btn-primary { @apply btn bg-ink text-paper hover:bg-deep; }
-  .btn-rose { @apply btn bg-rose text-white hover:bg-[#c9141b]; }
-  .btn-ghost { @apply btn border border-ink/20 text-ink hover:bg-mist; }
-  .btn-danger { @apply btn border border-rose/30 text-rose hover:bg-rose/10; }
-  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
-  .safe-top { padding-top: env(safe-area-inset-top); }
+  .btn-primary {
+    @apply btn bg-brand-dark text-white hover:bg-ink;
+  }
+  .btn-rose {
+    @apply btn bg-rose text-white hover:bg-[#c9141b];
+  }
+  .btn-ghost {
+    @apply btn border-2 border-ink/25 bg-white text-ink hover:bg-mist;
+  }
+  .btn-danger {
+    @apply btn border-2 border-rose/40 bg-white text-[#b4141a] hover:bg-rose/10;
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
 }
