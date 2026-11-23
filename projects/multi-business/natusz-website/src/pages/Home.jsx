@@ -96,7 +96,7 @@ export default function Home() {
         className="relative isolate overflow-hidden bg-ink text-paper"
       >
         <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(55%_60%_at_75%_42%,rgba(5,158,169,0.30),transparent_70%)]" />
-        <div className="container-x grid min-h-[100svh] items-center gap-4 pb-28 pt-36 lg:grid-cols-12 lg:gap-10 lg:pb-32 lg:pt-28">
+        <div className="container-x grid min-h-[92svh] items-center gap-4 pb-28 pt-36 lg:grid-cols-12 lg:gap-10 lg:pb-32 lg:pt-28">
           <div className="order-2 lg:order-1 lg:col-span-7">
             <h1 className="text-[clamp(2.6rem,7.2vw,6.4rem)] leading-[0.98] tracking-tight">
               <span className="line-mask hero-line">
@@ -118,32 +118,11 @@ export default function Home() {
               <Link to="/products" className="btn-rose">
                 Explore products <ArrowRight className="h-4 w-4" />
               </Link>
-              <a
-                href={generalEnquiryLink()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-outline-light"
-              >
-                <WhatsAppIcon className="h-4 w-4" /> WhatsApp us
-              </a>
             </div>
           </div>
 
           <div className="order-1 mx-auto w-full max-w-[220px] sm:max-w-[320px] lg:order-2 lg:col-span-5 lg:max-w-[560px]">
             <BloomMark className="h-auto w-full overflow-visible" />
-          </div>
-        </div>
-
-        <div className="hero-fade absolute inset-x-0 bottom-0 border-t border-white/10">
-          <div className="container-x grid grid-cols-1 gap-1 py-4 text-sm text-paper/60 sm:grid-cols-3">
-            <span>{site.address.short}, Maharashtra</span>
-            <a
-              href={`tel:${site.phoneTel}`}
-              className="transition hover:text-paper sm:text-center"
-            >
-              {site.phoneDisplay}
-            </a>
-            <span className="sm:text-right">Replies on WhatsApp</span>
           </div>
         </div>
       </section>
@@ -154,7 +133,7 @@ export default function Home() {
       </section>
 
       {/* ───────── Statement ───────── */}
-      <section className="py-16 sm:py-24 lg:py-28">
+      <section className="py-12 sm:py-20 lg:py-24">
         <div className="container-x">
           <ScrollWords
             text={statement}
@@ -170,18 +149,12 @@ export default function Home() {
       </section>
 
       {/* ───────── Categories (swipe sideways on phones) ───────── */}
-      <section className="pb-16 sm:pb-24 lg:pb-28">
+      <section className="pb-12 sm:pb-20 lg:pb-24">
         <div className="container-x">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <h2 className="max-w-xl text-3xl leading-tight sm:text-5xl">
               Find what your skin needs
             </h2>
-            <Link
-              to="/products"
-              className="text-sm font-semibold text-brand-dark"
-            >
-              View all products
-            </Link>
           </div>
 
           <div className="no-scrollbar -mx-5 mt-8 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 sm:mx-0 sm:mt-12 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
@@ -192,7 +165,7 @@ export default function Home() {
                 <Link
                   key={c.id}
                   to={`/products?category=${c.id}`}
-                  className={`group relative flex min-h-[170px] w-[68%] shrink-0 snap-start flex-col justify-between overflow-hidden rounded-2xl border border-ink/10 p-5 transition duration-500 hover:border-ink hover:bg-ink hover:text-paper sm:min-h-[210px] sm:w-auto sm:p-7 ${
+                  className={`group relative flex min-h-[150px] w-[68%] shrink-0 snap-start flex-col justify-between overflow-hidden rounded-2xl border border-ink/10 p-5 transition duration-500 hover:border-ink hover:bg-ink hover:text-paper sm:min-h-[180px] sm:w-auto sm:p-7 ${
                     i === 0 ? "bg-ink text-paper" : "bg-white"
                   }`}
                 >
@@ -229,7 +202,7 @@ export default function Home() {
       </section>
 
       {/* ───────── Featured products (swipe sideways on phones) ───────── */}
-      <section className="bg-mist py-14 sm:py-20 lg:py-24">
+      <section className="bg-mist py-12 sm:py-16 lg:py-20">
         <div className="container-x">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <h2 className="text-3xl leading-tight sm:text-5xl">
@@ -276,7 +249,7 @@ export default function Home() {
       </section>
 
       {/* ───────── Call to action ───────── */}
-      <section className="py-14 sm:py-24">
+      <section className="py-12 sm:py-20">
         <div className="container-x">
           <div className="relative overflow-hidden rounded-3xl bg-deep px-6 py-12 text-center text-paper sm:px-16 sm:py-20">
             <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-brand/25 blur-3xl" />

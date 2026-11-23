@@ -4,12 +4,18 @@ import Logo from "./Logo";
 export default function PageHeader({ title, intro }) {
   return (
     <section className="relative overflow-hidden bg-ink text-paper">
-      <div className="pointer-events-none absolute -right-16 top-1/2 w-[420px] -translate-y-1/2 opacity-[0.07] sm:w-[560px]">
+      <div className="pointer-events-none absolute -right-16 top-1/2 w-[320px] -translate-y-1/2 opacity-[0.07] sm:w-[460px]">
         <Logo layout="mark" tone="light" className="h-auto w-full" />
       </div>
-      <div className="container-x relative pb-14 pt-36 sm:pb-20 sm:pt-44">
-        <h1 className="max-w-3xl text-5xl leading-[1.02] sm:text-6xl lg:text-7xl">{title}</h1>
-        {intro && <p className="mt-6 max-w-xl text-base leading-relaxed text-paper/70 sm:text-lg">{intro}</p>}
+      <div className="container-x relative pb-10 pt-32 sm:pb-14 sm:pt-36 lg:pt-40">
+        <h1 className="max-w-3xl text-4xl leading-[1.05] sm:text-5xl lg:text-6xl">
+          {title}
+        </h1>
+        {intro && (
+          <p className="mt-4 max-w-xl text-base leading-relaxed text-paper/70 sm:mt-5 sm:text-lg">
+            {intro}
+          </p>
+        )}
       </div>
     </section>
   );

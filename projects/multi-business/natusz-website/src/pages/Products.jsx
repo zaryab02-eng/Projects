@@ -62,8 +62,8 @@ export default function Products() {
       />
 
       {/* Search + categories */}
-      <div className="sticky top-[72px] z-30 border-b border-ink/10 bg-paper/90 backdrop-blur-md">
-        <div className="container-x py-4">
+      <div className="sticky top-[104px] z-30 lg:top-[72px] border-b border-ink/10 bg-paper/90 backdrop-blur-md">
+        <div className="container-x py-3">
           <div className="flex flex-col gap-3 md:flex-row md:items-center">
             <label className="relative block md:w-[380px]">
               <span className="sr-only">Search products</span>
@@ -116,11 +116,11 @@ export default function Products() {
       </div>
 
       {/* Results */}
-      <section className="py-12 sm:py-16">
+      <section className="py-8 sm:py-12">
         <div className="container-x">
-          <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h2 className="text-3xl sm:text-4xl">
+              <h2 className="text-2xl sm:text-4xl">
                 {activeCat ? activeCat.name : "All products"}
               </h2>
               <p className="mt-2 max-w-lg text-sm text-ink/60">
@@ -184,11 +184,11 @@ export default function Products() {
         </div>
       </section>
 
-      <section className="pb-24">
+      <section className="pb-14 sm:pb-20">
         <div className="container-x">
-          <div className="flex flex-col items-start justify-between gap-6 rounded-3xl bg-mist px-7 py-10 sm:flex-row sm:items-center sm:px-12">
+          <div className="flex flex-col items-start justify-between gap-6 rounded-3xl bg-mist px-6 py-8 sm:flex-row sm:items-center sm:px-10 sm:py-10">
             <div>
-              <h3 className="text-2xl sm:text-3xl">
+              <h3 className="text-xl sm:text-3xl">
                 Need a bulk order or a product that is not listed?
               </h3>
               <p className="mt-2 text-sm text-ink/65">
