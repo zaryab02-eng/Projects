@@ -83,7 +83,7 @@ natusz-website/
 Edit **`src/config/site.js`**. This one file feeds the navbar, footer, contact page, floating WhatsApp
 button and every "Enquire on WhatsApp" button.
 
-- `whatsappNumber`: digits only with country code, no `+` or spaces (e.g. `919278450910`)
+- `whatsappNumber`: digits only with country code, no `+` or spaces (e.g. `919278450890`)
 - `phoneDisplay` / `phoneTel`: how the number is shown / dialled
 - `social`: paste Instagram / Facebook / LinkedIn links to show those icons in the footer (leave `""` to hide)
 - `mapQuery`: what Google Maps searches for on the Contact page
