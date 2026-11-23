@@ -2,7 +2,8 @@
 
 An installable web app (PWA) that lets a website owner (the client) change his website from his phone:
 **add, edit, hide or delete products, manage categories, and add or remove gallery photos**, behind a login.
-Changes show on the live website straight away. No code, no redeploy.
+Changes show on the live website straight away for visitors. No code. (A product's own page and the sitemap update after the
+next website build; see section 8.)
 
 **One admin app serves many websites.** Each website has its own `siteId` (like `natusz`), and each login is linked to
 exactly one site. A login only ever sees and edits its own website's content.
@@ -21,14 +22,16 @@ exactly one site. A login only ever sees and edits its own website's content.
 **Hosting:** the admin app and each website are **separate projects hosted separately** (we use **Cloudflare Pages**,
 free, connected to GitHub):
 
-| Project          | Hosted at (example)                      | How many                             |
-| ---------------- | ---------------------------------------- | ------------------------------------ |
-| `natusz-website` | `natuszhealthcare.com`                   | one per website                      |
-| Next website     | `clientb.com`                            | one per website                      |
-| admin app (this) | `admin.yourname.com` or `xxxx.pages.dev` | **just one, shared by all websites** |
+| Project          | Hosted at (example)                         | How many                             |
+| ---------------- | ------------------------------------------- | ------------------------------------ |
+| `natusz-website` | `natusz.pages.dev` / `natuszhealthcare.com` | one per website                      |
+| Next website     | `clientb.com`                               | one per website                      |
+| admin app (this) | `admin.yourname.com` or `xxxx.pages.dev`    | **just one, shared by all websites** |
 
 Built with React + Vite + Tailwind. Uses **Firebase Authentication** (login), **Firestore** (data) and
 **Cloudinary** (photos). All have free plans that are plenty for small business websites.
+
+The Natusz website is for **Neu Natusz Healthcare Private Limited**, Dombivli, Thane, Maharashtra 421203.
 
 ---
 
@@ -42,6 +45,7 @@ Built with React + Vite + Tailwind. Uses **Firebase Authentication** (login), **
    (for India: `asia-south1` Mumbai).
 4. Open the Firestore **Rules** tab, delete what is there, paste the contents of **`firestore.rules`** from this folder, and
    **Publish**. (No emails to edit. Access is controlled by the `users/{uid}` links in section 2.)
+   The rules let anyone **read** a site's products and gallery (the public website needs that, and so does the website's build script) and only the linked login **write**.
 5. Gear icon → **Project settings → General → Your apps → Web (`</>`)** → register an app (any name, skip hosting).
    Copy the config values (`apiKey`, `authDomain`, `projectId`, `appId`). Ignore the rest of the code Firebase shows.
 6. Recommended: **Authentication → Settings → User actions** → turn off **"Enable create (sign-up)"** so nobody can
@@ -166,6 +170,10 @@ VITE_SITE_ID=natusz              ← THIS website's id (different for each websi
 The website then reads `sites/<VITE_SITE_ID>/products`, `.../gallery` and the category list from the site document.
 (See the website's README, "Connecting the admin app".)
 
+The Natusz website is also **pre-rendered**: when it is built, a script copies the public product list so Google can read it,
+and every product gets its own page (`/products/<name>`). Visitors still see your changes at once; the product's own page and the
+sitemap update after the website is rebuilt (section 8).
+
 ### Adding a brand-new website later (checklist)
 
 1. Build the new website and give it an id, e.g. `clientb`.
@@ -193,6 +201,8 @@ and `ProductModal.jsx` from the Natusz website). For a very different site type 
 - Tap a product to edit or delete it.
 - _Feature on home page_ shows it on the home page (the website uses the first 4 featured products).
 - _Show on website_ off = hidden from visitors but kept in the list.
+- **Product names matter for search:** the website makes each product's web address from its name, so choose a clear name
+  (for example "Sun Shield SPF 50 Gel") and avoid renaming it later, because that changes its link.
 
 **Gallery tab**
 
@@ -229,6 +239,9 @@ natusz-admin/
 
 (Cloudflare does not need `public/_redirects`; you can delete it.)
 
+The admin app keeps `<meta name="robots" content="noindex, nofollow">` and the title "Website Admin" in its `index.html` on purpose,
+so it never appears in Google. Do not copy that `index.html` into a website project.
+
 ## 7. Changing things later
 
 - **Change the app name / colours / icon:** `vite.config.js` (name, theme colour), `tailwind.config.js`, `public/*.png`.
@@ -241,18 +254,22 @@ natusz-admin/
 
 ## 8. Good to know
 
+- **After adding, renaming or deleting products, redeploy the website** (Cloudflare → the website project → Deployments → Retry deployment)
+  so each product's own page and the sitemap are updated for Google. Visitors see the change without this. Optionally set up a Cloudflare
+  "deploy hook" to rebuild with one tap.
 - **Deleting a photo** removes it from the website; the original file stays in Cloudinary (the free space is large).
 - **If every product is deleted,** that website falls back to its built-in sample products. Use _Show on website = off_
   to hide things temporarily.
 - **Free limits:** Firebase's free plan allows about 50,000 reads a day across **all** websites on the project. Each website
-  visit reads the products, gallery and site document once (a few dozen reads). Many busy websites on one project can
-  outgrow this; then add caching or move a busy client to its own Firebase project.
+  visit reads the products, gallery and site document once (a few dozen reads), and each website build reads them once more.
+  Many busy websites on one project can outgrow this; then add caching or move a busy client to its own Firebase project.
 - **Cloudinary free plan:** 25 credits a month, no card needed. Plenty for small business websites.
 - **Separate billing / full isolation:** for a client who needs their own account, create a separate Firebase project and
   deploy a second copy of this admin app with that project's `.env`.
-- **Security:** the Firebase keys in `.env` are public by design. What protects the data is the login plus the
+- **Security:** the Firebase keys in `.env` are public by design (they are in every visitor's browser). What protects the data is the login plus the
   `users/{uid} → siteId` link checked by `firestore.rules`: a login can only write to its own site's data.
-  Never share your Cloudinary API secret.
+  Never share your Cloudinary API secret. If GitHub emails a "Google API key" secret alert, it is this public key; make sure build temp
+  folders (such as `.vite-react-ssg-temp`) and `.env` are in `.gitignore`, and close the alert as a false positive.
 
 ## 9. Troubleshooting
 
@@ -267,9 +284,10 @@ natusz-admin/
   Authentication → Settings → Authorized domains.
 - **Website still shows sample products:** check `VITE_SITE_ID` and the four Firebase values in the website's `.env`
   (and in Cloudflare's environment variables), and that the site actually has products.
+- **A new product shows on the website list but its own link or the sitemap does not have it:** redeploy the website project (section 8).
 - **Install button missing:** open the deployed `https://` address, not localhost.
 - **A detail (like price) shows in the admin app but not on the website:** the website's `ProductCard.jsx` and
-  `ProductModal.jsx` must be the new versions that read the `details` list, and `src/lib/content.jsx` must be the new version.
+  `ProductModal.jsx` must be the new versions that read the `details` list, and `src/lib/content.jsx` / `src/lib/catalog.js` must be the new versions.
 - **Wide or tall photos look cut off:** the admin `src/components/ui.jsx` (photo preview), `Gallery.jsx` and `Products.jsx`
   use `object-contain` so the whole photo shows.
 
