@@ -6,43 +6,21 @@ import {
   categories as localCategories,
 } from "../data/products";
 import { galleryItems as localGallery } from "../data/gallery";
-import { optimizeUrl } from "./images";
+import {
+  buildContent,
+  normalizeGallery,
+  normalizeProducts,
+  snapshotContent,
+} from "./catalog";
 
 /**
  * Supplies products, categories and gallery photos to the whole site.
- *  - If the admin app has added content for this site (VITE_SITE_ID) to Firebase, that is used.
- *  - Otherwise (or if Firebase is not set up / offline) the built-in sample data in
- *    src/data/products.js and src/data/gallery.js is used.
- *
- * "Others": the admin app always lets the owner pick "Others" as a category. Any product whose
- * category is "others", or whose category no longer exists, is grouped under "Others".
- * The Others category only appears on the website when at least one product uses it.
+ *  - At build time a copy of the admin app's content is saved (scripts/fetch-content.mjs)
+ *    so the pre-rendered HTML already contains the products.
+ *  - In the browser, the live content from Firebase replaces it straight away.
+ *  - If Firebase is empty or unreachable, the built-in samples are used.
  */
 const ContentContext = createContext(null);
-
-const byOrder = (a, b) => (a.order ?? 0) - (b.order ?? 0);
-
-const OTHERS = {
-  id: "others",
-  name: "Others",
-  blurb: "More from our range.",
-  color: "#059EA9",
-};
-
-function withOthers(products, categories) {
-  const known = new Set(categories.map((c) => c.id));
-  const fixed = products.map((p) =>
-    known.has(p.category) || p.category === "others"
-      ? p
-      : { ...p, category: "others" },
-  );
-  const needOthers = fixed.some((p) => p.category === "others");
-  const hasOthers = categories.some((c) => c.id === "others");
-  return {
-    products: fixed,
-    categories: needOthers && !hasOthers ? [...categories, OTHERS] : categories,
-  };
-}
 
 async function loadCloud() {
   const base = ["sites", siteId];
@@ -51,53 +29,29 @@ async function loadCloud() {
     getDocs(collection(db, ...base, "gallery")),
     getDoc(doc(db, ...base)),
   ]);
-  const products = p.docs
-    .map((d) => ({ id: d.id, ...d.data() }))
-    .filter((x) => x.visible !== false && x.name)
-    .sort(byOrder)
-    .map((x) => ({
-      ...x,
-      details: Array.isArray(x.details) ? x.details : null,
-      image: x.image ? optimizeUrl(x.image, 900) : "",
-    }));
-  const gallery = g.docs
-    .map((d) => ({ id: d.id, ...d.data() }))
-    .filter((x) => x.src)
-    .sort(byOrder)
-    .map((x) => ({
-      src: optimizeUrl(x.src, 1100),
-      title: x.title || "Natusz Healthcare",
-      description: x.description || "",
-    }));
   const cats = site.exists() ? site.data().categories : null;
   return {
-    products,
-    gallery,
+    products: normalizeProducts(p.docs.map((d) => ({ id: d.id, ...d.data() }))),
+    gallery: normalizeGallery(g.docs.map((d) => ({ id: d.id, ...d.data() }))),
     categories: Array.isArray(cats) && cats.length ? cats : null,
   };
 }
 
-function build(products, galleryItems, categories) {
-  const fixed = withOthers(products, categories);
+function initialState() {
+  const snap = snapshotContent();
+  if (snap) return snap;
+  if (!firebaseReady || typeof window === "undefined")
+    return buildContent(localProducts, localGallery, localCategories);
   return {
-    products: fixed.products,
-    galleryItems,
-    categories: fixed.categories,
-    loaded: true,
+    products: [],
+    galleryItems: [],
+    categories: localCategories,
+    loaded: false,
   };
 }
 
 export function ContentProvider({ children }) {
-  const [state, setState] = useState(() =>
-    firebaseReady
-      ? {
-          products: [],
-          galleryItems: [],
-          categories: localCategories,
-          loaded: false,
-        }
-      : build(localProducts, localGallery, localCategories),
-  );
+  const [state, setState] = useState(initialState);
 
   useEffect(() => {
     if (!firebaseReady) return;
@@ -109,7 +63,7 @@ export function ContentProvider({ children }) {
       .then(({ products, gallery, categories }) => {
         if (!alive) return;
         setState(
-          build(
+          buildContent(
             products.length ? products : localProducts,
             gallery.length ? gallery : localGallery,
             categories || localCategories,
@@ -118,7 +72,11 @@ export function ContentProvider({ children }) {
       })
       .catch(() => {
         if (alive)
-          setState(build(localProducts, localGallery, localCategories));
+          setState((s) =>
+            s.loaded
+              ? s
+              : buildContent(localProducts, localGallery, localCategories),
+          );
       });
     return () => {
       alive = false;

@@ -1,10 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import ProductVisual from "./ProductVisual";
 import WhatsAppIcon from "./WhatsAppIcon";
 import { useContent } from "../lib/content";
 import { productEnquiryLink } from "../lib/whatsapp";
+import { isHydrated } from "../lib/hydrated";
 
 // A detail named Price, MRP, Cost or Rate is shown in bold
 const isPrice = (label) => /\b(price|mrp|cost|rate)\b/i.test(label || "");
@@ -31,6 +32,10 @@ export default function ProductModal({ product, onClose }) {
   const { getCategory } = useContent();
   const closeRef = useRef(null);
   const cat = product ? getCategory(product.category) : null;
+  // On the very first render (the pre-rendered HTML) the pop-up is drawn in place so search
+  // engines can read it. Right after, and always on later opens, it moves to the page body.
+  const [portal, setPortal] = useState(isHydrated);
+  useEffect(() => setPortal(true), []);
 
   useEffect(() => {
     if (!product) return;
@@ -51,9 +56,7 @@ export default function ProductModal({ product, onClose }) {
     ...getDetails(product).map((d) => [d.label, d.value]),
   ].filter(([, v]) => v);
 
-  // The pop-up is drawn directly on the page body (a "portal"), so it always sits in the same
-  // place on the screen, no matter where the product was when you tapped it.
-  return createPortal(
+  const node = (
     <div
       className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center sm:p-6"
       role="dialog"
@@ -144,7 +147,8 @@ export default function ProductModal({ product, onClose }) {
           </div>
         </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   );
+
+  return portal ? createPortal(node, document.body) : node;
 }

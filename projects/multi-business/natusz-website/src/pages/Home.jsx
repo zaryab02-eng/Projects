@@ -23,6 +23,7 @@ import { onReady } from "../lib/ready";
 import { useContent } from "../lib/content";
 import { site } from "../config/site";
 import { generalEnquiryLink } from "../lib/whatsapp";
+import Seo from "../components/Seo";
 
 const icons = {
   moisturisers: Droplets,
@@ -90,6 +91,11 @@ export default function Home() {
 
   return (
     <>
+      <Seo
+        title="Neu Natusz Healthcare | Skin Care Medicines, Dombivli, Thane"
+        description="Neu Natusz Healthcare Private Limited markets carefully chosen skin care and dermatology products to doctors, pharmacists and families from Dombivli, Thane, Maharashtra."
+        path="/"
+      />
       {/* ───────── Hero ───────── */}
       <section
         ref={hero}

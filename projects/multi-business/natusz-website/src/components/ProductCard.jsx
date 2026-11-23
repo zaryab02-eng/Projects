@@ -38,9 +38,20 @@ export default function ProductCard({ product, onOpen }) {
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl border border-ink/10 bg-white transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_-28px_rgba(6,42,46,0.45)]">
-      <button
-        type="button"
-        onClick={() => onOpen(product)}
+      <a
+        href={`/products/${product.slug}`}
+        onClick={(e) => {
+          if (
+            e.metaKey ||
+            e.ctrlKey ||
+            e.shiftKey ||
+            e.altKey ||
+            e.button !== 0
+          )
+            return;
+          e.preventDefault();
+          onOpen(product);
+        }}
         className="relative block aspect-[5/5] w-full bg-mist text-left"
         aria-label={`View details of ${product.name}`}
       >
@@ -61,7 +72,7 @@ export default function ProductCard({ product, onOpen }) {
         <span className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white text-ink opacity-0 transition duration-300 group-hover:opacity-100">
           <ArrowUpRight className="h-4 w-4" />
         </span>
-      </button>
+      </a>
 
       <div className="flex flex-1 flex-col p-3.5 sm:p-5">
         <p className="text-xs font-medium text-brand-dark">{cat?.name}</p>

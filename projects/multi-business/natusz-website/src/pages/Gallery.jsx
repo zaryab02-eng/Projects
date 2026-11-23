@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
-import { NatuszGallery } from "../gallery/NatuszGallery";
 import { useContent } from "../lib/content";
 import { onReady } from "../lib/ready";
+import Seo from "../components/Seo";
 import "../gallery.css";
 
 /**
@@ -16,12 +16,16 @@ export default function Gallery() {
     if (!loaded) return;
     let g = null;
     let cancelled = false;
-    // wait until the opening loader (first visit only) has finished
-    const stop = onReady(() => {
+    let stop = () => {};
+    import("../gallery/NatuszGallery").then(({ NatuszGallery }) => {
       if (cancelled) return;
-      g = new NatuszGallery({ items: galleryItems });
-      galleryRef.current = g;
-      g.init();
+      // wait until the opening loader (first visit only) has finished
+      stop = onReady(() => {
+        if (cancelled) return;
+        g = new NatuszGallery({ items: galleryItems });
+        galleryRef.current = g;
+        g.init();
+      });
     });
     return () => {
       cancelled = true;
@@ -31,11 +35,21 @@ export default function Gallery() {
     };
   }, [loaded, galleryItems]);
 
-  const zoom = (level, e) => galleryRef.current?.setZoom(level, e.currentTarget);
+  const zoom = (level, e) =>
+    galleryRef.current?.setZoom(level, e.currentTarget);
   const fit = (e) => galleryRef.current?.autoFitZoom(e.currentTarget);
 
   return (
     <div className="gallery-root">
+      <Seo
+        title="Gallery | Neu Natusz Healthcare Private Limited"
+        description="Photo gallery of Neu Natusz Healthcare Private Limited, Dombivli, Thane: our team, products and work in skin care and dermatology."
+        path="/gallery"
+      />
+      <h1 className="sr-only">
+        Gallery of Neu Natusz Healthcare Private Limited
+      </h1>
+
       <div className="viewport" id="viewport">
         <div className="canvas-wrapper" id="canvasWrapper">
           <div className="grid-container" id="gridContainer" />
@@ -50,26 +64,48 @@ export default function Gallery() {
       </div>
 
       <div className="image-title-overlay" id="imageTitleOverlay">
-        <div className="image-slide-number" id="imageSlideNumber"><span>01</span></div>
-        <div className="image-slide-title" id="imageSlideTitle"><h1>Title</h1></div>
+        <div className="image-slide-number" id="imageSlideNumber">
+          <span>01</span>
+        </div>
+        <div className="image-slide-title" id="imageSlideTitle">
+          <h1>Title</h1>
+        </div>
         <div className="image-slide-description" id="imageSlideDescription" />
       </div>
 
-      <button className="close-button" id="closeButton" aria-label="Back to gallery">
-        <svg width="64" height="64" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M7.89873 16L6.35949 14.48L11.8278 9.08H0V6.92H11.8278L6.35949 1.52L7.89873 0L16 8L7.89873 16Z" fill="white" />
+      <button
+        className="close-button"
+        id="closeButton"
+        aria-label="Back to gallery"
+      >
+        <svg
+          width="64"
+          height="64"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M7.89873 16L6.35949 14.48L11.8278 9.08H0V6.92H11.8278L6.35949 1.52L7.89873 0L16 8L7.89873 16Z"
+            fill="white"
+          />
         </svg>
       </button>
 
       <p className="gallery-hint">Drag to explore. Tap a photo to open it.</p>
 
       <div className="controls-container" id="controlsContainer">
-        <div className="percentage-indicator" id="percentageIndicator">60%</div>
+        <div className="percentage-indicator" id="percentageIndicator">
+          60%
+        </div>
         <div className="switch" id="controls">
           <button className="switch-button" onClick={(e) => zoom(0.3, e)}>
             <span className="indicator-dot" /> ZOOM OUT
           </button>
-          <button className="switch-button switch-button-current" onClick={(e) => zoom(0.6, e)}>
+          <button
+            className="switch-button switch-button-current"
+            onClick={(e) => zoom(0.6, e)}
+          >
             <span className="indicator-dot" /> NORMAL
           </button>
           <button className="switch-button" onClick={(e) => zoom(1.0, e)}>
@@ -79,8 +115,17 @@ export default function Gallery() {
             <span className="indicator-dot" /> FIT
           </button>
         </div>
-        <button className="sound-toggle" id="soundToggle" aria-label="Toggle sound">
-          <canvas className="sound-wave-canvas" id="soundWaveCanvas" width="32" height="16" />
+        <button
+          className="sound-toggle"
+          id="soundToggle"
+          aria-label="Toggle sound"
+        >
+          <canvas
+            className="sound-wave-canvas"
+            id="soundWaveCanvas"
+            width="32"
+            height="16"
+          />
         </button>
       </div>
     </div>

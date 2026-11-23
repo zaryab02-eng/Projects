@@ -1,25 +1,66 @@
 import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { Search, X } from "lucide-react";
 import PageHeader from "../components/PageHeader";
 import ProductShowcase from "../components/ProductShowcase";
 import WhatsAppIcon from "../components/WhatsAppIcon";
+import Seo from "../components/Seo";
 import { useContent } from "../lib/content";
 import { generalEnquiryLink, whatsappLink } from "../lib/whatsapp";
 import { site } from "../config/site";
 
+function productSeo(p, cat) {
+  const base =
+    p.description ||
+    [p.composition, p.pack, p.form].filter(Boolean).join(", ") ||
+    "Skin care and dermatology product.";
+  const text = `${p.name}${cat ? ` (${cat.name})` : ""} from ${site.legalName}, Dombivli, Thane. ${base}`;
+  const description =
+    text.length > 160 ? `${text.slice(0, 157).trimEnd()}...` : text;
+  return {
+    title: `${p.name} | ${site.legalName}`,
+    description,
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: p.name,
+      description,
+      image: p.image ? [p.image] : undefined,
+      category: cat?.name,
+      url: `${site.url}/products/${p.slug}`,
+      brand: { "@type": "Brand", name: "Natusz" },
+    },
+  };
+}
+
 export default function Products() {
   const { products, categories, getCategory, loaded } = useContent();
+  const { slug } = useParams();
   const [params, setParams] = useSearchParams();
   const category = params.get("category") || "all";
   const [query, setQuery] = useState(params.get("q") || "");
   const [sort, setSort] = useState("default");
+
+  const current = slug ? products.find((p) => p.slug === slug) : null;
 
   const setCategory = (id) => {
     const next = new URLSearchParams(params);
     if (id === "all") next.delete("category");
     else next.set("category", id);
     setParams(next, { replace: true });
+  };
+
+  const changeQuery = (v) => {
+    setQuery(v);
+    const next = new URLSearchParams(params);
+    if (v.trim()) next.set("q", v);
+    else next.delete("q");
+    setParams(next, { replace: true });
+  };
+
+  const clearFilters = () => {
+    setQuery("");
+    setParams(new URLSearchParams(), { replace: true });
   };
 
   const counts = useMemo(() => {
@@ -54,8 +95,24 @@ export default function Products() {
 
   const activeCat = category !== "all" ? getCategory(category) : null;
 
+  const seo = current ? (
+    <Seo
+      {...productSeo(current, getCategory(current.category))}
+      path={`/products/${current.slug}`}
+      image={current.image}
+      type="product"
+    />
+  ) : (
+    <Seo
+      title={`Skin Care & Dermatology Products | ${site.legalName}`}
+      description="Browse skin care and dermatology products from Neu Natusz Healthcare Private Limited, Dombivli, Thane. Search by name or ingredient and enquire on WhatsApp."
+      path="/products"
+    />
+  );
+
   return (
     <>
+      {seo}
       <PageHeader
         title="Our products"
         intro="Browse the range by category or search by name or ingredient. Tap WhatsApp on any product to ask us about it."
@@ -72,14 +129,14 @@ export default function Products() {
                 type="search"
                 inputMode="search"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => changeQuery(e.target.value)}
                 placeholder="Search by name or ingredient"
                 className="w-full rounded-full border border-ink/15 bg-white py-3 pl-11 pr-11 text-sm outline-none transition placeholder:text-ink/40 focus:border-brand focus:ring-2 focus:ring-brand/20"
               />
               {query && (
                 <button
                   type="button"
-                  onClick={() => setQuery("")}
+                  onClick={() => changeQuery("")}
                   aria-label="Clear search"
                   className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-ink/50 transition hover:bg-mist hover:text-ink"
                 >
@@ -161,10 +218,7 @@ export default function Products() {
                 <button
                   type="button"
                   className="btn-outline-dark"
-                  onClick={() => {
-                    setQuery("");
-                    setCategory("all");
-                  }}
+                  onClick={clearFilters}
                 >
                   Clear filters
                 </button>

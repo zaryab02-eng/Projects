@@ -1,0 +1,21 @@
+{
+  "src/gallery/NatuszGallery.js": {
+    "file": "assets/NatuszGallery-CL3fH1pq.js",
+    "name": "NatuszGallery",
+    "src": "src/gallery/NatuszGallery.js",
+    "isDynamicEntry": true
+  },
+  "src/main.jsx": {
+    "file": "main.mjs",
+    "name": "main",
+    "src": "src/main.jsx",
+    "isEntry": true,
+    "dynamicImports": [
+      "src/gallery/NatuszGallery.js"
+    ]
+  },
+  "style.css": {
+    "file": "assets/style-BPlSkecJ.css",
+    "src": "style.css"
+  }
+}

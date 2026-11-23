@@ -35,9 +35,14 @@ const values = [
 export default function About() {
   return (
     <>
+      <Seo
+        title="About Us | Neu Natusz Healthcare Pvt Ltd, Dombivli"
+        description="Neu Natusz Healthcare Private Limited is a pharmaceutical marketing company for skin care and dermatology products, based in Dombivli, Thane, Maharashtra."
+        path="/about"
+      />
       <PageHeader
         title="Built on years in the field, started with a simple idea."
-        intro="Natusz Healthcare is a pharmaceutical marketing company focused on skin care and dermatology products."
+        intro={`${site.legalName} is a pharmaceutical marketing company focused on skin care and dermatology products.`}
       />
 
       <section className="py-14 sm:py-24">
@@ -47,10 +52,10 @@ export default function About() {
           </div>
           <div className="space-y-5 text-base leading-[1.75] text-ink/75 sm:text-lg lg:col-span-7">
             <p>
-              Natusz Healthcare Pvt Ltd markets skin care medicines and
-              dermatology products from Dombivli East, Thane. We work with
-              doctors, pharmacists and distributors to make good products easier
-              to find and easier to trust.
+              {site.legalNameShort} markets skin care medicines and dermatology
+              products from Dombivli, Thane. We work with doctors, pharmacists
+              and distributors to make good products easier to find and easier
+              to trust.
             </p>
             <p>
               Our team brings years of hands-on experience in the field,

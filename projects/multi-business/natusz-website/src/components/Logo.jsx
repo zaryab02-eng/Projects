@@ -1,6 +1,12 @@
 import {
-  LEAF_LEFT, LEAF_RIGHT, LEAF_CENTER, LEAF_INNER, DOT_BIG, DOT_SMALL,
-  WORD_NATUSZ, WORD_HEALTHCARE,
+  LEAF_LEFT,
+  LEAF_RIGHT,
+  LEAF_CENTER,
+  LEAF_INNER,
+  DOT_BIG,
+  DOT_SMALL,
+  WORD_NATUSZ,
+  WORD_HEALTHCARE,
 } from "./logoPaths";
 
 const TEAL = "#059EA9";
@@ -19,7 +25,6 @@ export function LogoMarkPaths() {
     </>
   );
 }
-
 
 /** "Neu" (small) + Natusz wordmark + "Healthcare Pvt Ltd", as in the original logo. */
 function Wordmark({ textColor }) {
@@ -54,12 +59,21 @@ function Wordmark({ textColor }) {
  *          "mark"       (symbol only)
  *  tone:   "dark" for light backgrounds, "light" for dark backgrounds
  */
-export default function Logo({ layout = "horizontal", tone = "dark", className = "" }) {
+export default function Logo({
+  layout = "horizontal",
+  tone = "dark",
+  className = "",
+}) {
   const textColor = tone === "light" ? "#F8FBFA" : "#231F20";
 
   if (layout === "mark") {
     return (
-      <svg viewBox="200 272 195 148" className={className} role="img" aria-label="Natusz Healthcare">
+      <svg
+        viewBox="200 272 195 148"
+        className={className}
+        role="img"
+        aria-label="Neu Natusz Healthcare"
+      >
         <LogoMarkPaths />
       </svg>
     );
@@ -67,7 +81,12 @@ export default function Logo({ layout = "horizontal", tone = "dark", className =
 
   if (layout === "stacked") {
     return (
-      <svg viewBox="128 270 338 298" className={className} role="img" aria-label="Natusz Healthcare Pvt Ltd">
+      <svg
+        viewBox="128 270 338 298"
+        className={className}
+        role="img"
+        aria-label="Neu Natusz Healthcare Pvt Ltd"
+      >
         <LogoMarkPaths />
         <Wordmark textColor={textColor} />
       </svg>
@@ -76,7 +95,12 @@ export default function Logo({ layout = "horizontal", tone = "dark", className =
 
   // horizontal lockup: symbol on the left, name on the right
   return (
-    <svg viewBox="0 0 525 128" className={className} role="img" aria-label="Natusz Healthcare Pvt Ltd">
+    <svg
+      viewBox="0 0 525 128"
+      className={className}
+      role="img"
+      aria-label="Neu Natusz Healthcare Pvt Ltd"
+    >
       <g transform="scale(0.927) translate(-206.4 -277.7)">
         <LogoMarkPaths />
       </g>

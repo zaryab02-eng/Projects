@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Phone, Mail, MapPin, ArrowUpRight } from "lucide-react";
+import { Phone, Mail, MapPin, Clock, ArrowUpRight } from "lucide-react";
 import PageHeader from "../components/PageHeader";
 import WhatsAppIcon from "../components/WhatsAppIcon";
 import { site } from "../config/site";
 import { whatsappLink } from "../lib/whatsapp";
+import Seo from "../components/Seo";
 
 const topics = [
   "Product enquiry",
@@ -47,10 +48,21 @@ export default function Contact() {
       value: site.address.lines.join(" "),
       href: null,
     },
+    {
+      Icon: Clock,
+      label: "Working hours",
+      value: site.hours,
+      href: null,
+    },
   ];
 
   return (
     <>
+      <Seo
+        title="Contact Us | Neu Natusz Healthcare, Dombivli, Thane 421203"
+        description="Contact Neu Natusz Healthcare Private Limited in Dombivli, Thane, Maharashtra 421203. Open 10:00 AM – 6:00 PM. Call, email or message us on WhatsApp."
+        path="/contact"
+      />
       <PageHeader
         title="Let’s talk"
         intro="Questions about a product, availability or working with us? Send a message and we will get back to you."
@@ -166,7 +178,7 @@ export default function Contact() {
         <div className="container-x">
           <div className="overflow-hidden rounded-3xl border border-ink/10">
             <iframe
-              title="Natusz Healthcare location"
+              title={`${site.legalName} location`}
               src={mapSrc}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"

@@ -6,6 +6,7 @@ import {
   Phone,
   Mail,
   MapPin,
+  Clock,
 } from "lucide-react";
 import Logo from "./Logo";
 import { site } from "../config/site";
@@ -64,6 +65,10 @@ export default function Footer() {
                 <li className="flex gap-3">
                   <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
                   <span>{site.address.lines.join(" ")}</span>
+                </li>
+                <li className="flex gap-3">
+                  <Clock className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+                  <span>{site.hours}</span>
                 </li>
               </ul>
               {socials.length > 0 && (

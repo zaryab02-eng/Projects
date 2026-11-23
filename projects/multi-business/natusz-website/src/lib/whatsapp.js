@@ -5,12 +5,14 @@ export function whatsappLink(message) {
 }
 
 export function productEnquiryLink(product, categoryName) {
+  const pack = product.pack ? ` (${product.pack})` : "";
+  const range = categoryName ? ` from the ${categoryName} range` : "";
   const msg =
-    `Hello ${site.name}, I would like to enquire about *${product.name}* ` +
-    `(${product.pack}) from the ${categoryName} range. ` +
-    `Please share availability and details.`;
+    `Hello ${site.name}, I would like to enquire about *${product.name}*` +
+    `${pack}${range}. Please share availability and details.`;
   return whatsappLink(msg);
 }
-
 export const generalEnquiryLink = () =>
-  whatsappLink(`Hello ${site.name}, I would like to know more about your products.`);
+  whatsappLink(
+    `Hello ${site.name}, I would like to know more about your products.`,
+  );
