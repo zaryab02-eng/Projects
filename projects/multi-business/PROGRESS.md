@@ -191,3 +191,15 @@ Changed: `index.html`, `package.json`, `vite.config.js`, `src/main.jsx`, `src/co
 - [ ] Push, check Cloudflare build variables, then check the live site.
 - [ ] Paste the Search Console verification tag into `index.html`, deploy, verify, submit `https://natusz.pages.dev/sitemap.xml`.
 - [ ] Optional: restrict the Firebase API key to the site addresses in Google Cloud Console (then add a `Referer` header in `scripts/fetch-content.mjs`; see its README note).
+
+---
+
+## Update 24 Nov 2026 (admin app redesign)
+
+- Admin app UI redesigned for non-technical users (age 40 to 50): 18px text, 56px buttons, plain words, big Back button, "Are you sure?" box instead of browser pop-ups, messages at the top.
+- Product form: photo, name, Price (₹), category, description, Show on website; everything else under "More details". Price is still saved as a detail named "Price".
+- Gallery tab renamed "Photos". Install app and Add samples moved to Settings → More options. Colour picker and pack-drawing dropdown removed from the screens (data fields kept).
+- Files changed (admin): `src/index.css`, `components/ui.jsx`, `App.jsx`, `Login.jsx`, `Products.jsx`, `Gallery.jsx`, `Categories.jsx`, `Settings.jsx`. No new packages.
+- `ADMIN-README.md` rewritten with a quick-facts table, folder map, data format, design rules and limits, so a new chat can start from it.
+- Still to do: [ ] run `npm run build` in `admin-app` and fix any red errors, [ ] test every screen on the owner's phone, [ ] push and check the Cloudflare build, [ ] set Cloudflare "Build watch paths" so each project rebuilds only for its own folder.
+- Capacity (free plans): the limit is Firestore reads (about 1,400 website visits per day in total across all sites), not photos. See `ADMIN-README.md` section 8.
