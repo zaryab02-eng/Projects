@@ -1,6 +1,6 @@
 # PROJECT PROGRESS (read this first in a new chat)
 
-Last updated: 23 Nov 2026
+Last updated: 28 Nov 2026
 
 ## STATUS: LIVE (SEO / pre-render update built, build check pending)
 
@@ -8,7 +8,14 @@ Both the website and the admin app are deployed on Cloudflare Pages and working.
 change products, categories and gallery photos, and the website shows the changes straight away.
 
 On 23 Nov 2026 the website was updated for search engines (pre-rendering, product URLs, SEO tags) and the company
-name / location were standardised. Mark this as fully done after `npm run build` passes with no errors and the live site is checked.
+name / location were standardised. On 28 Nov 2026 new favicons were added and the navbar WhatsApp button was removed.
+Mark the SEO update as fully done after `npm run build` passes with no errors and the live site is checked.
+
+## Documents (which file to read for what)
+
+- `ADMIN-README.md`: the admin app (setup, data format, design rules, limits, troubleshooting)
+- `WEBSITE-README.md`: the website (setup, where to change things, SEO, pause switch, troubleshooting)
+- `PROGRESS.md` (this file): status, ids, what is done, what is next
 
 ## What we built
 
@@ -44,34 +51,8 @@ Live addresses: website `natusz.pages.dev`, admin `__________.pages.dev` (fill i
 The 4 Firebase values (apiKey, authDomain, projectId, appId) are in the `.env` files and in the Cloudflare variables.
 The Firebase web API key is public by design (it is in every visitor's browser). Never share the Cloudinary API secret. It is never needed.
 
-## Environment variables (same names in `.env` and in Cloudflare)
-
-**Admin app:**
-
-```
-VITE_FIREBASE_API_KEY=
-VITE_FIREBASE_AUTH_DOMAIN=
-VITE_FIREBASE_PROJECT_ID=
-VITE_FIREBASE_APP_ID=
-VITE_CLOUDINARY_CLOUD_NAME=lfpnw5u1
-VITE_CLOUDINARY_UPLOAD_PRESET=sites_unsigned
-VITE_SITE_URL=          (optional: the website address, adds a "View website" button)
-NODE_VERSION=20         (Cloudflare only)
-```
-
-**Website:**
-
-```
-VITE_FIREBASE_API_KEY=
-VITE_FIREBASE_AUTH_DOMAIN=
-VITE_FIREBASE_PROJECT_ID=
-VITE_FIREBASE_APP_ID=
-VITE_SITE_ID=natusz
-NODE_VERSION=20         (Cloudflare only)
-```
-
+Environment variable lists and the exact names are in `ADMIN-README.md` (section 4C) and `WEBSITE-README.md` (section 5).
 No quotes, no spaces around `=`. After changing a variable on Cloudflare, redeploy (Deployments → Retry deployment).
-The website's build script also reads the Firebase variables, so they must be set in Cloudflare.
 
 ## DONE
 
@@ -84,17 +65,10 @@ The website's build script also reads the Firebase variables, so they must be se
       taps open photos reliably (Draggable `onClick`); lighter on phones
 - [x] Fixed: blank hero on the very first visit (`src/lib/ready.js`)
 - [x] Both projects deployed on Cloudflare Pages; Firebase Authorized domains added; admin app installed on the owner's phone
-- [x] Home swipe rows on phones, spacing pass, simplified navbar and footer, pause switch (see update below)
-
-## Key files changed after the first version (for reference)
-
-Website: `src/lib/content.jsx`, `src/lib/ready.js`, `src/components/ProductCard.jsx`, `ProductModal.jsx`, `Navbar.jsx`,
-`src/gallery.css`, `src/gallery/NatuszGallery.js` (added `onClick` in `initDraggable`), `src/pages/Products.jsx` (search includes details).
-Admin: `src/components/Settings.jsx`, `Products.jsx`, `ui.jsx`, `Gallery.jsx` (`object-contain`).
-
-How products are stored: each product has `name`, `category`, `image`, `description`, `featured`, `visible`, and a `details`
-list like `[{label:"Price", value:"250"}]`. The admin app also still writes `pack`, `form` and `composition`
-(taken from details named "Pack size", "Form", "Composition") so older code keeps working.
+- [x] Home swipe rows on phones, spacing pass, simplified navbar and footer, pause switch
+- [x] Admin app redesigned for non-technical users (24 Nov)
+- [x] Website favicons replaced with the new generated set (28 Nov)
+- [x] Navbar "Enquire" WhatsApp button removed; floating WhatsApp button stays (28 Nov)
 
 ## How to update the live sites later
 
@@ -110,15 +84,12 @@ list like `[{label:"Price", value:"250"}]`. The admin app also still writes `pac
 5. If you change an environment variable on Cloudflare, redeploy that project.
 6. After adding, renaming or deleting products in the admin app, redeploy the WEBSITE project (Deployments → Retry deployment) so product pages and the sitemap update.
 
+If VS Code shows no changes to push: save the files (`Ctrl + S`), check they are inside the repo folder, and run `git status`.
+
 ## Adding a new client website later
 
-1. New website gets its own id, e.g. `clientb`, with `VITE_SITE_ID=clientb` in its `.env` and Cloudflare variables
-   (same 4 Firebase values). Copy `src/lib/firebase.js`, `content.jsx`, `catalog.js`, `slug.js`, `images.js`, `scripts/fetch-content.mjs` and the product card / pop-up logic.
-2. Firebase → Authentication → Add user → copy the User UID.
-3. Firestore → `users` → new document (ID = that UID) → field `siteId` = `clientb`.
-4. Optional: `sites/clientb` with field `name`.
-5. The client signs in to the same admin app and sets up categories (Settings → Edit categories).
-6. Add the new website's `.pages.dev` address to Firebase Authorized domains only if that site itself needs login (it does not).
+Follow `ADMIN-README.md`, section 7 (checklist) and section 5 (create the owner's login). Short version: new id (e.g. `clientb`),
+same 4 Firebase values, `VITE_SITE_ID=clientb`, copy the shared `src/lib` files and the product card / pop-up logic.
 
 ## Possible next steps (all optional)
 
@@ -144,6 +115,32 @@ list like `[{label:"Price", value:"250"}]`. The admin app also still writes `pac
 
 Paste this file, then say what you want to do next and any error text you see. Also attach the file the error names
 (for example `Settings.jsx`) so it can be fixed with the real code in front of it.
+
+---
+
+## Update 28 Nov 2026 (favicons, navbar)
+
+- Favicons: new set from a favicon generator. Files in `natusz-website/public/`: `favicon.ico`, `favicon.svg`, `favicon-96x96.png`,
+  `apple-touch-icon.png`, `site.webmanifest`, `web-app-manifest-192x192.png`, `web-app-manifest-512x512.png`. The old `favicon.svg` was replaced.
+  `index.html` now has 5 `<link>` lines for them (icon png, icon svg, shortcut icon, apple-touch-icon, manifest).
+- `site.webmanifest`: name "Neu Natusz Healthcare Pvt Ltd", short name "Natusz", theme colour `#062A2E`, icons `purpose: "any"`
+  (the logo sits close to the edges, so `maskable` could crop it).
+- Google Search favicon: not showing yet. Needs a re-crawl (days to weeks). To do: Search Console, request indexing, submit sitemap. A custom domain makes it more reliable.
+- `Navbar.jsx`: removed the "Enquire" WhatsApp button and its two imports (`generalEnquiryLink`, `WhatsAppIcon`). The floating WhatsApp button (`WhatsAppFloat.jsx`) and the Home call-to-action card are unchanged. On desktop the menu now sits to the right of the logo.
+- Docs: `WEBSITE-README.md` updated (favicons, navbar, admin names "Photos" / "Product categories" / "More options"). `ADMIN-README.md` unchanged.
+- Still to do: [ ] check `/favicon.ico` and `/favicon-96x96.png` open on the live site, [ ] check the navbar on a phone and on a desktop, [ ] Search Console steps above.
+
+---
+
+## Update 24 Nov 2026 (admin app redesign)
+
+- Admin app UI redesigned for non-technical users (age 40 to 50): 18px text, 56px buttons, plain words, big Back button, "Are you sure?" box instead of browser pop-ups, messages at the top.
+- Product form: photo, name, Price (₹), category, description, Show on website; everything else under "More details". Price is still saved as a detail named "Price".
+- Gallery tab renamed "Photos". Install app and Add samples moved to Settings → More options. Colour picker and pack-drawing dropdown removed from the screens (data fields kept).
+- Files changed (admin): `src/index.css`, `components/ui.jsx`, `App.jsx`, `Login.jsx`, `Products.jsx`, `Gallery.jsx`, `Categories.jsx`, `Settings.jsx`. No new packages.
+- `ADMIN-README.md` rewritten with a quick-facts table, folder map, data format, design rules and limits, so a new chat can start from it.
+- Still to do: [ ] run `npm run build` in `admin-app` and fix any red errors, [ ] test every screen on the owner's phone, [ ] push and check the Cloudflare build, [ ] set Cloudflare "Build watch paths" so each project rebuilds only for its own folder.
+- Capacity (free plans): the limit is Firestore reads (about 1,400 website visits per day in total across all sites), not photos. See `ADMIN-README.md` section 8.
 
 ---
 
@@ -190,16 +187,4 @@ Changed: `index.html`, `package.json`, `vite.config.js`, `src/main.jsx`, `src/co
 - [ ] Confirm working days (Mon–Sat in the structured data) and fix `index.html` if different.
 - [ ] Push, check Cloudflare build variables, then check the live site.
 - [ ] Paste the Search Console verification tag into `index.html`, deploy, verify, submit `https://natusz.pages.dev/sitemap.xml`.
-- [ ] Optional: restrict the Firebase API key to the site addresses in Google Cloud Console (then add a `Referer` header in `scripts/fetch-content.mjs`; see its README note).
-
----
-
-## Update 24 Nov 2026 (admin app redesign)
-
-- Admin app UI redesigned for non-technical users (age 40 to 50): 18px text, 56px buttons, plain words, big Back button, "Are you sure?" box instead of browser pop-ups, messages at the top.
-- Product form: photo, name, Price (₹), category, description, Show on website; everything else under "More details". Price is still saved as a detail named "Price".
-- Gallery tab renamed "Photos". Install app and Add samples moved to Settings → More options. Colour picker and pack-drawing dropdown removed from the screens (data fields kept).
-- Files changed (admin): `src/index.css`, `components/ui.jsx`, `App.jsx`, `Login.jsx`, `Products.jsx`, `Gallery.jsx`, `Categories.jsx`, `Settings.jsx`. No new packages.
-- `ADMIN-README.md` rewritten with a quick-facts table, folder map, data format, design rules and limits, so a new chat can start from it.
-- Still to do: [ ] run `npm run build` in `admin-app` and fix any red errors, [ ] test every screen on the owner's phone, [ ] push and check the Cloudflare build, [ ] set Cloudflare "Build watch paths" so each project rebuilds only for its own folder.
-- Capacity (free plans): the limit is Firestore reads (about 1,400 website visits per day in total across all sites), not photos. See `ADMIN-README.md` section 8.
+- [ ] Optional: restrict the Firebase API key to the site addresses in Google Cloud Console (then add a `Referer` header in `scripts/fetch-content.mjs`).

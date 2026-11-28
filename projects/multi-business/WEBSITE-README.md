@@ -1,5 +1,7 @@
 # Neu Natusz Healthcare Private Limited: Website
 
+Last updated: 28 Nov 2026
+
 A premium, multi-page website for **Neu Natusz Healthcare Private Limited** (short form: **Neu Natusz Healthcare Pvt Ltd**;
 pharmaceutical marketing, skin care medicines), Dombivli, Thane, Maharashtra 421203. Working hours: 10:00 AM – 6:00 PM.
 
@@ -51,14 +53,20 @@ npm run preview   # test the built website locally
 
 ```
 natusz-website/
-├─ index.html                  Fonts, Search Console tag spot, Organization + LocalBusiness JSON-LD (no title: each page sets its own)
+├─ index.html                  Fonts, favicon links, Search Console tag spot, Organization + LocalBusiness JSON-LD (no title: each page sets its own)
 ├─ tailwind.config.js          Brand colours and fonts
 ├─ vite.config.js              Vite + pre-render (SSG) options
 ├─ .env.example                Template for the Firebase values and site id (copy to .env)
 ├─ scripts/
 │  └─ fetch-content.mjs        Runs before every build: saves the products and writes public/sitemap.xml
 ├─ public/
-│  ├─ favicon.svg              Browser tab icon
+│  ├─ favicon.ico              ┐
+│  ├─ favicon.svg              │
+│  ├─ favicon-96x96.png        │ Favicons (browser tab icon, home screen icon)
+│  ├─ apple-touch-icon.png     │ made with a favicon generator, see "Favicons" in section 3
+│  ├─ site.webmanifest         │
+│  ├─ web-app-manifest-192x192.png │
+│  ├─ web-app-manifest-512x512.png ┘
 │  ├─ robots.txt               Tells search engines they may crawl, and where the sitemap is
 │  ├─ sitemap.xml              All pages + all products (rewritten on every build)
 │  ├─ og-image.png             1200 x 630 picture shown when a link is shared (add this yourself)
@@ -80,7 +88,7 @@ natusz-website/
    ├─ lib/ready.js             Makes the hero and gallery wait for the opening intro to finish
    ├─ lib/whatsapp.js          Builds the WhatsApp message links
    ├─ pages/                   One file per page (Home, About, Products, Gallery, Contact, NotFound, Paused)
-   ├─ components/              Reusable pieces (Navbar, Footer, Logo, Seo, Preloader, product cards, animations...)
+   ├─ components/              Reusable pieces (Navbar, Footer, Logo, Seo, Preloader, WhatsAppFloat, product cards, animations...)
    ├─ gallery/NatuszGallery.js The gallery engine (your supplied code, adapted)
    ├─ gallery.css              Gallery styling (only affects the Gallery page)
    └─ index.css                Global styles and button styles
@@ -98,7 +106,7 @@ natusz-website/
 
 ### Name, phone number, WhatsApp, email, address, working hours, website address
 
-Edit **`src/config/site.js`**. This one file feeds the navbar, footer, contact page, floating WhatsApp
+Edit **`src/config/site.js`**. This one file feeds the footer, contact page, floating WhatsApp
 button, every "Enquire on WhatsApp" button and the page titles.
 
 - `legalName`: "Neu Natusz Healthcare Private Limited". `legalNameShort` / `name`: "Neu Natusz Healthcare Pvt Ltd" (used where the name is abbreviated)
@@ -109,6 +117,23 @@ button, every "Enquire on WhatsApp" button and the page titles.
 - `address`: the location is **Dombivli, Thane, Maharashtra 421203** everywhere. Do not add any other city
 - `social`: paste Instagram / Facebook / LinkedIn links to show those icons in the footer (leave `""` to hide)
 - `mapQuery`: what Google Maps searches for on the Contact page
+
+### Favicons (browser tab icon and phone home-screen icon)
+
+The favicon files live in **`public/`** (list in section 2). They were made with a favicon generator, and `index.html` links to them:
+
+```html
+<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="shortcut icon" href="/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
+```
+
+To replace them later: make a new set with the generator, copy all files into `public/` with the **same file names**, and
+check `public/site.webmanifest` (name "Neu Natusz Healthcare Pvt Ltd", short name "Natusz", theme colour `#062A2E`, icons
+with `purpose: "any"`). Then hard refresh (`Ctrl + Shift + R`); browsers keep old favicons for a long time, so close and
+reopen the tab if needed. Google Search can take days or weeks to show a new favicon, and a custom domain helps (see section 10).
 
 ### Add, edit or remove a product
 
@@ -144,12 +169,12 @@ Tapping a product card goes to that address and opens the pop-up. Close goes bac
 
 ### Add or rename a category
 
-**Use the admin app** (Settings → Edit categories). The `categories` list at the top of `src/data/products.js` is only the
+**Use the admin app** (Settings → Product categories). The `categories` list at the top of `src/data/products.js` is only the
 fallback. The Home page category tiles pick an icon in `src/pages/Home.jsx` (`icons` list near the top).
 
 ### Gallery photos
 
-**Use the admin app** (Gallery tab). Photos go to Cloudinary and appear on the website straight away.
+**Use the admin app** (Photos tab). Photos go to Cloudinary and appear on the website straight away.
 The built-in placeholders live in `public/gallery/` and `src/data/gallery.js` (fallback only).
 
 Gallery controls: drag to move, tap a photo to open, **Esc** or the back arrow to close.
@@ -181,19 +206,21 @@ change what Google shows. Keep titles under about 60 characters and descriptions
 ### Menu items
 
 **`src/components/Navbar.jsx`** → the `navLinks` list. The footer does not repeat the menu.
-On phones and tablets the pages are shown as one equal-width row of text tabs under the logo (no drop-down); the current page has a green underline. On computers they sit in the top bar. The menu bar is see-through only at the very top of the Home page. On every other page it is solid, so the links are always readable.
+The top bar has only the logo and the menu (no WhatsApp button; WhatsApp is the floating button, see Layout notes).
+On phones and tablets the pages are shown as one equal-width row of text tabs under the logo (no drop-down); the current page has a green underline. On computers they sit in the top bar, to the right of the logo. The menu bar is see-through only at the very top of the Home page. On every other page it is solid, so the links are always readable.
 
 ### Add a new page
 
 1. Create `src/pages/Offers.jsx` (copy any existing page) and put a `<Seo title="..." description="..." path="/offers" />` at the top of its JSX (`import Seo from "../components/Seo";`).
 2. In `src/routes.jsx` import it and add `{ path: "offers", element: <Offers /> }` inside `children`.
-3. Add `{ to: "/offers", label: "Offers" }` to `navLinks` in `Navbar.jsx`.
+3. Add `{ to: "/offers", label: "Offers" }` to `navLinks` in `Navbar.jsx`. (The phone menu is a 5-column grid: `grid-cols-5` in `Navbar.jsx`. Change it if you add or remove a page.)
 4. Add `/offers` to the list of fixed pages in `scripts/fetch-content.mjs` (the `urls` line) so it is in the sitemap.
 
 ### Logo
 
 The logo is drawn as vectors in `src/components/logoPaths.js` (converted from the supplied PDF), and used through
 `src/components/Logo.jsx`. If the company ever changes its logo, replace those paths or swap `Logo.jsx` for an `<img>`.
+The favicon is separate (see "Favicons" above).
 
 ### Footer disclaimer and copyright
 
@@ -203,7 +230,7 @@ The logo is drawn as vectors in `src/components/logoPaths.js` (converted from th
 
 ## 4. Things to replace before going live
 
-1. **Products**: load the samples in the admin app, then edit or replace them with the owner's real range. Product details
+1. **Products**: load the samples in the admin app (Settings → More options → Add sample products), then edit or replace them with the owner's real range. Product details
    for medicines should be accurate and approved by him.
 2. **Gallery photos**: upload real photos in the admin app (8 or more looks best). The built-in placeholder pictures still say "Natusz Healthcare" inside the image.
 3. **Team quote and company story** in `src/pages/About.jsx`: written as a draft; let the owner approve or edit the wording.
@@ -274,6 +301,8 @@ If the website and the admin app share one repo, one push rebuilds both Cloudfla
 - **Gallery looks empty on first load**: the grid animates in after the opening logo screen; wait a second.
 - **WhatsApp opens with no text**: check `whatsappNumber` in `src/config/site.js` is digits only.
 - **A change doesn't show**: save the file; if it still doesn't, stop the terminal (`Ctrl + C`) and run `npm run dev` again.
+- **Old favicon still showing**: hard refresh (`Ctrl + Shift + R`), or close the tab and reopen it. Check that `/favicon.ico` and `/favicon-96x96.png` open on the live site. Google Search results can take weeks to update.
+- **VS Code Source Control shows no changes after editing**: press `Ctrl + S`, make sure the files are inside the opened repo folder (for favicons: `natusz-website/public/`), then run `git status` in the terminal.
 - **Website shows sample products, not the ones from the admin app**: check the four Firebase values and
   `VITE_SITE_ID=natusz` in `.env` (and in Cloudflare's environment variables), restart `npm run dev`, and make sure
   the admin app has products saved for that site id.
@@ -297,7 +326,7 @@ A separate project, the **admin app**, lets the owner log in on his phone and ch
 without touching code. It is hosted **separately** from this website, and **one admin app can manage many websites**
 (each website has its own id). This website reads its content from Firebase.
 
-1. Set up the admin app first (see its README, sections 1 to 3), including the owner's account linked to site id `natusz`.
+1. Set up the admin app first (see `ADMIN-README.md`, sections 4 and 5), including the owner's account linked to site id `natusz`.
 2. In this project copy `.env.example` to `.env` and fill in:
    - the **same four Firebase values** as the admin app
    - `VITE_SITE_ID=natusz` (this website's id; it must match the `siteId` given to the owner's login)
@@ -318,7 +347,7 @@ How it behaves:
   A detail named **Price, MRP, Cost or Rate** is shown in bold, and a plain number gets a rupee sign (250 shows as ₹250).
 - **Photos:** product photos are shown whole (`object-contain`), never stretched or cropped. In the gallery, the small
   grid tiles are square crops; opening a photo shows the whole picture (`src/gallery.css`).
-- Categories are managed in the admin app (Settings → Edit categories). The list in `src/data/products.js` is only the
+- Categories are managed in the admin app (Settings → Product categories). The list in `src/data/products.js` is only the
   fallback used when nothing is set in Firebase.
 
 Relevant files: `src/lib/firebase.js` (connection and site id), `src/lib/content.jsx` and `src/lib/catalog.js` (load products, gallery and
@@ -327,7 +356,7 @@ categories), `src/lib/images.js` (asks Cloudinary for web-sized photos), `script
 ### Reusing this setup for another website
 
 For your next website, copy only the pieces it needs (`src/lib/firebase.js`, `src/lib/content.jsx`, `src/lib/catalog.js`, `src/lib/slug.js`, `src/lib/images.js`, `scripts/fetch-content.mjs`),
-use a new `VITE_SITE_ID` (e.g. `clientb`), and create that owner's login in the admin app (admin README, section 2).
+use a new `VITE_SITE_ID` (e.g. `clientb`), and create that owner's login in the admin app (`ADMIN-README.md`, section 5).
 
 ---
 
@@ -345,7 +374,8 @@ use a new `VITE_SITE_ID` (e.g. `clientb`), and create that owner's login in the 
 
 - **Page titles, descriptions and share tags:** each page sets its own through `src/components/Seo.jsx` (title, description, canonical link, Open Graph and Twitter tags). Product pages get the product name, a description built from its details, and `Product` structured data.
 - **Structured data:** `index.html` holds `Organization` and `LocalBusiness` JSON-LD with the Dombivli, Thane 421203 address and 10:00 – 18:00 hours (currently Monday to Saturday).
-- **Google Search Console:** in `index.html`, find the big comment "GOOGLE SEARCH CONSOLE VERIFICATION" in the `<head>` and paste your verification `<meta>` tag under it. Deploy, click Verify in Search Console, then submit `https://natusz.pages.dev/sitemap.xml`.
+- **Google Search Console:** in `index.html`, find the big comment "GOOGLE SEARCH CONSOLE VERIFICATION" in the `<head>` and paste your verification `<meta>` tag under it. Deploy, click Verify in Search Console, then submit `https://natusz.pages.dev/sitemap.xml`. Then use **URL Inspection → Request Indexing** on the home page.
+- **Favicon in Google results:** Google shows the favicon next to the link only after it re-crawls the site (days to weeks, cannot be forced). It needs a favicon link in the home page `<head>`, an icon size that is a multiple of 48 px (or an SVG), and no blocking in `robots.txt`. It works more reliably on your own domain than on `natusz.pages.dev`.
 - **`public/robots.txt`** allows crawling and points to the sitemap. **`public/sitemap.xml`** is rewritten on every build with all pages and products.
 - **The opening logo screen** (`src/components/Preloader.jsx`) is only a visual overlay. The page text is already in the HTML underneath it, so crawlers are not blocked.
 - If the site ever has `<meta name="robots" content="noindex">` in `index.html`, remove it. Only the Paused and Not Found pages are meant to be `noindex`.
@@ -374,6 +404,6 @@ Files involved: `src/routes.jsx` (checks the switch), `src/pages/Paused.jsx` (th
 
 - Home page: category cards and featured products are a sideways swipe row on phones (`ProductShowcase` has a `scroll` prop). On tablets and computers they become a grid.
 - Wording: the site uses "our team". No personal names of the founder are shown.
-- No repeated items: WhatsApp enquiry lives in the top bar and the Home call-to-action card; the footer has no WhatsApp button or menu links.
+- No repeated items: WhatsApp enquiry lives in the **floating green button** (`WhatsAppFloat.jsx`, bottom right on every page except Gallery) and the Home call-to-action card. The top bar has no WhatsApp button, and the footer has no WhatsApp button or menu links.
 - Spacing: inner pages use a compact title band (`PageHeader.jsx`); Products' sticky search bar sits at `top-[104px]` on phones (below the two-row menu) and `top-[72px]` on computers. If the menu height changes, update those values and the top padding in `PageHeader.jsx` / the Home hero.
 - Product images are never modified by the code. Replace a photo from the admin app.
