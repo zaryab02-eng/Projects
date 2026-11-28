@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import Logo from "./Logo";
 import { site } from "../config/site";
-import { generalEnquiryLink } from "../lib/whatsapp";
-import WhatsAppIcon from "./WhatsAppIcon";
 
 // To add, remove or rename menu items, edit this list.
 export const navLinks = [
@@ -66,22 +64,6 @@ export default function Navbar() {
               </NavLink>
             ))}
           </nav>
-
-          <div className="flex items-center gap-3">
-            <a
-              href={generalEnquiryLink()}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`inline-flex items-center gap-2 rounded-full px-3 py-2.5 text-sm font-semibold transition duration-300 sm:px-5 ${
-                solid
-                  ? "bg-ink text-paper hover:bg-deep"
-                  : "bg-paper text-ink hover:bg-white"
-              }`}
-            >
-              <WhatsAppIcon className="h-4 w-4" />
-              <span className="hidden sm:inline">Enquire</span>
-            </a>
-          </div>
         </div>
 
         {/* Phone & tablet: all pages shown in one row, equal width, no scrolling */}
